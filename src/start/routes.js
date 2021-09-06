@@ -15,7 +15,17 @@
 
 /** @type {typeof import('@adonisjs/framework/src/Route/Manager')} */
 const Route = use('Route')
+const { ApolloServer } = require('apollo-server')
+const schemas = require('../app/Data/schemas.js');
+const resolvers = require('../app/Data/resolvers.js');
 
 Route.get('/', () => {
   return { greeting: 'Hello world in JSON' }
 })
+
+Route.route('/graphql', ({ request, response }) => {
+  return new ApolloServer({
+    schemas,
+    resolvers,
+  });
+}, ['GET', 'POST'])
