@@ -4,6 +4,8 @@ go 1.16
 
 require (
 	github.com/go-sql-driver/mysql v1.6.0
+	github.com/graphql-go/graphql v0.8.0
+	github.com/graphql-go/handler v0.2.3
 	github.com/joho/godotenv v1.3.0
 	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/labstack/echo v3.3.10+incompatible
