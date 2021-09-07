@@ -6,7 +6,12 @@ scalar DateTime @scalar(class: "Nuwave\\Lighthouse\\Schema\\Types\\Scalars\\Date
 
 type Query {
     people: [People!]! @paginate(type: CONNECTION)
-    person(id: ID @eq): People @find
+    person(PeopleId: ID @eq): People @find
+}
+
+type Mutation {
+    login(PeopleUsername: String!, PeoplePassword: String!): AuthData
+        @field(resolver: AuthMutator)
 }
 
 type People {
@@ -15,4 +20,9 @@ type People {
     PeopleEmail: String
     PeopleUsername: String!
     NIP: String
+}
+
+type AuthData {
+    PeopleId: ID!
+    token: String!
 }
