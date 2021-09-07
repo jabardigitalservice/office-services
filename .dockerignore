@@ -1,0 +1,9 @@
+src/bootstrap/cache/*.php
+src/storage/framework/cache/data
+src/storage/framework/views/*.php
+src/storage/logs/*.log
+src/vendor/
+src/.idea/
+src/.env
+.git/
+.DS_Store
