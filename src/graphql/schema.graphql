@@ -5,14 +5,14 @@ scalar Date @scalar(class: "Nuwave\\Lighthouse\\Schema\\Types\\Scalars\\Date")
 scalar DateTime @scalar(class: "Nuwave\\Lighthouse\\Schema\\Types\\Scalars\\DateTime")
 
 type Query {
-    people: [People!]! @paginate(defaultCount: 10)
+    people: [People!]! @paginate(type: CONNECTION)
     person(id: ID @eq): People @find
 }
 
 type People {
     PeopleId: ID!
     PeopleName: String!
-    PeopleEmail: String!
+    PeopleEmail: String
     PeopleUsername: String!
-    NIP: String!
+    NIP: String
 }
