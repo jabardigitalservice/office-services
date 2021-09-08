@@ -9,7 +9,7 @@ type Query {
     person(PeopleId: ID @eq): People @find
 
     inbox(NId: ID @eq): Inbox @find
-    inboxs: [Inbox!]! @paginate(type: CONNECTION)
+    inboxes: [Inbox!]! @paginate(type: CONNECTION)
 }
 
 type Mutation {
