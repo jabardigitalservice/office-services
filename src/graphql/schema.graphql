@@ -17,9 +17,13 @@ type Mutation {
 type People {
     PeopleId: ID!
     PeopleName: String!
-    PeopleEmail: String
+    Email: String
     PeopleUsername: String!
-    NIP: String
+    NIP: String,
+    Golongan: String,
+    satuan_kerja_nama: String,
+    unit_keja_nama: String,
+    PeoplePosition: String
 }
 
 type AuthData {
