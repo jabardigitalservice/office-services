@@ -7,6 +7,9 @@ scalar DateTime @scalar(class: "Nuwave\\Lighthouse\\Schema\\Types\\Scalars\\Date
 type Query {
     people: [People!]! @paginate(type: CONNECTION)
     person(PeopleId: ID @eq): People @find
+
+    inbox(NId: ID @eq): Inbox @find
+    inboxs: [Inbox!]! @paginate(type: CONNECTION)
 }
 
 type Mutation {
@@ -19,10 +22,10 @@ type People {
     PeopleName: String!
     Email: String
     PeopleUsername: String!
-    NIP: String,
-    Golongan: String,
-    satuan_kerja_nama: String,
-    unit_keja_nama: String,
+    NIP: String
+    Golongan: String
+    satuan_kerja_nama: String
+    unit_keja_nama: String
     PeoplePosition: String
 }
 
@@ -30,3 +33,23 @@ type AuthData {
     PeopleId: ID!
     token: String!
 }
+
+type Receiver {
+    People: [People]
+    ReceiverAs: String
+    ReceiverDate: String
+    Msg: String
+}
+
+type Inbox {
+    NId: ID!
+    NTglReg: DateTime!
+    Pengirim: String
+    Penerima: [Receiver]
+    NamaPengirim: String
+    Instansipengirim: String!
+    Hal: String!
+    UrgensiId: String!
+    FileName_fake: String
+}
+
