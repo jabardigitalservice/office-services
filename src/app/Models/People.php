@@ -9,5 +9,7 @@ class People extends Model
 {
     use HasFactory;
 
+    public $timestamps = false;
+
     protected $table = "people";
 }
