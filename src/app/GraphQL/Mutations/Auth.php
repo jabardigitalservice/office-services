@@ -1,0 +1,51 @@
+<?php
+
+namespace App\GraphQL\Mutations;
+
+use App\Models\People;
+use Illuminate\Http\Response;
+use Firebase\JWT\JWT;
+
+class Auth
+{
+    /**
+     * @param $rootValue
+     * @param $args
+     *
+     * @throws \Exception
+     *
+     * @return array
+     */
+    public function login($rootValue, array $args)
+    {
+        // TODO implement the resolver
+        $people = People::where('PeopleUsername', $args['input']['username'])->first();
+
+        if (!$people && (sha1($args['input']['password']) != $people->PeoplePassword)) {
+            return $this->failedResponse(Response::HTTP_UNAUTHORIZED);
+        }
+
+        $issuedAt = time();
+        $startTime = $issuedAt + config('jwt.ttl');
+        $expTime = $issuedAt + config('jwt.refresh_ttl');
+
+        $accessToken = JWT::encode(array(
+            'identifier' => $people->PeopleId,
+            'iat' => $issuedAt,
+            'nbf' => $startTime,
+            'exp' => $expTime
+        ), config('jwt.secret'));
+
+        return [
+            'message' => "success",
+            'access_token' => $accessToken,
+            'token_type' => 'bearer',
+            'expires_in' => $expTime,
+        ];
+    }
+
+    public function failedResponse($httpStatus)
+    {
+        return ['message' => 'Unauthorized'];
+    }
+}
