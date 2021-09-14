@@ -10,4 +10,10 @@ class Inbox extends Model
     use HasFactory;
 
     protected $table = "inbox";
+
+    public function type()
+    {
+        return $this->belongsTo(DocumentType::class, 'JenisId', 'JenisId');
+    }
+
 }

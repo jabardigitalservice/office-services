@@ -18,7 +18,7 @@ type Mutation {
 }
 
 type People {
-    PeopleId: ID!
+    id: ID!
     PeopleName: String!
     Email: String
     PeopleUsername: String!
@@ -48,15 +48,19 @@ type Receiver {
     Msg: String
 }
 
-type Inbox {
-    NId: ID!
-    NTglReg: DateTime!
-    Pengirim: String
-    Penerima: [Receiver]
-    NamaPengirim: String
-    Instansipengirim: String!
-    Hal: String!
-    UrgensiId: String!
-    FileName_fake: String
+type DocumentType {
+    id: String! @rename(attribute: "JenisId")
+    name: String! @rename(attribute: "JenisName")
+    content: String @rename(attribute: "Isi")
 }
 
+type Inbox {
+    id: ID! @rename(attribute: "NId")
+    source: String @rename(attribute: "Pengirim")
+    date: DateTime! @rename(attribute: "NTglReg")
+    senderName: String @rename(attribute: "NamaPengirim")
+    senderOrg: String! @rename(attribute: "Instansipengirim")
+    about: String! @rename(attribute: "Hal")
+    type: DocumentType! @belongsTo
+    urgency: String! @rename(attribute: "UrgensiId")
+}
