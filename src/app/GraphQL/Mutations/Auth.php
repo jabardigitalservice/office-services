@@ -48,9 +48,4 @@ class Auth
             'expires_in' => $expTime,
         ];
     }
-
-    public function failedResponse($httpStatus)
-    {
-        return ['message' => 'Unauthorized'];
-    }
 }
