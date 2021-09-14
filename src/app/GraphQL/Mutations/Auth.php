@@ -21,7 +21,7 @@ class Auth
         // TODO implement the resolver
         $people = People::where('PeopleUsername', $args['input']['username'])->first();
 
-        if (!$people && (sha1($args['input']['password']) != $people->PeoplePassword)) {
+        if (!$people || (sha1($args['input']['password']) != $people->PeoplePassword)) {
             return $this->failedResponse(Response::HTTP_UNAUTHORIZED);
         }
 
@@ -37,7 +37,7 @@ class Auth
         ), config('jwt.secret'));
 
         return [
-            'message' => "success",
+            'message' => 'success',
             'access_token' => $accessToken,
             'token_type' => 'bearer',
             'expires_in' => $expTime,
