@@ -6,7 +6,9 @@ scalar DateTime @scalar(class: "Nuwave\\Lighthouse\\Schema\\Types\\Scalars\\Date
 
 type Query {
     inbox(NId: ID @eq): Inbox @find
-    inboxes: [Inbox!]! @paginate(type: CONNECTION)
+    inboxes(
+        filter: FilterInput @builder(method: "App\\Models\\Inbox@filter")
+    ): [Inbox!]! @paginate(type: CONNECTION)
 
     me: People
         @field(resolver: "App\\GraphQL\\Queries\\Account@profile")
@@ -59,12 +61,18 @@ type DocumentUrgency {
     name: String! @rename(attribute: "UrgensiName")
 }
 
+input FilterInput {
+    sources: [String]
+    types: [String]
+    urgencies: [String]
+}
+
 type Inbox {
     id: ID! @rename(attribute: "NId")
     source: String @rename(attribute: "Pengirim")
     date: DateTime! @rename(attribute: "NTglReg")
-    senderName: String @rename(attribute: "NamaPengirim")
-    senderOrg: String! @rename(attribute: "Instansipengirim")
+    fromName: String @rename(attribute: "NamaPengirim")
+    fromOrg: String @rename(attribute: "Instansipengirim")
     about: String! @rename(attribute: "Hal")
     type: DocumentType! @belongsTo
     urgency: DocumentUrgency! @belongsTo

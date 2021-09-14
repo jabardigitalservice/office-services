@@ -11,4 +11,7 @@ class DocumentUrgency extends Model
 
     protected $table = "master_urgensi";
 
+    protected $keyType = 'string';
+
+    protected $primaryKey = 'UrgensiId';
 }

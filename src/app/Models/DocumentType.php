@@ -9,5 +9,9 @@ class DocumentType extends Model
 {
     use HasFactory;
 
-    protected $table = "master_jnaskah";
+    protected $table = 'master_jnaskah';
+
+    protected $keyType = 'string';
+
+    protected $primaryKey = 'JenisId';
 }
