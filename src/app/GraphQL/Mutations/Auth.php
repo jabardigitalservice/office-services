@@ -2,6 +2,7 @@
 
 namespace App\GraphQL\Mutations;
 
+use App\Exceptions\CustomException;
 use App\Models\People;
 use Illuminate\Http\Response;
 use Firebase\JWT\JWT;
@@ -22,7 +23,11 @@ class Auth
         $people = People::where('PeopleUsername', $args['input']['username'])->first();
 
         if (!$people || (sha1($args['input']['password']) != $people->PeoplePassword)) {
-            return $this->failedResponse(Response::HTTP_UNAUTHORIZED);
+            throw new CustomException(
+                'Invalid credential',
+                'Email and password are incorrect'
+            );
+
         }
 
         $issuedAt = time();
@@ -42,10 +47,5 @@ class Auth
             'token_type' => 'bearer',
             'expires_in' => $expTime,
         ];
-    }
-
-    public function failedResponse($httpStatus)
-    {
-        return ['message' => 'Unauthorized'];
     }
 }
