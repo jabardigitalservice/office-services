@@ -54,6 +54,11 @@ type DocumentType {
     content: String @rename(attribute: "Isi")
 }
 
+type DocumentUrgency {
+    id: String! @rename(attribute: "UrgensiId")
+    name: String! @rename(attribute: "UrgensiName")
+}
+
 type Inbox {
     id: ID! @rename(attribute: "NId")
     source: String @rename(attribute: "Pengirim")
@@ -62,5 +67,5 @@ type Inbox {
     senderOrg: String! @rename(attribute: "Instansipengirim")
     about: String! @rename(attribute: "Hal")
     type: DocumentType! @belongsTo
-    urgency: String! @rename(attribute: "UrgensiId")
+    urgency: DocumentUrgency! @belongsTo
 }
