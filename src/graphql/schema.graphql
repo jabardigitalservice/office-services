@@ -31,6 +31,7 @@ type People {
 type Role {
     id: ID! @rename(attribute: "RoleId")
     name: String! @rename(attribute: "RoleName")
+    desc: String! @rename(attribute: "RoleDesc")
     rolecode: Rolecode @belongsTo
 }
 
