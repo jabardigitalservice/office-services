@@ -18,15 +18,25 @@ type Mutation {
 }
 
 type People {
-    PeopleId: ID!
-    PeopleName: String!
-    Email: String
-    PeopleUsername: String!
-    NIP: String
-    Golongan: String
-    satuan_kerja_nama: String
-    unit_keja_nama: String
-    PeoplePosition: String
+    id: ID! @rename(attribute: "PeopleId")
+    name: String @rename(attribute: "PeopleName")
+    email: String @rename(attribute: "Email")
+    username: String @rename(attribute: "PeopleUsername")
+    employee_number: String @rename(attribute: "NIP")
+    class_rank: String @rename(attribute: "Golongan")
+    role: Role @belongsTo
+    position: String @rename(attribute: "PeoplePosition")
+}
+
+type Role {
+    id: ID! @rename(attribute: "RoleId")
+    name: String! @rename(attribute: "RoleName")
+    rolecode: Rolecode @belongsTo
+}
+
+type Rolecode {
+    id: ID! @rename(attribute: "rolecode_id")
+    name: String! @rename(attribute: "rolecode_name")
 }
 
 input LoginInput {
