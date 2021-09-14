@@ -5,16 +5,16 @@ scalar Date @scalar(class: "Nuwave\\Lighthouse\\Schema\\Types\\Scalars\\Date")
 scalar DateTime @scalar(class: "Nuwave\\Lighthouse\\Schema\\Types\\Scalars\\DateTime")
 
 type Query {
-    people: [People!]! @paginate(type: CONNECTION)
-    person(PeopleId: ID @eq): People @find
-
     inbox(NId: ID @eq): Inbox @find
     inboxes: [Inbox!]! @paginate(type: CONNECTION)
+
+    me: People
+        @field(resolver: "App\\GraphQL\\Queries\\Account@profile")
 }
 
 type Mutation {
-    login(PeopleUsername: String!, PeoplePassword: String!): AuthData
-        @field(resolver: AuthMutator)
+    login(input: LoginInput): AuthPayload
+        @field(resolver: "App\\GraphQL\\Mutations\\Auth@login")
 }
 
 type People {
@@ -29,9 +29,16 @@ type People {
     PeoplePosition: String
 }
 
-type AuthData {
-    PeopleId: ID!
-    token: String!
+input LoginInput {
+    username: String!
+    password: String!
+}
+
+type AuthPayload {
+    message: String
+    access_token: String
+    token_type: String
+    expires_in: Int
 }
 
 type Receiver {
