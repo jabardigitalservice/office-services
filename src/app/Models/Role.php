@@ -5,16 +5,16 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class People extends Model
+class Role extends Model
 {
     use HasFactory;
 
     public $timestamps = false;
 
-    protected $table = "people";
+    protected $table = "role";
 
-    public function role()
+    public function rolecode()
     {
-        return $this->belongsTo(Role::class, 'PrimaryRoleId', 'RoleId');
+        return $this->belongsTo(Rolecode::class, 'RoleCode', 'rolecode_id');
     }
 }
