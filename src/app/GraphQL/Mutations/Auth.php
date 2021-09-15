@@ -27,7 +27,6 @@ class Auth
                 'Invalid credential',
                 'Email and password are incorrect'
             );
-
         }
 
         $issuedAt = time();
