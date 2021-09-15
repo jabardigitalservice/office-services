@@ -10,4 +10,47 @@ class Inbox extends Model
     use HasFactory;
 
     protected $table = "inbox";
+
+    protected $keyType = 'string';
+
+    protected $primaryKey = 'NId';
+
+    public function type()
+    {
+        return $this->belongsTo(DocumentType::class, 'JenisId', 'JenisId');
+    }
+
+    public function urgency()
+    {
+        return $this->belongsTo(DocumentUrgency::class, 'UrgensiId', 'UrgensiId');
+    }
+
+    public function filter($query, $filter)
+    {
+        $sources = $filter["sources"] ?? null;
+        $types = $filter["types"] ?? null;
+        $urgencies = $filter["urgencies"] ?? null;
+
+        if ($sources) {
+            $query->whereIn('pengirim', $sources);
+        }
+
+        if ($types) {
+            $query->whereIn('JenisId', function($subQuery) use ($types){
+                $subQuery->select('JenisId')
+                ->from('master_jnaskah')
+                ->whereIn('JenisName', $types);
+            });
+        }
+
+        if ($urgencies) {
+            $query->whereIn('UrgensiId', function($subQuery) use ($urgencies){
+                $subQuery->select('UrgensiId')
+                ->from('master_urgensi')
+                ->whereIn('UrgensiName', $urgencies);
+            });
+        }
+
+        return $query->orderby('NTglReg', 'desc');
+    }
 }
