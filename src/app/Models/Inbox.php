@@ -48,7 +48,7 @@ class Inbox extends Model
         }
 
         if ($types) {
-            $query->whereIn('JenisId', function($subQuery) use ($types){
+            $query->whereIn('JenisId', function ($subQuery) use ($types) {
                 $subQuery->select('JenisId')
                 ->from('master_jnaskah')
                 ->whereIn('JenisName', $types);
@@ -56,7 +56,7 @@ class Inbox extends Model
         }
 
         if ($urgencies) {
-            $query->whereIn('UrgensiId', function($subQuery) use ($urgencies){
+            $query->whereIn('UrgensiId', function ($subQuery) use ($urgencies) {
                 $subQuery->select('UrgensiId')
                 ->from('master_urgensi')
                 ->whereIn('UrgensiName', $urgencies);
