@@ -13,5 +13,7 @@ class Rolecode extends Model
 
     protected $table = "rolecode";
 
+    protected $keyType = 'string';
+
     protected $primaryKey = 'rolecode_id';
 }
