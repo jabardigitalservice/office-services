@@ -51,6 +51,6 @@ class Inbox extends Model
             });
         }
 
-        return $query;
+        return $query->orderby('NTglReg', 'desc');
     }
 }
