@@ -19,17 +19,18 @@ class Authenticate extends Middleware
     public function handle($request, Closure $next, ...$guards)
     {
         if ($request->headers->get('Authorization')) {
-            $decoded = $this->decodeJwt($request);
+            list($decoded, $message) = $this->decodeJwt($request);
 
-            if (!$decoded) {
-                return $this->invalidToken();
-            }
-            $people = People::where([
-                'PeopleId' => $decoded->identifier,
-            ])->first();
-
-            if (!$people) {
-                return $this->invalidToken();
+            if ($decoded) {
+                $people = People::where([
+                    'PeopleId' => $decoded->identifier,
+                ])->first();
+            } else {
+                if ($message == 'Expired token') {
+                    return $this->responseMessage($message);
+                } else {
+                    return $this->responseMessage('Invalid token');
+                }
             }
 
             $request->request->add(['people' => $people]);
@@ -51,13 +52,11 @@ class Authenticate extends Middleware
         } catch (\Exception $e) {
             return [false, $e->getMessage()];
         }
-        return $decoded;
+        return [$decoded, null];
     }
 
-    protected function invalidToken()
+    protected function responseMessage($message)
     {
-        return [
-            'message' => 'Token Invalid'
-        ];
+        return ['message' => $message];
     }
 }
