@@ -24,8 +24,8 @@ type People {
     name: String @rename(attribute: "PeopleName")
     email: String @rename(attribute: "Email")
     username: String @rename(attribute: "PeopleUsername")
-    employee_number: String @rename(attribute: "NIP")
-    class_rank: String @rename(attribute: "Golongan")
+    employeeNumber: String @rename(attribute: "NIP")
+    classRank: String @rename(attribute: "Golongan")
     role: Role @belongsTo
     position: String @rename(attribute: "PeoplePosition")
 }
