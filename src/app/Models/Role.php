@@ -13,6 +13,10 @@ class Role extends Model
 
     protected $table = "role";
 
+    protected $keyType = 'string';
+
+    protected $primaryKey = 'RoleCode';
+
     public function rolecode()
     {
         return $this->belongsTo(Rolecode::class, 'RoleCode', 'rolecode_id');
