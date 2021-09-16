@@ -7,7 +7,7 @@ use App\Models\People;
 use Illuminate\Http\Response;
 use Firebase\JWT\JWT;
 
-class Auth
+class AuthMutator
 {
     /**
      * @param $rootValue
