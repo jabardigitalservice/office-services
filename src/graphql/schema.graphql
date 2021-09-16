@@ -8,7 +8,7 @@ type Query {
     inbox(NId: ID @eq): Inbox @find
     inboxes(
         filter: FilterInput @builder(method: "App\\Models\\Inbox@filter")
-    ): [Inbox!]! @paginate(type: CONNECTION)
+    ): [Inbox!]! @paginate(type: CONNECTION) @orderBy(column: "NTglReg", direction: DESC)
 
     me: People
         @field(resolver: "App\\GraphQL\\Queries\\Account@profile")

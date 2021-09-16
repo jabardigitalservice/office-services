@@ -63,6 +63,6 @@ class Inbox extends Model
             });
         }
 
-        return $query->orderby('NTglReg', 'desc');
+        return $query;
     }
 }
