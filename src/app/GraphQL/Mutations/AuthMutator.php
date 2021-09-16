@@ -7,7 +7,7 @@ use App\Models\People;
 use Illuminate\Http\Response;
 use Firebase\JWT\JWT;
 
-class Auth
+class AuthMutator
 {
     /**
      * @param $rootValue
@@ -27,7 +27,6 @@ class Auth
                 'Invalid credential',
                 'Email and password are incorrect'
             );
-
         }
 
         $issuedAt = time();

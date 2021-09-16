@@ -2,11 +2,12 @@
 
 namespace App\Http\Middleware;
 
-use Illuminate\Http\Request;
-use Firebase\JWT\JWT;
+use App\Exceptions\InvalidTokenException;
 use App\Models\People;
 use Closure;
+use Firebase\JWT\JWT;
 use Illuminate\Auth\Middleware\Authenticate as Middleware;
+use Illuminate\Http\Request;
 
 class Authenticate extends Middleware
 {
@@ -14,6 +15,9 @@ class Authenticate extends Middleware
      * Get the path the user should be redirected to when they are not authenticated.
      *
      * @param  \Illuminate\Http\Request  $request
+     *
+     * @throws \Exception
+     *
      * @return mixed
      */
     public function handle($request, Closure $next, ...$guards)
@@ -21,16 +25,9 @@ class Authenticate extends Middleware
         if ($request->headers->get('Authorization')) {
             $decoded = $this->decodeJwt($request);
 
-            if (!$decoded) {
-                return $this->invalidToken();
-            }
             $people = People::where([
                 'PeopleId' => $decoded->identifier,
             ])->first();
-
-            if (!$people) {
-                return $this->invalidToken();
-            }
 
             $request->request->add(['people' => $people]);
         }
@@ -49,15 +46,8 @@ class Authenticate extends Middleware
         try {
             $decoded = JWT::decode($this->getJwt($request), config('jwt.secret'), array(config('jwt.algo')));
         } catch (\Exception $e) {
-            return [false, $e->getMessage()];
+            throw new InvalidTokenException('Server Error');
         }
         return $decoded;
-    }
-
-    protected function invalidToken()
-    {
-        return [
-            'message' => 'Token Invalid'
-        ];
     }
 }

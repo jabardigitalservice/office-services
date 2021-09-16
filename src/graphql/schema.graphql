@@ -11,12 +11,12 @@ type Query {
     ): [Inbox!]! @paginate(type: CONNECTION) @orderBy(column: "NTglReg", direction: DESC)
 
     me: People
-        @field(resolver: "App\\GraphQL\\Queries\\Account@profile")
+        @field(resolver: "AccountQuery@profile")
 }
 
 type Mutation {
     login(input: LoginInput): AuthPayload
-        @field(resolver: "App\\GraphQL\\Mutations\\Auth@login")
+        @field(resolver: "AuthMutator@login")
 }
 
 type People {
