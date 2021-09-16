@@ -25,13 +25,9 @@ class Authenticate extends Middleware
         if ($request->headers->get('Authorization')) {
             $decoded = $this->decodeJwt($request);
 
-            if ($decoded) {
-                $people = People::where([
-                    'PeopleId' => $decoded->identifier,
-                ])->first();
-            } else {
-                throw new InvalidTokenException('Server Error');
-            }
+            $people = People::where([
+                'PeopleId' => $decoded->identifier,
+            ])->first();
 
             $request->request->add(['people' => $people]);
         }
@@ -50,7 +46,7 @@ class Authenticate extends Middleware
         try {
             $decoded = JWT::decode($this->getJwt($request), config('jwt.secret'), array(config('jwt.algo')));
         } catch (\Exception $e) {
-            return false;
+            throw new InvalidTokenException('Server Error');
         }
         return $decoded;
     }
