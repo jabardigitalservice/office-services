@@ -37,6 +37,11 @@ class Inbox extends Model
         }
     }
 
+    public function receiver()
+    {
+        return $this->belongsTo(InboxReceiver::class, 'NId', 'NId');
+    }
+
     public function filter($query, $filter)
     {
         $sources = $filter["sources"] ?? null;

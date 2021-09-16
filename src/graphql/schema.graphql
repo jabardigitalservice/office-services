@@ -5,7 +5,8 @@ scalar Date @scalar(class: "Nuwave\\Lighthouse\\Schema\\Types\\Scalars\\Date")
 scalar DateTime @scalar(class: "Nuwave\\Lighthouse\\Schema\\Types\\Scalars\\DateTime")
 
 type Query {
-    inbox(NId: ID @eq): Inbox @find @protect
+    inbox(NId: ID @eq): Inbox
+        @field(resolver: "InboxQuery@detail")
     inboxes(
         filter: FilterInput @builder(method: "App\\Models\\Inbox@filter")
     ): [Inbox!]! @paginate(type: CONNECTION) @orderBy(column: "NTglReg", direction: DESC) @protect
@@ -54,11 +55,15 @@ type AuthPayload {
     expires_in: Int
 }
 
-type Receiver {
-    People: [People]
-    ReceiverAs: String
-    ReceiverDate: String
-    Msg: String
+type InboxReceiver {
+    inboxId: String! @rename(attribute: "NId")
+    fromId: String! @rename(attribute: "From_Id")
+    toId: String! @rename(attribute: "To_Id")
+    message: String @rename(attribute: "Msg")
+    receiverAs: String @rename(attribute: "ReceiverAs")
+    statusReceiver: String @rename(attribute: "StatusReceive")
+    toIdMessage: String @rename(attribute: "To_Id_Message")
+    status: Int @rename(attribute: "Status")
 }
 
 type DocumentType {
@@ -88,5 +93,5 @@ type Inbox {
     type: DocumentType! @belongsTo
     urgency: DocumentUrgency! @belongsTo
     documentFile: String @rename(attribute: "document_file")
+    receiver: InboxReceiver @belongsTo
 }
-
