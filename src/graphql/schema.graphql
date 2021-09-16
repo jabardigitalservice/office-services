@@ -5,18 +5,18 @@ scalar Date @scalar(class: "Nuwave\\Lighthouse\\Schema\\Types\\Scalars\\Date")
 scalar DateTime @scalar(class: "Nuwave\\Lighthouse\\Schema\\Types\\Scalars\\DateTime")
 
 type Query {
-    inbox(NId: ID @eq): Inbox @find
+    inbox(NId: ID @eq): Inbox @find @protect
     inboxes(
         filter: FilterInput @builder(method: "App\\Models\\Inbox@filter")
-    ): [Inbox!]! @paginate(type: CONNECTION) @orderBy(column: "NTglReg", direction: DESC)
+    ): [Inbox!]! @paginate(type: CONNECTION) @orderBy(column: "NTglReg", direction: DESC) @protect
 
     me: People
-        @field(resolver: "App\\GraphQL\\Queries\\Account@profile")
+        @field(resolver: "AccountQuery@profile") @protect
 }
 
 type Mutation {
     login(input: LoginInput): AuthPayload
-        @field(resolver: "App\\GraphQL\\Mutations\\Auth@login")
+        @field(resolver: "AuthMutator@login")
 }
 
 type People {

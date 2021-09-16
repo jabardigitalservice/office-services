@@ -7,7 +7,7 @@ use App\Models\People;
 use Illuminate\Http\Response;
 use Firebase\JWT\JWT;
 
-class Auth
+class AuthMutator
 {
     /**
      * @param $rootValue
@@ -22,12 +22,11 @@ class Auth
         // TODO implement the resolver
         $people = People::where('PeopleUsername', $args['input']['username'])->first();
 
-        if (!$people || (sha1($args['input']['password']) != $people->PeoplePassword)) {
+        if (!$people || $people->PeopleIsActive == 0 || (sha1($args['input']['password']) != $people->PeoplePassword)) {
             throw new CustomException(
                 'Invalid credential',
                 'Email and password are incorrect'
             );
-
         }
 
         $issuedAt = time();

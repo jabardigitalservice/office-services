@@ -6,7 +6,7 @@ use App\Models\People;
 use GraphQL\Type\Definition\ResolveInfo;
 use Nuwave\Lighthouse\Support\Contracts\GraphQLContext;
 
-class Account
+class AccountQuery
 {
     /**
      * @param $rootValue
