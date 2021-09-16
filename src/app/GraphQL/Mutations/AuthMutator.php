@@ -22,7 +22,7 @@ class AuthMutator
         // TODO implement the resolver
         $people = People::where('PeopleUsername', $args['input']['username'])->first();
 
-        if (!$people || (sha1($args['input']['password']) != $people->PeoplePassword)) {
+        if (!$people || $people->PeopleIsActive == 0 || (sha1($args['input']['password']) != $people->PeoplePassword)) {
             throw new CustomException(
                 'Invalid credential',
                 'Email and password are incorrect'
