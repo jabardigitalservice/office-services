@@ -25,6 +25,18 @@ class Inbox extends Model
         return $this->belongsTo(DocumentUrgency::class, 'UrgensiId', 'UrgensiId');
     }
 
+    public function file()
+    {
+        return $this->belongsTo(InboxFile::class, 'NId', 'NId');
+    }
+
+    public function getDocumentFileAttribute()
+    {
+        if ($this->file) {
+            return config('sikd.base_path_file') . $this->NFileDir . '/' . $this->file->FileName_fake;
+        }
+    }
+
     public function filter($query, $filter)
     {
         $sources = $filter["sources"] ?? null;
@@ -36,7 +48,7 @@ class Inbox extends Model
         }
 
         if ($types) {
-            $query->whereIn('JenisId', function($subQuery) use ($types){
+            $query->whereIn('JenisId', function ($subQuery) use ($types) {
                 $subQuery->select('JenisId')
                 ->from('master_jnaskah')
                 ->whereIn('JenisName', $types);
@@ -44,7 +56,7 @@ class Inbox extends Model
         }
 
         if ($urgencies) {
-            $query->whereIn('UrgensiId', function($subQuery) use ($urgencies){
+            $query->whereIn('UrgensiId', function ($subQuery) use ($urgencies) {
                 $subQuery->select('UrgensiId')
                 ->from('master_urgensi')
                 ->whereIn('UrgensiName', $urgencies);
