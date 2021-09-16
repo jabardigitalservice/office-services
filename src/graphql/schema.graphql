@@ -87,4 +87,6 @@ type Inbox {
     about: String! @rename(attribute: "Hal")
     type: DocumentType! @belongsTo
     urgency: DocumentUrgency! @belongsTo
+    documentFile: String @rename(attribute: "document_file")
 }
+
