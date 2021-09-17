@@ -8,7 +8,11 @@ type Query {
     inbox(NId: ID @eq): Inbox @find @protect
     inboxes(
         filter: FilterInput @builder(method: "App\\Models\\Inbox@filter")
-    ): [Inbox!]! @paginate(type: CONNECTION) @orderBy(column: "NTglReg", direction: DESC) @protect
+    ): [Inbox!]!
+        @builder(method: "App\\Models\\Inbox@owner")
+        @orderBy(column: "NTglReg", direction: DESC)
+        @paginate(type: CONNECTION)
+        @protect
 
     me: People
         @field(resolver: "AccountQuery@profile") @protect
@@ -54,13 +58,6 @@ type AuthPayload {
     expires_in: Int
 }
 
-type Receiver {
-    People: [People]
-    ReceiverAs: String
-    ReceiverDate: String
-    Msg: String
-}
-
 type DocumentType {
     id: String! @rename(attribute: "JenisId")
     name: String! @rename(attribute: "JenisName")
@@ -80,6 +77,7 @@ input FilterInput {
 
 type Inbox {
     id: ID! @rename(attribute: "NId")
+    archiveUnitId: Int @rename(attribute: "CreatedBy")
     source: String @rename(attribute: "Pengirim")
     date: DateTime! @rename(attribute: "NTglReg")
     fromName: String @rename(attribute: "Namapengirim")
@@ -89,4 +87,3 @@ type Inbox {
     urgency: DocumentUrgency! @belongsTo
     documentFile: String @rename(attribute: "document_file")
 }
-
