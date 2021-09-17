@@ -28,6 +28,7 @@ type People {
     classRank: String @rename(attribute: "Golongan")
     role: Role @belongsTo
     position: String @rename(attribute: "PeoplePosition")
+    avatar: String
 }
 
 type Role {
