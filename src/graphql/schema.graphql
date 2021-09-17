@@ -70,9 +70,9 @@ type DocumentUrgency {
 }
 
 input FilterInput {
-    sources: [String]
-    types: [String]
-    urgencies: [String]
+    sources: String
+    types: String
+    urgencies: String
 }
 
 type Inbox {
