@@ -49,22 +49,25 @@ class Inbox extends Model
         $urgencies = $filter["urgencies"] ?? null;
 
         if ($sources) {
-            $query->whereIn('pengirim', $sources);
+            $arraySources = explode(", ", $sources);
+            $query->whereIn('pengirim', $arraySources);
         }
 
         if ($types) {
-            $query->whereIn('JenisId', function ($subQuery) use ($types) {
+            $arrayTypes = explode(", ", $types);
+            $query->whereIn('JenisId', function ($subQuery) use ($arrayTypes) {
                 $subQuery->select('JenisId')
                 ->from('master_jnaskah')
-                ->whereIn('JenisName', $types);
+                ->whereIn('JenisName', $arrayTypes);
             });
         }
 
         if ($urgencies) {
-            $query->whereIn('UrgensiId', function ($subQuery) use ($urgencies) {
+            $arrayUrgencies = explode(", ", $urgencies);
+            $query->whereIn('UrgensiId', function ($subQuery) use ($arrayUrgencies) {
                 $subQuery->select('UrgensiId')
                 ->from('master_urgensi')
-                ->whereIn('UrgensiName', $urgencies);
+                ->whereIn('UrgensiName', $arrayUrgencies);
             });
         }
 
