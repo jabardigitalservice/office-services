@@ -37,6 +37,11 @@ class Inbox extends Model
         }
     }
 
+    public function owner($query)
+    {
+        return $query->where('CreatedBy', request()->people->PeopleId);
+    }
+
     public function filter($query, $filter)
     {
         $sources = $filter["sources"] ?? null;
