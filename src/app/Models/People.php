@@ -29,6 +29,6 @@ class People extends Model
 
     public function getAvatarAttribute()
     {
-        return $this->siapPeople->peg_foto_url;
+        return optional($this->siapPeople)->peg_foto_url;
     }
 }
