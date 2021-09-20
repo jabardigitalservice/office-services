@@ -13,8 +13,6 @@ class People extends Model
 
     protected $table = "people";
 
-    protected $keyType = 'string';
-
     protected $primaryKey = 'PeopleId';
 
     public function role()

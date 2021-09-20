@@ -39,7 +39,13 @@ class Inbox extends Model
 
     public function owner($query)
     {
-        return $query->where('CreatedBy', request()->people->PeopleId);
+        $query->whereIn('NId', function ($subQuery) {
+            $subQuery->select('NId')
+            ->from('inbox_receiver')
+            ->where('To_Id', request()->people->PeopleId);
+        });
+
+        return $query;
     }
 
     public function filter($query, $filter)
