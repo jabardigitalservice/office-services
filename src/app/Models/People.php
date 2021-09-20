@@ -15,7 +15,7 @@ class People extends Model
 
     protected $keyType = 'string';
 
-    protected $primaryKey = 'PrimaryRoleId';
+    protected $primaryKey = 'PeopleId';
 
     public function role()
     {
