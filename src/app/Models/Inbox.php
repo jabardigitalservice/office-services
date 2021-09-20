@@ -48,6 +48,16 @@ class Inbox extends Model
         return $query;
     }
 
+    public function search($query, $search)
+    {
+        $query
+            ->where('Hal', 'LIKE', '%' . $search . '%')
+            ->orWhere('Namapengirim', 'LIKE', '%' . $search . '%')
+            ->orWhere('Instansipengirim', 'LIKE', '%' . $search . '%')
+            ->orWhere('Nomor', 'LIKE', '%' . $search . '%');
+        return $query;
+    }
+
     public function filter($query, $filter)
     {
         $sources = $filter["sources"] ?? null;
