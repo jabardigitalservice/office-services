@@ -7,6 +7,7 @@ scalar DateTime @scalar(class: "Nuwave\\Lighthouse\\Schema\\Types\\Scalars\\Date
 type Query {
     inbox(NId: ID @eq): Inbox @find @protect
     inboxes(
+        search: String @builder(method: "App\\Models\\Inbox@search")
         filter: FilterInput @builder(method: "App\\Models\\Inbox@filter")
     ): [Inbox!]!
         @builder(method: "App\\Models\\Inbox@owner")
