@@ -7,11 +7,11 @@ scalar DateTime @scalar(class: "Nuwave\\Lighthouse\\Schema\\Types\\Scalars\\Date
 type Query {
     inbox(NId: ID @eq): Inbox @find @protect
     inboxes(
-        search: String @builder(method: "App\\Models\\Inbox@search")
-        filter: FilterInput @builder(method: "App\\Models\\Inbox@filter")
-    ): [Inbox!]!
-        @builder(method: "App\\Models\\Inbox@owner")
-        @orderBy(column: "NTglReg", direction: DESC)
+        search: String @builder(method: "App\\Models\\InboxReceiver@search")
+        filter: FilterInput @builder(method: "App\\Models\\InboxReceiver@filter")
+    ): [InboxReceiver!]!
+        @builder(method: "App\\Models\\InboxReceiver@owner")
+        @orderBy(column: "ReceiveDate", direction: DESC)
         @paginate(type: CONNECTION)
         @protect
 
@@ -75,17 +75,31 @@ input FilterInput {
     sources: String
     types: String
     urgencies: String
+    statuses: String
 }
 
 type Inbox {
     id: ID! @rename(attribute: "NId")
     archiveUnitId: Int @rename(attribute: "CreatedBy")
     source: String @rename(attribute: "Pengirim")
-    date: DateTime! @rename(attribute: "NTglReg")
+    date: DateTime @rename(attribute: "NTglReg")
     fromName: String @rename(attribute: "Namapengirim")
     fromOrg: String @rename(attribute: "Instansipengirim")
-    about: String! @rename(attribute: "Hal")
-    type: DocumentType! @belongsTo
+    about: String @rename(attribute: "Hal")
+    type: DocumentType @belongsTo
     urgency: DocumentUrgency! @belongsTo
     documentFile: String @rename(attribute: "document_file")
+}
+
+type InboxReceiver {
+    inboxId: String! @rename(attribute: "NId")
+    date: DateTime! @rename(attribute: "ReceiveDate")
+    fromId: Int @rename(attribute: "From_Id")
+    toId: String @rename(attribute: "To_Id")
+    message: String @rename(attribute: "Msg")
+    receiverAs: String @rename(attribute: "ReceiverAs")
+    receiveStatus: String @rename(attribute: "StatusReceive")
+    toIdMessage: String @rename(attribute: "To_Id_Message")
+    status: Int @rename(attribute: "Status")
+    inboxDetail: Inbox @with
 }
