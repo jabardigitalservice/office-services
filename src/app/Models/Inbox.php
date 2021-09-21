@@ -36,38 +36,4 @@ class Inbox extends Model
             return config('sikd.base_path_file') . $this->NFileDir . '/' . $this->file->FileName_fake;
         }
     }
-
-    public function receiver()
-    {
-        return $this->belongsTo(InboxReceiver::class, 'NId', 'NId');
-    }
-
-    public function filter($query, $filter)
-    {
-        $sources = $filter["sources"] ?? null;
-        $types = $filter["types"] ?? null;
-        $urgencies = $filter["urgencies"] ?? null;
-
-        if ($sources) {
-            $query->whereIn('pengirim', $sources);
-        }
-
-        if ($types) {
-            $query->whereIn('JenisId', function ($subQuery) use ($types) {
-                $subQuery->select('JenisId')
-                ->from('master_jnaskah')
-                ->whereIn('JenisName', $types);
-            });
-        }
-
-        if ($urgencies) {
-            $query->whereIn('UrgensiId', function ($subQuery) use ($urgencies) {
-                $subQuery->select('UrgensiId')
-                ->from('master_urgensi')
-                ->whereIn('UrgensiName', $urgencies);
-            });
-        }
-
-        return $query;
-    }
 }

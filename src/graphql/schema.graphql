@@ -8,8 +8,13 @@ type Query {
     inbox(NId: ID @eq): Inbox
         @field(resolver: "InboxQuery@detail")
     inboxes(
-        filter: FilterInput @builder(method: "App\\Models\\Inbox@filter")
-    ): [Inbox!]! @paginate(type: CONNECTION) @orderBy(column: "NTglReg", direction: DESC) @protect
+        search: String @builder(method: "App\\Models\\InboxReceiver@search")
+        filter: FilterInput @builder(method: "App\\Models\\InboxReceiver@filter")
+    ): [InboxReceiver!]!
+        @builder(method: "App\\Models\\InboxReceiver@owner")
+        @orderBy(column: "ReceiveDate", direction: DESC)
+        @paginate(type: CONNECTION)
+        @protect
 
     me: People
         @field(resolver: "AccountQuery@profile") @protect
@@ -29,6 +34,7 @@ type People {
     classRank: String @rename(attribute: "Golongan")
     role: Role @belongsTo
     position: String @rename(attribute: "PeoplePosition")
+    avatar: String
 }
 
 type Role {
@@ -55,17 +61,6 @@ type AuthPayload {
     expires_in: Int
 }
 
-type InboxReceiver {
-    inboxId: String! @rename(attribute: "NId")
-    fromId: String! @rename(attribute: "From_Id")
-    toId: String! @rename(attribute: "To_Id")
-    message: String @rename(attribute: "Msg")
-    receiverAs: String @rename(attribute: "ReceiverAs")
-    statusReceiver: String @rename(attribute: "StatusReceive")
-    toIdMessage: String @rename(attribute: "To_Id_Message")
-    status: Int @rename(attribute: "Status")
-}
-
 type DocumentType {
     id: String! @rename(attribute: "JenisId")
     name: String! @rename(attribute: "JenisName")
@@ -78,20 +73,35 @@ type DocumentUrgency {
 }
 
 input FilterInput {
-    sources: [String]
-    types: [String]
-    urgencies: [String]
+    sources: String
+    types: String
+    urgencies: String
+    statuses: String
 }
 
 type Inbox {
     id: ID! @rename(attribute: "NId")
+    archiveUnitId: Int @rename(attribute: "CreatedBy")
     source: String @rename(attribute: "Pengirim")
-    date: DateTime! @rename(attribute: "NTglReg")
+    date: DateTime @rename(attribute: "NTglReg")
     fromName: String @rename(attribute: "Namapengirim")
     fromOrg: String @rename(attribute: "Instansipengirim")
-    about: String! @rename(attribute: "Hal")
-    type: DocumentType! @belongsTo
+    about: String @rename(attribute: "Hal")
+    type: DocumentType @belongsTo
     urgency: DocumentUrgency! @belongsTo
     documentFile: String @rename(attribute: "document_file")
     receiver: InboxReceiver @belongsTo
+}
+
+type InboxReceiver {
+    inboxId: String! @rename(attribute: "NId")
+    date: DateTime! @rename(attribute: "ReceiveDate")
+    fromId: Int @rename(attribute: "From_Id")
+    toId: String @rename(attribute: "To_Id")
+    message: String @rename(attribute: "Msg")
+    receiverAs: String @rename(attribute: "ReceiverAs")
+    receiveStatus: String @rename(attribute: "StatusReceive")
+    toIdMessage: String @rename(attribute: "To_Id_Message")
+    status: Int @rename(attribute: "Status")
+    inboxDetail: Inbox @with
 }

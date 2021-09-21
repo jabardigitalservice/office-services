@@ -13,12 +13,20 @@ class People extends Model
 
     protected $table = "people";
 
-    protected $keyType = 'string';
-
-    protected $primaryKey = 'PrimaryRoleId';
+    protected $primaryKey = 'PeopleId';
 
     public function role()
     {
         return $this->belongsTo(Role::class, 'PrimaryRoleId', 'RoleId');
+    }
+
+    public function siapPeople()
+    {
+        return $this->belongsTo(SiapPeople::class, 'PeopleUsername', 'peg_nip');
+    }
+
+    public function getAvatarAttribute()
+    {
+        return optional($this->siapPeople)->peg_foto_url;
     }
 }
