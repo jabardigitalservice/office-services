@@ -92,7 +92,6 @@ type Inbox {
     type: DocumentType @belongsTo
     urgency: DocumentUrgency! @belongsTo
     documentFile: String @rename(attribute: "document_file")
-    receiver: InboxReceiver @belongsTo
 }
 
 type InboxReceiver {
