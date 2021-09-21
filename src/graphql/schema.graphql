@@ -64,14 +64,14 @@ type AuthPayload {
 }
 
 type DocumentType {
-    id: String! @rename(attribute: "JenisId")
-    name: String! @rename(attribute: "JenisName")
+    id: String @rename(attribute: "JenisId")
+    name: String @rename(attribute: "JenisName")
     content: String @rename(attribute: "Isi")
 }
 
 type DocumentUrgency {
-    id: String! @rename(attribute: "UrgensiId")
-    name: String! @rename(attribute: "UrgensiName")
+    id: String @rename(attribute: "UrgensiId")
+    name: String @rename(attribute: "UrgensiName")
 }
 
 input FilterInput {
