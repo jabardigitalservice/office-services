@@ -18,6 +18,12 @@ type Query {
         @paginate(type: CONNECTION)
         @protect
 
+    inboxHistory(NId: ID @eq): [InboxReceiver!]!
+        @all
+        @builder(method: "App\\Models\\InboxReceiver@groupByGIRId")
+        @orderBy(column: "ReceiveDate", direction: DESC)
+        @protect
+
     me: People
         @field(resolver: "AccountQuery@profile") @protect
 }
