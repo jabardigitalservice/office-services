@@ -5,8 +5,10 @@ scalar Date @scalar(class: "Nuwave\\Lighthouse\\Schema\\Types\\Scalars\\Date")
 scalar DateTime @scalar(class: "Nuwave\\Lighthouse\\Schema\\Types\\Scalars\\DateTime")
 
 type Query {
-    inbox(NId: ID @eq): Inbox
+    inbox(NId: ID @eq): InboxReceiver
         @field(resolver: "InboxQuery@detail")
+        @protect
+
     inboxes(
         search: String @builder(method: "App\\Models\\InboxReceiver@search")
         filter: FilterInput @builder(method: "App\\Models\\InboxReceiver@filter")
@@ -104,4 +106,5 @@ type InboxReceiver {
     toIdMessage: String @rename(attribute: "To_Id_Message")
     status: Int @rename(attribute: "Status")
     inboxDetail: Inbox @with
+    sender: People @with
 }

@@ -25,6 +25,11 @@ class InboxReceiver extends Model
         return $query->where('To_Id', request()->people->PeopleId);
     }
 
+    public function sender()
+    {
+        return $this->belongsTo(People::class, 'From_Id', 'PeopleId');
+    }
+
     public function filter($query, $filter)
     {
         $sources = $filter["sources"] ?? null;

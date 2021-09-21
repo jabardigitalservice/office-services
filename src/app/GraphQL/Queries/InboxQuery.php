@@ -21,13 +21,18 @@ class InboxQuery
      */
     public function detail($rootValue, array $args, GraphQLContext $context)
     {
-        $inbox = Inbox::find($args['NId']);
+        $inboxReceiver = InboxReceiver::where('NId', $args['NId'])
+                            ->where('To_Id', $context->request()->people->PeopleId)
+                            ->first();
 
-        if ($inbox) {
-            InboxReceiver::where('NId', $inbox->NId)
-                        ->update(['StatusReceive' => 'read']);
+        if ($inboxReceiver) {
+            if ($inboxReceiver->StatusReceive != 'read') {
+                InboxReceiver::where('NId', $inboxReceiver->NId)
+                            ->where('To_Id', $context->request()->people->PeopleId)
+                            ->update(['StatusReceive' => 'read']);
+            }
 
-            return $inbox;
+            return $inboxReceiver;
         } else {
             throw new CustomException(
                 'Inbox not found',
