@@ -11,6 +11,8 @@ class InboxReceiver extends Model
 
     protected $table = "inbox_receiver";
 
+    public $timestamps = false;
+
     protected $keyType = 'string';
 
     protected $primaryKey = 'NId';
