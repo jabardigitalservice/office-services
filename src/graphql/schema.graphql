@@ -79,6 +79,7 @@ input FilterInput {
     types: String
     urgencies: String
     statuses: String
+    forwarded: String
 }
 
 type Inbox {
@@ -103,7 +104,7 @@ type InboxReceiver {
     receiverAs: String @rename(attribute: "ReceiverAs")
     receiveStatus: String @rename(attribute: "StatusReceive")
     toIdMessage: String @rename(attribute: "To_Id_Message")
-    status: Int @rename(attribute: "Status")
+    isForwarded: Int @rename(attribute: "Status")
     inboxDetail: Inbox @with
     sender: People @with
 }
