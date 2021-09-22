@@ -35,6 +35,7 @@ type People {
     employeeNumber: String @rename(attribute: "NIP")
     classRank: String @rename(attribute: "Golongan")
     role: Role @belongsTo
+    groupId: Int @rename(attribute: "GroupId")
     position: String @rename(attribute: "PeoplePosition")
     avatar: String
 }
