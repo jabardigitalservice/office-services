@@ -32,6 +32,11 @@ class InboxReceiver extends Model
         return $this->belongsTo(People::class, 'From_Id', 'PeopleId');
     }
 
+    public function receiver()
+    {
+        return $this->belongsTo(People::class, 'To_Id', 'PeopleId');
+    }
+
     public function filter($query, $filter)
     {
         $sources = $filter["sources"] ?? null;
@@ -97,5 +102,104 @@ class InboxReceiver extends Model
         });
 
         return $query;
+    }
+
+    public function getPurposeAttribute()
+    {
+        return InboxReceiver::where('NId', $this->NId)
+                        ->where('GIR_Id', $this->GIR_Id)
+                        ->get();
+    }
+
+    public function getInboxDispositionAttribute()
+    {
+        return InboxDisposition::where('NId', $this->NId)
+                        ->where('GIR_Id', $this->GIR_Id)
+                        ->get();
+    }
+
+    public function getReceiverAsLabelAttribute()
+    {
+        switch ($this->ReceiverAs) {
+            case 'to':
+                return "Naskah Masuk";
+                break;
+
+            case 'to_undangan':
+                return "Undangan";
+                break;
+
+            case 'to_sprint':
+                return "Surat Perintah";
+                break;
+
+            case 'to_notadinas':
+                return "Nota Dinas";
+                break;
+
+            case 'to_reply':
+                return "Nota Dinas";
+                break;
+
+            case 'to_usul':
+                return "Jawaban Nota Dinas";
+                break;
+
+            case 'to_forward':
+                return "Teruskan";
+                break;
+
+            case 'cc1':
+                return "Disposisi";
+                break;
+
+            case 'to_keluar':
+                return "Surat Dinas Keluar";
+                break;
+
+            case 'to_nadin':
+                return "Naskah Dinas Lainnya";
+                break;
+
+            case 'to_konsep':
+                return "Konsep Naskah";
+                break;
+
+            case 'to_memo':
+                return "Memo";
+                break;
+
+            case 'to_draft_notadinas':
+                return "Konsep Nota Dinas";
+                break;
+
+            case 'to_draft_sprint':
+                return "Konsep Surat Perintah";
+                break;
+
+            case 'to_draft_undangan':
+                return "Konsep Undangan";
+                break;
+
+            case 'to_draft_keluar':
+                return "Konsep surat Dinas";
+                break;
+
+            case 'to_draft_sket':
+                return "Konsep surat Keterangan";
+                break;
+
+            case 'to_draft_pengumuman':
+                return "Konsep Pengumuman";
+                break;
+
+            case 'to_draft_rekomendasi':
+                return "Konsep Surat Rekomendasi";
+                break;
+
+            default:
+                return "Konsep Naskah Dinas Lainnya";
+                break;
+        }
     }
 }

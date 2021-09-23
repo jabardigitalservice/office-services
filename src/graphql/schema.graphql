@@ -19,9 +19,7 @@ type Query {
         @protect
 
     inboxHistory(NId: ID @eq): [InboxReceiver!]!
-        @all
-        @builder(method: "App\\Models\\InboxReceiver@groupByGIRId")
-        @orderBy(column: "ReceiveDate", direction: DESC)
+        @field(resolver: "InboxQuery@history")
         @protect
 
     me: People
@@ -104,14 +102,31 @@ type Inbox {
 
 type InboxReceiver {
     inboxId: String! @rename(attribute: "NId")
+    groupId: String! @rename(attribute: "GIR_Id")
     date: DateTime! @rename(attribute: "ReceiveDate")
     fromId: Int @rename(attribute: "From_Id")
     toId: String @rename(attribute: "To_Id")
     message: String @rename(attribute: "Msg")
     receiverAs: String @rename(attribute: "ReceiverAs")
+    receiverAsLabel: String @rename(attribute: "receiver_as_label")
     receiveStatus: String @rename(attribute: "StatusReceive")
     toIdMessage: String @rename(attribute: "To_Id_Message")
     isForwarded: Int @rename(attribute: "Status")
+    message: String @rename(attribute: "Msg")
     inboxDetail: Inbox @with
     sender: People @with
+    purpose: [InboxReceiver]
+    receiver: People @with(relation: "receiver")
+    inboxDisposition: [InboxDisposition]
+}
+
+type InboxDisposition {
+    inboxId: String! @rename(attribute: "NId")
+    groupId: String! @rename(attribute: "GIR_Id")
+    disposition: [Disposition]
+}
+
+type Disposition {
+    id: String @rename(attribute: "DisposisiId")
+    name: String @rename(attribute: "DisposisiName")
 }
