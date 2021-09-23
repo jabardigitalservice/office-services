@@ -39,34 +39,4 @@ class InboxQuery
             );
         }
     }
-
-    /**
-     * @param $rootValue
-     * @param array                                                    $args
-     * @param \Nuwave\Lighthouse\Support\Contracts\GraphQLContext|null $context
-     *
-     * @throws \Exception
-     *
-     * @return array
-     */
-    public function history($rootValue, array $args, GraphQLContext $context)
-    {
-        $inboxReceiver = InboxReceiver::where('NId', $args['NId'])
-                            ->where(function ($query) use ($context) {
-                                $query->where('RoleId_To', 'like', $context->request()->people->PrimaryRoleId . '%');
-                                $query->orWhere('RoleId_From', 'like', $context->request()->people->PrimaryRoleId . '%');
-                            })
-                            ->groupBy('GIR_Id')
-                            ->orderBy('ReceiveDate', 'DESC')
-                            ->get();
-
-        if ($inboxReceiver) {
-            return $inboxReceiver;
-        } else {
-            throw new CustomException(
-                'Inbox not found',
-                'Inbox with this NId not found'
-            );
-        }
-    }
 }
