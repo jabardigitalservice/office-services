@@ -11,6 +11,8 @@ class InboxReceiver extends Model
 
     protected $table = "inbox_receiver";
 
+    public $timestamps = false;
+
     protected $keyType = 'string';
 
     protected $primaryKey = 'NId';
@@ -36,6 +38,7 @@ class InboxReceiver extends Model
         $statuses = $filter["statuses"] ?? null;
         $types = $filter["types"] ?? null;
         $urgencies = $filter["urgencies"] ?? null;
+        $forwarded = $filter["forwarded"] ?? null;
 
         if ($statuses) {
             $arrayStatuses = explode(", ", $statuses);
@@ -75,6 +78,11 @@ class InboxReceiver extends Model
                     ->whereIn('UrgensiName', $arrayUrgencies);
                 });
             });
+        }
+
+        if (isset($forwarded)) {
+            $arrayForwarded = explode(", ", $forwarded);
+            $query->whereIn('Status', $arrayForwarded);
         }
 
         return $query;

@@ -41,6 +41,7 @@ type People {
     employeeNumber: String @rename(attribute: "NIP")
     classRank: String @rename(attribute: "Golongan")
     role: Role @belongsTo
+    groupId: Int @rename(attribute: "GroupId")
     position: String @rename(attribute: "PeoplePosition")
     avatar: String
 }
@@ -70,14 +71,14 @@ type AuthPayload {
 }
 
 type DocumentType {
-    id: String! @rename(attribute: "JenisId")
-    name: String! @rename(attribute: "JenisName")
+    id: String @rename(attribute: "JenisId")
+    name: String @rename(attribute: "JenisName")
     content: String @rename(attribute: "Isi")
 }
 
 type DocumentUrgency {
-    id: String! @rename(attribute: "UrgensiId")
-    name: String! @rename(attribute: "UrgensiName")
+    id: String @rename(attribute: "UrgensiId")
+    name: String @rename(attribute: "UrgensiName")
 }
 
 input FilterInput {
@@ -85,6 +86,7 @@ input FilterInput {
     types: String
     urgencies: String
     statuses: String
+    forwarded: String
 }
 
 type Inbox {
@@ -96,7 +98,7 @@ type Inbox {
     fromOrg: String @rename(attribute: "Instansipengirim")
     about: String @rename(attribute: "Hal")
     type: DocumentType @belongsTo
-    urgency: DocumentUrgency! @belongsTo
+    urgency: DocumentUrgency @belongsTo
     documentFile: String @rename(attribute: "document_file")
 }
 
@@ -109,7 +111,7 @@ type InboxReceiver {
     receiverAs: String @rename(attribute: "ReceiverAs")
     receiveStatus: String @rename(attribute: "StatusReceive")
     toIdMessage: String @rename(attribute: "To_Id_Message")
-    status: Int @rename(attribute: "Status")
+    isForwarded: Int @rename(attribute: "Status")
     inboxDetail: Inbox @with
     sender: People @with
 }
