@@ -19,7 +19,9 @@ type Query {
         @protect
 
     inboxHistory(NId: ID @eq): [InboxReceiver!]!
-        @field(resolver: "InboxQuery@history")
+        @builder(method: "App\\Models\\InboxReceiver@history")
+        @orderBy(column: "ReceiveDate", direction: DESC)
+        @paginate(type: CONNECTION)
         @protect
 
     me: People

@@ -27,6 +27,14 @@ class InboxReceiver extends Model
         return $query->where('To_Id', request()->people->PeopleId);
     }
 
+    public function history($query)
+    {
+        return $query->where(function ($query) {
+            $query->where('RoleId_To', 'like', request()->people->PrimaryRoleId . '%');
+            $query->orWhere('RoleId_From', 'like', request()->people->PrimaryRoleId . '%');
+        })->groupBy('GIR_Id');
+    }
+
     public function sender()
     {
         return $this->belongsTo(People::class, 'From_Id', 'PeopleId');
