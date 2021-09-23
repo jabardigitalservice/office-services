@@ -3,11 +3,7 @@
 namespace App\GraphQL\Queries;
 
 use App\Exceptions\CustomException;
-use App\Http\Resources\InboxHistoryCollection;
-use App\Models\Inbox;
-use App\Models\InboxDisposition;
 use App\Models\InboxReceiver;
-use App\Models\MasterDisposition;
 use GraphQL\Type\Definition\ResolveInfo;
 use Nuwave\Lighthouse\Support\Contracts\GraphQLContext;
 
