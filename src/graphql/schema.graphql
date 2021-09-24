@@ -26,11 +26,27 @@ type Query {
 
     me: People
         @field(resolver: "AccountQuery@profile") @protect
+
+    peopleList(
+        isActive: Int @where(key: "PeopleIsActive")
+        filter: PeopleFilterInput @builder(method: "App\\Models\\People@filter")
+    ): [People!]!
+        @orderBy(column: "PrimaryRoleId", direction: ASC)
+        @paginate(type: CONNECTION)
+        @protect
 }
 
 type Mutation {
     login(input: LoginInput): AuthPayload
         @field(resolver: "AuthMutator@login")
+}
+
+enum ProposedTypes {
+    FORWARD
+}
+
+input PeopleFilterInput {
+    proposedTo: ProposedTypes
 }
 
 type People {
