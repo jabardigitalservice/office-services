@@ -3,7 +3,6 @@
 namespace App\GraphQL\Queries;
 
 use App\Exceptions\CustomException;
-use App\Models\Inbox;
 use App\Models\InboxReceiver;
 use GraphQL\Type\Definition\ResolveInfo;
 use Nuwave\Lighthouse\Support\Contracts\GraphQLContext;
