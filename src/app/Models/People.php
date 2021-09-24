@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\PeopleProposedTypeEnum;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -28,5 +29,17 @@ class People extends Model
     public function getAvatarAttribute()
     {
         return optional($this->siapPeople)->peg_foto_url;
+    }
+
+    public function filter($query, $filter)
+    {
+        $proposedTo = $filter["proposedTo"] ?? null;
+
+        if ($proposedTo == PeopleProposedTypeEnum::FORWARD()) {
+            $query->where('PrimaryRoleId', request()->people->PrimaryRoleId . '.1')     // head of department primary role id
+                ->orWhere('PrimaryRoleId', request()->people->PrimaryRoleId . '.1.1');  // sekretary primary role id
+        }
+
+        return $query;
     }
 }
