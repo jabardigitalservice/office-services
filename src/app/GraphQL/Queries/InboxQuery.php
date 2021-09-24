@@ -21,13 +21,14 @@ class InboxQuery
     public function detail($rootValue, array $args, GraphQLContext $context)
     {
         $inboxReceiver = InboxReceiver::where('NId', $args['NId'])
-                            ->where('To_Id', $context->request()->people->PeopleId)
+                            ->where('To_Id', $context->user()->PeopleId)
                             ->first();
 
         if ($inboxReceiver) {
+            // @TODO Seharusnya mark as read dipisahkan dari proses/logic ini (single responsibility principle)
             if ($inboxReceiver->StatusReceive != 'read') {
                 InboxReceiver::where('NId', $inboxReceiver->NId)
-                            ->where('To_Id', $context->request()->people->PeopleId)
+                            ->where('To_Id', $context->user()->PeopleId)
                             ->update(['StatusReceive' => 'read']);
             }
 

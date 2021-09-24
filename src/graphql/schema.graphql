@@ -7,7 +7,7 @@ scalar DateTime @scalar(class: "Nuwave\\Lighthouse\\Schema\\Types\\Scalars\\Date
 type Query {
     inbox(NId: ID @eq): InboxReceiver
         @field(resolver: "InboxQuery@detail")
-        @protect
+        @guard
 
     inboxes(
         search: String @builder(method: "App\\Models\\InboxReceiver@search")
@@ -22,7 +22,7 @@ type Query {
         @builder(method: "App\\Models\\InboxReceiver@history")
         @orderBy(column: "ReceiveDate", direction: DESC)
         @paginate(type: CONNECTION)
-        @protect
+        @guard
 
     me: People @auth
 
@@ -108,6 +108,8 @@ type Inbox {
     id: ID! @rename(attribute: "NId")
     archiveUnitId: Int @rename(attribute: "CreatedBy")
     source: String @rename(attribute: "Pengirim")
+    letterNumber: String @rename(attribute: "Nomor")
+    letterDate: String @rename(attribute: "Tgl")
     date: DateTime @rename(attribute: "NTglReg")
     fromName: String @rename(attribute: "Namapengirim")
     fromOrg: String @rename(attribute: "Instansipengirim")
