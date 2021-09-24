@@ -80,7 +80,7 @@ class InboxReceiver extends Model
             });
         }
 
-        if (isset($forwarded)) {
+        if ($forwarded || $forwarded == '0') {
             $arrayForwarded = explode(", ", $forwarded);
             $query->whereIn('Status', $arrayForwarded);
         }
