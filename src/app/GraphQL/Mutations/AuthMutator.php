@@ -6,6 +6,7 @@ use App\Exceptions\CustomException;
 use App\Models\People;
 use Illuminate\Http\Response;
 use Firebase\JWT\JWT;
+use Illuminate\Support\Arr;
 
 class AuthMutator
 {
@@ -19,6 +20,9 @@ class AuthMutator
      */
     public function login($rootValue, array $args)
     {
+        /**
+         * @var $people People
+         */
         // TODO implement the resolver
         $people = People::where('PeopleUsername', $args['input']['username'])->first();
 
@@ -34,9 +38,12 @@ class AuthMutator
         $startTime = $issuedAt + config('jwt.ttl');
         $expTime = $issuedAt + config('jwt.refresh_ttl');
 
+        $deviceName = Arr::get($args, 'input.device', 'default');
+        $accessToken = $people->createToken($deviceName);
+
         return [
             'message' => 'success',
-            'access_token' => $people->createToken('token-name-changeme')->plainTextToken,
+            'access_token' => $accessToken->plainTextToken,
             'token_type' => 'bearer',
             'expires_in' => $expTime,
         ];

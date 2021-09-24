@@ -76,6 +76,7 @@ type Rolecode {
 input LoginInput {
     username: String!
     password: String!
+    device: String
 }
 
 type AuthPayload {
