@@ -22,11 +22,6 @@ class InboxReceiver extends Model
         return $this->belongsTo(Inbox::class, 'NId', 'NId');
     }
 
-    public function owner($query)
-    {
-        return $query->where('To_Id', request()->people->PeopleId);
-    }
-
     public function history($query)
     {
         return $query->where(function ($query) {

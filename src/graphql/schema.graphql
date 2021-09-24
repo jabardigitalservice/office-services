@@ -13,10 +13,10 @@ type Query {
         search: String @builder(method: "App\\Models\\InboxReceiver@search")
         filter: FilterInput @builder(method: "App\\Models\\InboxReceiver@filter")
     ): [InboxReceiver!]!
-        @builder(method: "App\\Models\\InboxReceiver@owner")
+        @whereAuth(relation: "receiver")
         @orderBy(column: "ReceiveDate", direction: DESC)
         @paginate(type: CONNECTION)
-        @protect
+        @guard
 
     inboxHistory(NId: ID @eq): [InboxReceiver!]!
         @builder(method: "App\\Models\\InboxReceiver@history")
@@ -24,8 +24,7 @@ type Query {
         @paginate(type: CONNECTION)
         @protect
 
-    me: People
-        @field(resolver: "AccountQuery@profile") @protect
+    me: People @auth
 
     peopleList(
         isActive: Int @where(key: "PeopleIsActive")

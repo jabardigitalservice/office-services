@@ -4,11 +4,12 @@ namespace App\Models;
 
 use App\Enums\PeopleProposedTypeEnum;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use Laravel\Sanctum\HasApiTokens;
 
-class People extends Model
+class People extends Authenticatable
 {
-    use HasFactory;
+    use HasApiTokens, HasFactory;
 
     public $timestamps = false;
 

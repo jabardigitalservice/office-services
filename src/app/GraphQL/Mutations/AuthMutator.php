@@ -29,20 +29,14 @@ class AuthMutator
             );
         }
 
+
         $issuedAt = time();
         $startTime = $issuedAt + config('jwt.ttl');
         $expTime = $issuedAt + config('jwt.refresh_ttl');
 
-        $accessToken = JWT::encode(array(
-            'identifier' => $people->PeopleId,
-            'iat' => $issuedAt,
-            'nbf' => $startTime,
-            'exp' => $expTime
-        ), config('jwt.secret'));
-
         return [
             'message' => 'success',
-            'access_token' => $accessToken,
+            'access_token' => $people->createToken('token-name-changeme')->plainTextToken,
             'token_type' => 'bearer',
             'expires_in' => $expTime,
         ];
