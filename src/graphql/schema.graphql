@@ -32,7 +32,7 @@ type Query {
     ): [People!]!
         @orderBy(column: "PrimaryRoleId", direction: ASC)
         @paginate(type: CONNECTION)
-        @protect
+        @guard
 }
 
 type Mutation {
