@@ -30,12 +30,15 @@ class SendNotificationController extends Controller
             "registration_ids" => $firebaseToken,
             "notification" => [
                 'title' => $request->sender,
-                'body' => $request->about . '\n Tingka Urgensi: ' . $request->urgencyName,
+                'body' => $request->about . '. Tingkat Urgensi: ' . $request->urgencyName,
             ],
             "data" => [
                 'id' => $request->inboxId,
                 'source' => $request->source,
+                'about' => $request->about,
                 'date' => $request->date,
+                'typeName' => $request->typeName,
+                'urgencyName' => $request->urgencyName,
             ]
         ];
         $dataString = json_encode($data);
