@@ -4,8 +4,6 @@ namespace App\GraphQL\Mutations;
 
 use App\Exceptions\CustomException;
 use App\Models\People;
-use Illuminate\Http\Response;
-use Firebase\JWT\JWT;
 use Illuminate\Support\Arr;
 
 class AuthMutator
