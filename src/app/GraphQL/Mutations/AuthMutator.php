@@ -4,8 +4,7 @@ namespace App\GraphQL\Mutations;
 
 use App\Exceptions\CustomException;
 use App\Models\People;
-use Illuminate\Http\Response;
-use Firebase\JWT\JWT;
+use Illuminate\Support\Arr;
 
 class AuthMutator
 {
@@ -19,6 +18,9 @@ class AuthMutator
      */
     public function login($rootValue, array $args)
     {
+        /**
+         * @var $people People
+         */
         // TODO implement the resolver
         $people = People::where('PeopleUsername', $args['input']['username'])->first();
 
@@ -29,20 +31,22 @@ class AuthMutator
             );
         }
 
+
         $issuedAt = time();
         $startTime = $issuedAt + config('jwt.ttl');
         $expTime = $issuedAt + config('jwt.refresh_ttl');
 
-        $accessToken = JWT::encode(array(
-            'identifier' => $people->PeopleId,
-            'iat' => $issuedAt,
-            'nbf' => $startTime,
-            'exp' => $expTime
-        ), config('jwt.secret'));
+        $deviceName = Arr::get($args, 'input.device', 'default');
+        $deviceFcmToken = Arr::get($args, 'input.fcm_token');
+
+        $accessToken = $people->createToken($deviceName);
+        $accessToken->accessToken->update([
+            'fcm_token' => $deviceFcmToken
+        ]);
 
         return [
             'message' => 'success',
-            'access_token' => $accessToken,
+            'access_token' => $accessToken->plainTextToken,
             'token_type' => 'bearer',
             'expires_in' => $expTime,
         ];

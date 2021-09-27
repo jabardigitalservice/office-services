@@ -7,25 +7,24 @@ scalar DateTime @scalar(class: "Nuwave\\Lighthouse\\Schema\\Types\\Scalars\\Date
 type Query {
     inbox(NId: ID @eq): InboxReceiver
         @field(resolver: "InboxQuery@detail")
-        @protect
+        @guard
 
     inboxes(
         search: String @builder(method: "App\\Models\\InboxReceiver@search")
         filter: FilterInput @builder(method: "App\\Models\\InboxReceiver@filter")
     ): [InboxReceiver!]!
-        @builder(method: "App\\Models\\InboxReceiver@owner")
+        @whereAuth(relation: "receiver")
         @orderBy(column: "ReceiveDate", direction: DESC)
         @paginate(type: CONNECTION)
-        @protect
+        @guard
 
     inboxHistory(NId: ID @eq): [InboxReceiver!]!
         @builder(method: "App\\Models\\InboxReceiver@history")
         @orderBy(column: "ReceiveDate", direction: DESC)
         @paginate(type: CONNECTION)
-        @protect
+        @guard
 
-    me: People
-        @field(resolver: "AccountQuery@profile") @protect
+    me: People @auth
 
     peopleList(
         isActive: Int @where(key: "PeopleIsActive")
@@ -33,7 +32,7 @@ type Query {
     ): [People!]!
         @orderBy(column: "PrimaryRoleId", direction: ASC)
         @paginate(type: CONNECTION)
-        @protect
+        @guard
 }
 
 type Mutation {
@@ -77,6 +76,8 @@ type Rolecode {
 input LoginInput {
     username: String!
     password: String!
+    device: String!
+    fcm_token: String!
 }
 
 type AuthPayload {
@@ -109,6 +110,8 @@ type Inbox {
     id: ID! @rename(attribute: "NId")
     archiveUnitId: Int @rename(attribute: "CreatedBy")
     source: String @rename(attribute: "Pengirim")
+    letterNumber: String @rename(attribute: "Nomor")
+    letterDate: String @rename(attribute: "Tgl")
     date: DateTime @rename(attribute: "NTglReg")
     fromName: String @rename(attribute: "Namapengirim")
     fromOrg: String @rename(attribute: "Instansipengirim")

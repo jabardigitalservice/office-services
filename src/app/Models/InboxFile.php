@@ -9,5 +9,7 @@ class InboxFile extends Model
 {
     use HasFactory;
 
+    protected $connection = 'sikdweb';
+
     protected $table = "inbox_files";
 }

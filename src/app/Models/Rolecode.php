@@ -9,6 +9,8 @@ class Rolecode extends Model
 {
     use HasFactory;
 
+    protected $connection = 'sikdweb';
+
     public $timestamps = false;
 
     protected $table = "rolecode";

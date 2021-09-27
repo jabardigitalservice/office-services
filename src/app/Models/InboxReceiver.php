@@ -9,6 +9,8 @@ class InboxReceiver extends Model
 {
     use HasFactory;
 
+    protected $connection = 'sikdweb';
+
     protected $table = "inbox_receiver";
 
     public $timestamps = false;
@@ -22,16 +24,13 @@ class InboxReceiver extends Model
         return $this->belongsTo(Inbox::class, 'NId', 'NId');
     }
 
-    public function owner($query)
-    {
-        return $query->where('To_Id', request()->people->PeopleId);
-    }
-
     public function history($query)
     {
         return $query->where(function ($query) {
-            $query->where('RoleId_To', 'like', request()->people->PrimaryRoleId . '%');
-            $query->orWhere('RoleId_From', 'like', request()->people->PrimaryRoleId . '%');
+            // @TODO Seharusnya tidak boleh ada pemanggilan request()/auth() di model
+            // Model/Entity harus terlepas dari context/logic layer atasnya (controller/endpoint)
+            $query->where('RoleId_To', 'like', auth()->user()->PrimaryRoleId . '%');
+            $query->orWhere('RoleId_From', 'like', auth()->user()->PrimaryRoleId . '%');
         })->groupBy('GIR_Id');
     }
 
