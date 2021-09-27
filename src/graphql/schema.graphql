@@ -77,7 +77,7 @@ input LoginInput {
     username: String!
     password: String!
     device: String!
-    fcm_token: String!
+    fcm_token: String! @rules(apply: ["unique:personal_access_tokens,fcm_token"])
 }
 
 type AuthPayload {
