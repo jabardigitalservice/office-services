@@ -39,7 +39,7 @@ class AuthMutator
         $expTime = $issuedAt + config('jwt.refresh_ttl');
 
         $deviceName = Arr::get($args, 'input.device', 'default');
-        $deviceFcmToken = Arr::get($args, 'input.fcm_token', 'default');
+        $deviceFcmToken = Arr::get($args, 'input.fcm_token');
 
         $accessToken = $people->createToken($deviceName);
         $accessToken->accessToken->update([
