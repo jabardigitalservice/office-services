@@ -9,6 +9,8 @@ class Inbox extends Model
 {
     use HasFactory;
 
+    protected $connection = 'sikdweb';
+
     protected $table = "inbox";
 
     protected $keyType = 'string';

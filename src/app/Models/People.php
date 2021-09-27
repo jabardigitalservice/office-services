@@ -11,6 +11,8 @@ class People extends Authenticatable
 {
     use HasApiTokens, HasFactory;
 
+    protected $connection = 'sikdweb';
+
     public $timestamps = false;
 
     protected $table = "people";

@@ -9,6 +9,8 @@ class MasterDisposition extends Model
 {
     use HasFactory;
 
+    protected $connection = 'sikdweb';
+
     protected $table = "master_disposisi";
 
     public $timestamps = false;

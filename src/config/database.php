@@ -63,6 +63,26 @@ return [
             ]) : [],
         ],
 
+        'sikdweb' => [
+            'driver' => 'mysql',
+            'url' => env('DATABASE_SIKDWEB_URL'),
+            'host' => env('DB_SIKDWEB_HOST', '127.0.0.1'),
+            'port' => env('DB_SIKDWEB_PORT', '3306'),
+            'database' => env('DB_SIKDWEB_DATABASE', 'forge'),
+            'username' => env('DB_SIKDWEB_USERNAME', 'forge'),
+            'password' => env('DB_SIKDWEB_PASSWORD', ''),
+            'unix_socket' => env('DB_SIKDWEB_SOCKET', ''),
+            'charset' => 'utf8mb4',
+            'collation' => 'utf8mb4_unicode_ci',
+            'prefix' => '',
+            'prefix_indexes' => true,
+            'strict' => false,
+            'engine' => null,
+            'options' => extension_loaded('pdo_mysql') ? array_filter([
+                PDO::MYSQL_ATTR_SSL_CA => env('MYSQL_ATTR_SSL_CA'),
+            ]) : [],
+        ],
+
         'pgsql' => [
             'driver' => 'pgsql',
             'url' => env('DATABASE_URL'),

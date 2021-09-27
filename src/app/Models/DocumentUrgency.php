@@ -9,6 +9,8 @@ class DocumentUrgency extends Model
 {
     use HasFactory;
 
+    protected $connection = 'sikdweb';
+
     protected $table = "master_urgensi";
 
     protected $keyType = 'string';

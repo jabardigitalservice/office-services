@@ -9,6 +9,8 @@ class SiapPeople extends Model
 {
     use HasFactory;
 
+    protected $connection = 'sikdweb';
+
     protected $table = "siap_pegawai";
 
     protected $keyType = 'string';

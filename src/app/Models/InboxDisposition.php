@@ -9,6 +9,8 @@ class InboxDisposition extends Model
 {
     use HasFactory;
 
+    protected $connection = 'sikdweb';
+
     protected $table = "inbox_disposisi";
 
     public $timestamps = false;

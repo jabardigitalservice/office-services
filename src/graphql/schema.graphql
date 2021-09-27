@@ -76,7 +76,8 @@ type Rolecode {
 input LoginInput {
     username: String!
     password: String!
-    device: String
+    device: String!
+    fcm_token: String!
 }
 
 type AuthPayload {
