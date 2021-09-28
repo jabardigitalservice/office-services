@@ -19,6 +19,8 @@ class InboxReceiver extends Model
 
     protected $primaryKey = 'NId';
 
+    protected $appends = ['purpose', 'inbox_disposition'];
+
     public function inboxDetail()
     {
         return $this->belongsTo(Inbox::class, 'NId', 'NId');
