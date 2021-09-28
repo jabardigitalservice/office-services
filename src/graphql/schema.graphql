@@ -38,6 +38,9 @@ type Query {
 type Mutation {
     login(input: LoginInput): AuthPayload
         @field(resolver: "AuthMutator@login")
+
+    inboxForward(input: ForwardInput!): [InboxReceiver]
+        @field(resolver: "InboxMutator@forward")
 }
 
 enum ProposedTypes {
@@ -165,4 +168,10 @@ type InboxDisposition {
 type Disposition {
     id: String @rename(attribute: "DisposisiId")
     name: String @rename(attribute: "DisposisiName")
+}
+
+input ForwardInput {
+    inboxId: String!
+    receiversIds: String!
+    message: String
 }
