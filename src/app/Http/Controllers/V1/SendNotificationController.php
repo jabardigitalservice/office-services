@@ -30,10 +30,11 @@ class SendNotificationController extends Controller
             "registration_ids" => $firebaseToken,
             "notification" => [
                 'title' => $request->sender,
-                'body' => $request->about . '. Tingkat Urgensi: ' . $request->urgencyName,
+                'body' => $request->about . ' | ' . $request->typeName . ' | ' . $request->urgencyName,
             ],
             "data" => [
                 'id' => $request->inboxId,
+                'action' => 'detail_inbox',
                 'source' => $request->source,
                 'about' => $request->about,
                 'date' => $request->date,
