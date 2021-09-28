@@ -41,7 +41,7 @@ class InboxReceiver extends Model
 
     public function receiver()
     {
-        return $this->belongsTo(People::class, 'To_Id', 'PeopleId');
+        return $this->belongsTo(People::class, 'RoleId_To', 'PrimaryRoleId');
     }
 
     public function filter($query, $filter)
