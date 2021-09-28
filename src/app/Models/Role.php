@@ -23,4 +23,14 @@ class Role extends Model
     {
         return $this->belongsTo(Rolecode::class, 'RoleCode', 'rolecode_id');
     }
+
+    public function groupPosition()
+    {
+        return $this->belongsTo(GroupPosition::class, 'gjabatanId', 'gjabatanId');
+    }
+
+    public function groupRole()
+    {
+        return $this->belongsTo(GroupRole::class, 'GRoleId', 'GRoleId');
+    }
 }

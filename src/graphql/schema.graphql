@@ -66,11 +66,25 @@ type Role {
     name: String! @rename(attribute: "RoleName")
     desc: String! @rename(attribute: "RoleDesc")
     rolecode: Rolecode @belongsTo
+    groupPosition: GroupPosition @belongsTo
+    groupRole: GroupRole @belongsTo
 }
 
 type Rolecode {
     id: ID! @rename(attribute: "rolecode_id")
     name: String! @rename(attribute: "rolecode_name")
+    shortName: String! @rename(attribute: "rolecode_sort")
+}
+
+type GroupPosition {
+    id: ID! @rename(attribute: "gjabatanId")
+    name: String! @rename(attribute: "gjabatanName")
+    purpose: String! @rename(attribute: "gtujuanNaskah")
+}
+
+type GroupRole {
+    id: ID! @rename(attribute: "GRoleId")
+    name: String! @rename(attribute: "GRoleName")
 }
 
 input LoginInput {
@@ -85,6 +99,7 @@ type AuthPayload {
     access_token: String
     token_type: String
     expires_in: Int
+    profile: People
 }
 
 type DocumentType {
