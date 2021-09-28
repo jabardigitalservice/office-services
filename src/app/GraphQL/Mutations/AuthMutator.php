@@ -33,7 +33,6 @@ class AuthMutator
 
 
         $issuedAt = time();
-        $startTime = $issuedAt + config('jwt.ttl');
         $expTime = $issuedAt + config('jwt.refresh_ttl');
 
         $deviceName = Arr::get($args, 'input.device', 'default');
@@ -49,6 +48,7 @@ class AuthMutator
             'access_token' => $accessToken->plainTextToken,
             'token_type' => 'bearer',
             'expires_in' => $expTime,
+            'profile' => $people
         ];
     }
 }
