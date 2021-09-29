@@ -2,6 +2,7 @@
 
 namespace App\GraphQL\Mutations;
 
+use App\Http\Traits\SendNotificationTrait;
 use App\Models\Inbox;
 use App\Models\InboxReceiver;
 use App\Models\People;
@@ -10,6 +11,8 @@ use Illuminate\Support\Arr;
 
 class InboxMutator
 {
+    use SendNotificationTrait;
+
     /**
      * @param $rootValue
      * @param $args
@@ -23,17 +26,19 @@ class InboxMutator
         $from = auth()->user();
         $inboxId = Arr::get($args, 'input.inboxId');
         $message = Arr::get($args, 'input.message');
-        $receiversIds = Arr::get($args, 'input.receiversIds');
-        $arrayReceiversIds = explode(", ", $receiversIds);
+        $stringReceiversIds = Arr::get($args, 'input.receiversIds');
+        $receiversIds = explode(", ", $stringReceiversIds);
 
         $inboxReceivers = [];
-        foreach ($arrayReceiversIds as $receiverId) {
+        foreach ($receiversIds as $receiverId) {
             $newInboxReceiver = $this->createInboxReceiver($from, $inboxId, $message, $receiverId);
             array_push($inboxReceivers, $newInboxReceiver);
         }
 
-        // the origin inbox's status to be marked as forwarded
+        // The origin inbox's status to be marked as forwarded
         $this->markActioned($inboxId, $from->PeopleId);
+        // Send the notification
+        $this->actionNotification($from, $inboxId, $receiversIds);
         return $inboxReceivers;
     }
 
@@ -50,7 +55,6 @@ class InboxMutator
         $receiver = People::findOrFail($receiverId);
         $nkey = TableSetting::first()->tb_key;
         $receiveDate = date('Y-m-d H:i:s');
-
 
         $inboxReceiver = [
             'NId' 			=> $inboxId,
@@ -88,5 +92,29 @@ class InboxMutator
                 ->where('To_Id', strval($fromId))
                 ->update(['Status' => 1]);
         }
+    }
+
+    /**
+     * @param String    $inboxId
+     * @param Int       $fromId
+     *
+     * @return void
+     */
+    protected function actionNotification($from, $inboxId, $receiversIds)
+    {
+        $inbox = Inbox::findOrFail($inboxId);
+
+        $request = [
+            'inboxId' 		=> $inboxId,
+            'date' 	        => $inbox->NTglReg,
+            'about' 		=> $inbox->Hal,
+            'sender' 		=> $from->role->rolecode->rolecode_sort,
+            'source' 		=> $inbox->Pengirim,
+            'typeName' 		=> $inbox->type->JenisName,
+            'urgencyName' 	=> $inbox->urgency->UrgensiName,
+            'peopleIds' 	=> $receiversIds,
+        ];
+
+        $this->sendNotification((object) $request);
     }
 }
