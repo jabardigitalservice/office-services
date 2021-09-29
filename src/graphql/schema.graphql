@@ -140,11 +140,13 @@ type Inbox {
     about: String @rename(attribute: "Hal")
     type: DocumentType @belongsTo
     urgency: DocumentUrgency @belongsTo
+    documentBaseUrl: String @rename(attribute: "document_base_url")
+    documentPath: String @rename(attribute: "NFileDir")
     documentFile: InboxFile @belongsTo
 }
 
 type InboxFile {
-    url: String @rename(attribute: "document_file")
+    name: String @rename(attribute: "FileName_fake")
 }
 
 type InboxReceiver {

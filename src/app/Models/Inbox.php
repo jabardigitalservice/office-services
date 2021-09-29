@@ -31,4 +31,9 @@ class Inbox extends Model
     {
         return $this->belongsTo(InboxFile::class, 'NId', 'NId');
     }
+
+    public function getDocumentBaseUrlAttribute()
+    {
+        return config('sikd.base_path_file');
+    }
 }

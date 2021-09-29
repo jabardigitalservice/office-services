@@ -12,9 +12,4 @@ class InboxFile extends Model
     protected $connection = 'sikdweb';
 
     protected $table = "inbox_files";
-
-    public function getDocumentFileAttribute()
-    {
-        return config('sikd.base_path_file') . $this->NFileDir . '/' . $this->file->FileName_fake;
-    }
 }
