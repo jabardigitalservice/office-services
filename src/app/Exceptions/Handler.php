@@ -42,9 +42,28 @@ class Handler extends ExceptionHandler
     public function report(Throwable $exception)
     {
         if (app()->bound('sentry') && $this->shouldReport($exception)) {
+            if (auth()->check()) {
+                $this->setUserContext(auth()->user());
+            }
+
             app('sentry')->captureException($exception);
         }
 
         parent::report($exception);
+    }
+
+    private function setUserContext($user): void
+    {
+        \Sentry\configureScope(function (\Sentry\State\Scope $scope) use ($user) {
+            $scope->setUser([
+                    'people_id' => $user->PeopleId,
+                    'people_name' => $user->PeopleName,
+                    'people_position' => $user->PeoplePosition,
+                    'people_username' => $user->PeopleUsername,
+                    'people_email' => $user->Email,
+                    'people_primary_role_id' => $user->PrimaryRoleId,
+                ]
+            );
+        });
     }
 }
