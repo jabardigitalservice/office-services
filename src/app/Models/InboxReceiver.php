@@ -21,6 +21,8 @@ class InboxReceiver extends Model
 
     protected $primaryKey = 'NId';
 
+    protected $appends = ['purpose', 'inbox_disposition'];
+
     protected $fillable = [
         'NId',
         'NKey',

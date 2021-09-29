@@ -27,15 +27,13 @@ class Inbox extends Model
         return $this->belongsTo(DocumentUrgency::class, 'UrgensiId', 'UrgensiId');
     }
 
-    public function file()
+    public function documentFile()
     {
         return $this->belongsTo(InboxFile::class, 'NId', 'NId');
     }
 
-    public function getDocumentFileAttribute()
+    public function getDocumentBaseUrlAttribute()
     {
-        if ($this->file) {
-            return config('sikd.base_path_file') . $this->NFileDir . '/' . $this->file->FileName_fake;
-        }
+        return config('sikd.base_path_file');
     }
 }

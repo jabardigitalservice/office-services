@@ -31,11 +31,6 @@ class People extends Authenticatable
         return $this->belongsTo(SiapPeople::class, 'PeopleUsername', 'peg_nip');
     }
 
-    public function getAvatarAttribute()
-    {
-        return optional($this->siapPeople)->peg_foto_url;
-    }
-
     public function filter($query, $filter)
     {
         $proposedTo = $filter["proposedTo"] ?? null;

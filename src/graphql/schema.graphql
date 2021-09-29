@@ -61,7 +61,11 @@ type People {
     role: Role @belongsTo
     groupId: Int @rename(attribute: "GroupId")
     position: String @rename(attribute: "PeoplePosition")
-    avatar: String
+    avatar: SiapPeople @belongsTo(relation: "siapPeople")
+}
+
+type SiapPeople {
+    url: String
 }
 
 type Role {
@@ -136,7 +140,13 @@ type Inbox {
     about: String @rename(attribute: "Hal")
     type: DocumentType @belongsTo
     urgency: DocumentUrgency @belongsTo
-    documentFile: String @rename(attribute: "document_file")
+    documentBaseUrl: String @rename(attribute: "document_base_url")
+    documentPath: String @rename(attribute: "NFileDir")
+    documentFile: InboxFile @belongsTo
+}
+
+type InboxFile {
+    name: String @rename(attribute: "FileName_fake")
 }
 
 type InboxReceiver {
@@ -152,10 +162,10 @@ type InboxReceiver {
     toIdMessage: String @rename(attribute: "To_Id_Message")
     isForwarded: Int @rename(attribute: "Status")
     message: String @rename(attribute: "Msg")
-    inboxDetail: Inbox @with
-    sender: People @with
+    inboxDetail: Inbox @belongsTo
+    sender: People @belongsTo
     purpose: [InboxReceiver]
-    receiver: People @with(relation: "receiver")
+    receiver: People @belongsTo
     inboxDisposition: [InboxDisposition]
 }
 
