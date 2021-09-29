@@ -13,7 +13,7 @@ type Query {
         search: String @builder(method: "App\\Models\\InboxReceiver@search")
         filter: FilterInput @builder(method: "App\\Models\\InboxReceiver@filter")
     ): [InboxReceiver!]!
-        @whereAuth(relation: "receiver")
+        @whereAuth(relation: "receiverByRoleId")
         @orderBy(column: "ReceiveDate", direction: DESC)
         @paginate(type: CONNECTION)
         @guard
