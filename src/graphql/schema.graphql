@@ -13,7 +13,7 @@ type Query {
         search: String @builder(method: "App\\Models\\InboxReceiver@search")
         filter: FilterInput @builder(method: "App\\Models\\InboxReceiver@filter")
     ): [InboxReceiver!]!
-        @whereAuth(relation: "receiver")
+        @whereAuth(relation: "receiverByRoleId")
         @orderBy(column: "ReceiveDate", direction: DESC)
         @paginate(type: CONNECTION)
         @guard
@@ -38,6 +38,9 @@ type Query {
 type Mutation {
     login(input: LoginInput): AuthPayload
         @field(resolver: "AuthMutator@login")
+
+    inboxForward(input: ForwardInput!): [InboxReceiver]
+        @field(resolver: "InboxMutator@forward")
 }
 
 enum ProposedTypes {
@@ -173,4 +176,10 @@ type InboxDisposition {
 type Disposition {
     id: String @rename(attribute: "DisposisiId")
     name: String @rename(attribute: "DisposisiName")
+}
+
+input ForwardInput {
+    inboxId: String!
+    receiversIds: String!
+    message: String
 }
