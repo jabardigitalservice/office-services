@@ -17,7 +17,25 @@ class InboxReceiver extends Model
 
     protected $keyType = 'string';
 
+    public $incrementing = false;
+
     protected $primaryKey = 'NId';
+
+    protected $fillable = [
+        'NId',
+        'NKey',
+        'GIR_Id',
+        'From_Id',
+        'RoleId_From',
+        'To_Id',
+        'RoleId_To',
+        'ReceiverAs',
+        'Msg',
+        'StatusReceive',
+        'ReceiveDate',
+        'To_Id_Desc',
+        'Status'
+    ];
 
     public function inboxDetail()
     {
@@ -42,6 +60,11 @@ class InboxReceiver extends Model
     public function receiver()
     {
         return $this->belongsTo(People::class, 'To_Id', 'PeopleId');
+    }
+
+    public function receiverByRoleId()
+    {
+        return $this->belongsTo(People::class, 'RoleId_To', 'PrimaryRoleId');
     }
 
     public function filter($query, $filter)
