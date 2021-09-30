@@ -65,7 +65,7 @@ type People {
 }
 
 type SiapPeople {
-    url: String
+    url: String @rename(attribute: "peg_foto_url")
 }
 
 type Role {
