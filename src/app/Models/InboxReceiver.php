@@ -19,7 +19,7 @@ class InboxReceiver extends Model
 
     public $incrementing = false;
 
-    protected $primaryKey = 'NId';
+    protected $primaryKey = 'id';
 
     protected $appends = ['purpose', 'inbox_disposition'];
 
