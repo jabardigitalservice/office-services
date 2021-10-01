@@ -15,12 +15,6 @@ class InboxReceiver extends Model
 
     public $timestamps = false;
 
-    protected $keyType = 'string';
-
-    public $incrementing = false;
-
-    protected $primaryKey = 'id';
-
     protected $appends = ['purpose', 'inbox_disposition'];
 
     protected $fillable = [
