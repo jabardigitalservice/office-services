@@ -2,6 +2,7 @@
 
 namespace App\GraphQL\Mutations;
 
+use App\Enums\FcmNotificationActionTypeEnum;
 use App\Http\Traits\SendNotificationTrait;
 use App\Models\Inbox;
 use App\Models\InboxReceiver;
@@ -112,7 +113,7 @@ class InboxMutator
             ],
             'data' => [
                 'id' => $inboxId,
-                'action' => 'detail_inbox',
+                'action' => FcmNotificationActionTypeEnum::INBOX_DETAIL(),
             ]
         ];
 
