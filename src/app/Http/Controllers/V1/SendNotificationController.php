@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\V1;
 
+use App\Enums\FcmNotificationActionTypeEnum;
 use App\Http\Controllers\Controller;
 use App\Http\Traits\SendNotificationTrait;
 use Illuminate\Http\Request;
@@ -27,7 +28,7 @@ class SendNotificationController extends Controller
             ],
             'data' => [
                 'id' => $request->inboxId,
-                'action' => 'detail_inbox',
+                'action' => FcmNotificationActionTypeEnum::INBOX_DETAIL(),
             ]
         ];
 
