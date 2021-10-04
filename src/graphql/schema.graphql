@@ -18,6 +18,15 @@ type Query {
         @paginate(type: CONNECTION)
         @guard
 
+    outboxes(
+        search: String @builder(method: "App\\Models\\InboxReceiver@search")
+        filter: FilterInput @builder(method: "App\\Models\\InboxReceiver@filter")
+    ): [InboxReceiver!]!
+        @whereAuth(relation: "senderByRoleId")
+        @orderBy(column: "ReceiveDate", direction: DESC)
+        @paginate(type: CONNECTION)
+        @guard
+
     inboxHistory(NId: ID @eq): [InboxReceiver!]!
         @builder(method: "App\\Models\\InboxReceiver@history")
         @orderBy(column: "ReceiveDate", direction: DESC)

@@ -58,6 +58,11 @@ class InboxReceiver extends Model
         return $this->belongsTo(People::class, 'To_Id', 'PeopleId');
     }
 
+    public function senderByRoleId()
+    {
+        return $this->belongsTo(People::class, 'RoleId_From', 'PrimaryRoleId');
+    }
+
     public function receiverByRoleId()
     {
         return $this->belongsTo(People::class, 'RoleId_To', 'PrimaryRoleId');
