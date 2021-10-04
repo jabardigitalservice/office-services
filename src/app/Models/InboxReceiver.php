@@ -93,7 +93,7 @@ class InboxReceiver extends Model
                 ->whereIn('JenisId', function ($docQuery) use ($arrayTypes) {
                     $docQuery->select('JenisId')
                     ->from('master_jnaskah')
-                    ->whereIn('JenisName', $arrayTypes);
+                    ->whereIn('JenisId', $arrayTypes);
                 });
             });
         }
