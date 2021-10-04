@@ -104,17 +104,18 @@ class InboxMutator
     {
         $inbox = Inbox::findOrFail($inboxId);
 
-        $request = [
-            'inboxId' 		=> $inboxId,
-            'date' 	        => $inbox->NTglReg,
-            'about' 		=> $inbox->Hal,
-            'sender' 		=> $from->role->rolecode->rolecode_sort,
-            'source' 		=> $inbox->Pengirim,
-            'typeName' 		=> $inbox->type->JenisName,
-            'urgencyName' 	=> $inbox->urgency->UrgensiName,
-            'peopleIds' 	=> $receiversIds,
+        $messageAttribute = [
+            'peopleIds' => $receiversIds,
+            'notification' => [
+                'title' => $from->role->rolecode->rolecode_sort,
+                'body' => $inbox->Hal . ' | ' . $inbox->type->JenisName . ' | ' . $inbox->urgency->UrgensiName,
+            ],
+            'data' => [
+                'id' => $inboxId,
+                'action' => 'detail_inbox',
+            ]
         ];
 
-        $this->sendNotification((object) $request);
+        $this->sendNotification($messageAttribute);
     }
 }

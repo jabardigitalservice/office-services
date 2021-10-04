@@ -10,7 +10,7 @@ trait SendNotificationTrait
     public function sendNotification($request)
     {
         $SERVER_API_KEY = config('fcm.server_key');
-        $firebaseToken = PersonalAccessToken::whereIn('tokenable_id', $request->peopleIds)->pluck('fcm_token')->all();
+        $firebaseToken = PersonalAccessToken::whereIn('tokenable_id', $request['peopleIds'])->pluck('fcm_token')->all();
 
         if (!$firebaseToken) {
             return response()->json(['message' => 'Token empty'], Response::HTTP_INTERNAL_SERVER_ERROR);
@@ -18,20 +18,10 @@ trait SendNotificationTrait
 
         $data = [
             "registration_ids" => $firebaseToken,
-            "notification" => [
-                'title' => $request->sender,
-                'body' => $request->about . ' | ' . $request->typeName . ' | ' . $request->urgencyName,
-            ],
-            "data" => [
-                'id' => $request->inboxId,
-                'action' => 'detail_inbox',
-                'source' => $request->source,
-                'about' => $request->about,
-                'date' => $request->date,
-                'typeName' => $request->typeName,
-                'urgencyName' => $request->urgencyName,
-            ]
+            "notification" => $request['notification'],
+            "data" => $request['data']
         ];
+
         $dataString = json_encode($data);
 
         $headers = [

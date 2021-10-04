@@ -18,7 +18,20 @@ class SendNotificationController extends Controller
      */
     public function __invoke(Request $request)
     {
-        $sendNotification = $this->sendNotification($request);
+
+        $messageAttribute = [
+            'peopleIds' => $request->peopleIds,
+            'notification' => [
+                'title' => $request->sender,
+                'body' => $request->about . ' | ' . $request->typeName . ' | ' . $request->urgencyName,
+            ],
+            'data' => [
+                'id' => $request->inboxId,
+                'action' => 'detail_inbox',
+            ]
+        ];
+
+        $sendNotification = $this->sendNotification($messageAttribute);
 
         return $sendNotification;
     }
