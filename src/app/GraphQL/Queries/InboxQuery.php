@@ -20,24 +20,36 @@ class InboxQuery
      */
     public function detail($rootValue, array $args, GraphQLContext $context)
     {
-        $inboxReceiver = InboxReceiver::where('NId', $args['NId'])
-                            ->where('To_Id', $context->user()->PeopleId)
-                            ->first();
+        $inboxReceiver = InboxReceiver::where('id', $args['id'])->first();
 
-        if ($inboxReceiver) {
-            // @TODO Seharusnya mark as read dipisahkan dari proses/logic ini (single responsibility principle)
-            if ($inboxReceiver->StatusReceive != 'read') {
-                InboxReceiver::where('NId', $inboxReceiver->NId)
-                            ->where('To_Id', $context->user()->PeopleId)
-                            ->update(['StatusReceive' => 'read']);
-            }
-
-            return $inboxReceiver;
-        } else {
+        if (!$inboxReceiver) {
             throw new CustomException(
                 'Inbox not found',
                 'Inbox with this NId not found'
             );
         }
+
+        //Check the inbox is readed or not
+        $this->markAsRead($inboxReceiver, $context);
+
+        return $inboxReceiver;
+    }
+
+    /**
+     * markAsRead
+     *
+     * @param Object $inboxReceiver
+     * @param Object $context
+     *
+     * @return boolean
+     */
+    public function markAsRead($inboxReceiver, $context)
+    {
+        if ($inboxReceiver->StatusReceive != 'read') {
+            InboxReceiver::where('id', $inboxReceiver->id)
+                        ->update(['StatusReceive' => 'read']);
+        }
+
+        return true;
     }
 }

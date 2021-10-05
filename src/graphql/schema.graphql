@@ -5,7 +5,7 @@ scalar Date @scalar(class: "Nuwave\\Lighthouse\\Schema\\Types\\Scalars\\Date")
 scalar DateTime @scalar(class: "Nuwave\\Lighthouse\\Schema\\Types\\Scalars\\DateTime")
 
 type Query {
-    inbox(NId: ID @eq): InboxReceiver
+    inbox(id: ID @eq): InboxReceiver
         @field(resolver: "InboxQuery@detail")
         @guard
 
@@ -27,7 +27,11 @@ type Query {
         @paginate(type: CONNECTION)
         @guard
 
-    inboxHistory(NId: ID @eq): [InboxReceiver!]!
+    outbox(id: ID @eq): InboxReceiver
+        @find
+        @guard
+
+    inboxHistory(id: ID @eq): [InboxReceiver!]!
         @builder(method: "App\\Models\\InboxReceiver@history")
         @orderBy(column: "ReceiveDate", direction: DESC)
         @paginate(type: CONNECTION)
@@ -160,6 +164,7 @@ type InboxFile {
 }
 
 type InboxReceiver {
+    id: ID!
     inboxId: String! @rename(attribute: "NId")
     groupId: String! @rename(attribute: "GIR_Id")
     date: DateTime! @rename(attribute: "ReceiveDate")
