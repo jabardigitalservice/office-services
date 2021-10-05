@@ -10,6 +10,8 @@ use App\Models\People;
 use App\Models\TableSetting;
 use Illuminate\Support\Arr;
 
+date_default_timezone_set('Asia/Jakarta');
+
 class InboxMutator
 {
     use SendNotificationTrait;
