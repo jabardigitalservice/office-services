@@ -135,6 +135,7 @@ input FilterInput {
     urgencies: String
     statuses: String
     forwarded: String
+    folder: String
 }
 
 type Inbox {
