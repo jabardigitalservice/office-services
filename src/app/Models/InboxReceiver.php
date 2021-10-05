@@ -58,6 +58,11 @@ class InboxReceiver extends Model
         return $this->belongsTo(People::class, 'To_Id', 'PeopleId');
     }
 
+    public function senderByRoleId()
+    {
+        return $this->belongsTo(People::class, 'RoleId_From', 'PrimaryRoleId');
+    }
+
     public function receiverByRoleId()
     {
         return $this->belongsTo(People::class, 'RoleId_To', 'PrimaryRoleId');
@@ -70,6 +75,7 @@ class InboxReceiver extends Model
         $types = $filter["types"] ?? null;
         $urgencies = $filter["urgencies"] ?? null;
         $forwarded = $filter["forwarded"] ?? null;
+        $folder = $filter["folder"] ?? null;
 
         if ($statuses) {
             $arrayStatuses = explode(", ", $statuses);
@@ -109,6 +115,16 @@ class InboxReceiver extends Model
                     ->whereIn('UrgensiName', $arrayUrgencies);
                 });
             });
+        }
+
+        if ($folder) {
+            $arrayFolders = explode(", ", $folder);
+            $query->whereIn('NId', function ($inboxQuery) use ($arrayFolders) {
+                $inboxQuery->select('NId')
+                ->from('inbox')
+                ->whereIn('NTipe', $arrayFolders);
+            });
+            $query->where('ReceiverAs', 'to');
         }
 
         if ($forwarded || $forwarded == '0') {
