@@ -9,6 +9,7 @@ use App\Models\InboxReceiver;
 use App\Models\People;
 use App\Models\TableSetting;
 use Illuminate\Support\Arr;
+use Carbon\Carbon;
 
 class InboxMutator
 {
@@ -55,12 +56,12 @@ class InboxMutator
     {
         $receiver = People::findOrFail($receiverId);
         $nkey = TableSetting::first()->tb_key;
-        $receiveDate = date('Y-m-d H:i:s');
+        $now = Carbon::now('Asia/Jakarta');
 
         $inboxReceiver = [
             'NId' 			=> $inboxId,
             'NKey' 			=> $nkey,
-            'GIR_Id' 		=> $from->PeopleId . date('dmyhis'),
+            'GIR_Id' 		=> $from->PeopleId . $now->format('dmyhis'),
             'From_Id' 		=> $from->PeopleId,
             'RoleId_From' 	=> $from->PrimaryRoleId,
             'To_Id' 		=> $receiverId,
@@ -68,7 +69,7 @@ class InboxMutator
             'ReceiverAs' 	=> 'to_forward',
             'Msg' 			=> $message,
             'StatusReceive' => 'unread',
-            'ReceiveDate' 	=> $receiveDate,
+            'ReceiveDate' 	=> $now->format('Y-m-d H:i:s'),
             'To_Id_Desc' 	=> $receiver->role->RoleDesc,
             'Status' 	    => 0,
         ];
