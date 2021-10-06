@@ -34,26 +34,44 @@ class People extends Authenticatable
     public function filter($query, $filter)
     {
         $proposedTo = $filter["proposedTo"] ?? null;
+        $roleId = auth()->user()->PrimaryRoleId;
+        $query->where('NIP', '<>', null);
+
         if ($proposedTo == PeopleProposedTypeEnum::FORWARD()) {
-            $roleId = auth()->user()->PrimaryRoleId;
-            $query->where('NIP', '<>', null);
 
             // A special condition when the archiver (unit kearsipan) is 'unit kearsipan setda (uk.setda)'
             // uk.setda role id is uk.1.1.1.1.1
             if ($roleId == 'uk.1.1.1.1.1') {
                 $query->whereIn('PrimaryRoleId', function ($roleQuery){
                     $roleQuery->select('RoleId')
-                        ->from('role')
-                        // The forward targets have various role ids
-                        // with min. length id is 4, for example uk.1 as the government
-                        // and max. length id is 18, for instance uk.1.1.1.1.1.1.1.2 as the bureau chief
-                        ->whereRaw('LENGTH(PrimaryRoleId) >= 4 AND LENGTH(PrimaryRoleId) <= 18')
-                        // This fixed role code means the forward targets in the same institution with the uk.setda
-                        ->where('RoleCode', 3);
+                    ->from('role')
+                    // The forward targets have various role ids
+                    // with min. length id is 4, for example uk.1 as the government
+                    // and max. length id is 18, for instance uk.1.1.1.1.1.1.1.2 as the bureau chief
+                    ->whereRaw('LENGTH(PrimaryRoleId) >= 4 AND LENGTH(PrimaryRoleId) <= 18')
+                    // This fixed role code means the forward targets in the same institution with the uk.setda
+                    ->where('RoleCode', 3);
                 });
             } else {
                 // The role id pattern for 'kadis' and 'sekdis' of a department (dinas)
                 $query->whereIn('PrimaryRoleId', [$roleId . '.1', $roleId . '.1.1']);
+            }
+        } elseif ($proposedTo == PeopleProposedTypeEnum::DISPOSITION()) {
+            // The disposition targets are the people who has the 'RoleAtasan' as the user's roleId.
+
+            // User 'Sekretaris' has unique condition. Its disposition tragets are
+            // the people who has 'RoleAtasan' as the 'Kadis roleId'.
+            // The 'Kadis' is the upper role of the 'Sekretaris'.
+
+            // 'Sekretaris' has roleId pattern that contains 5 digits (4 dots), except for
+            // the sekretaris of 'Dinas Kehutanan' the roleId is uk.1.26.2 (only 3 dots).
+            $roleIdDigit = explode(".", $roleId);
+            if (count($roleIdDigit) == 5 || $roleId == 'uk.1.26.2') {
+                $roleAtasan = auth()->user()->RoleAtasan;
+                $query->where('RoleAtasan', $roleAtasan)
+                    ->where('PrimaryRoleId', '!=', $roleId);
+            } else {
+                $query->where('RoleAtasan', $roleId);
             }
         }
 
