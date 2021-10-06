@@ -39,14 +39,9 @@ class InboxReceiver extends Model
         return $this->belongsTo(Inbox::class, 'NId', 'NId');
     }
 
-    public function history($query)
+    public function history($query, $NId)
     {
-        return $query->where(function ($query) {
-            // @TODO Seharusnya tidak boleh ada pemanggilan request()/auth() di model
-            // Model/Entity harus terlepas dari context/logic layer atasnya (controller/endpoint)
-            $query->where('RoleId_To', 'like', auth()->user()->PrimaryRoleId . '%');
-            $query->orWhere('RoleId_From', 'like', auth()->user()->PrimaryRoleId . '%');
-        })->groupBy('GIR_Id');
+        return $query->where('NId', $NId)->groupBy('GIR_Id');
     }
 
     public function sender()
