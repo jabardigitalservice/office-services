@@ -32,7 +32,7 @@ type Query {
         @guard
 
     inboxHistory(
-        NId: String! @builder(method: "App\\Models\\InboxReceiver@history")
+        inboxId: String! @builder(method: "App\\Models\\InboxReceiver@history")
     ): [InboxReceiver!]!
         @orderBy(column: "ReceiveDate", direction: DESC)
         @paginate(type: CONNECTION)
