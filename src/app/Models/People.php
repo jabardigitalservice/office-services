@@ -44,13 +44,13 @@ class People extends Authenticatable
             if ($roleId == 'uk.1.1.1.1.1') {
                 $query->whereIn('PrimaryRoleId', function ($roleQuery){
                     $roleQuery->select('RoleId')
-                    ->from('role')
-                    // The forward targets have various role ids
-                    // with min. length id is 4, for example uk.1 as the government
-                    // and max. length id is 18, for instance uk.1.1.1.1.1.1.1.2 as the bureau chief
-                    ->whereRaw('LENGTH(PrimaryRoleId) >= 4 AND LENGTH(PrimaryRoleId) <= 18')
-                    // This fixed role code means the forward targets in the same institution with the uk.setda
-                    ->where('RoleCode', 3);
+                        ->from('role')
+                        // The forward targets have various role ids
+                        // with min. length id is 4, for example uk.1 as the government
+                        // and max. length id is 18, for instance uk.1.1.1.1.1.1.1.2 as the bureau chief
+                        ->whereRaw('LENGTH(PrimaryRoleId) >= 4 AND LENGTH(PrimaryRoleId) <= 18')
+                        // This fixed role code means the forward targets in the same institution with the uk.setda
+                        ->where('RoleCode', 3);
                 });
             } else {
                 // The role id pattern for 'kadis' and 'sekdis' of a department (dinas)
