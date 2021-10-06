@@ -56,12 +56,12 @@ class InboxMutator
     {
         $receiver = People::findOrFail($receiverId);
         $nkey = TableSetting::first()->tb_key;
-        $now = Carbon::now('Asia/Jakarta');
+        $now = Carbon::now();
 
         $inboxReceiver = [
             'NId' 			=> $inboxId,
             'NKey' 			=> $nkey,
-            'GIR_Id' 		=> $from->PeopleId . $now->format('dmyhis'),
+            'GIR_Id' 		=> $from->PeopleId . $now,
             'From_Id' 		=> $from->PeopleId,
             'RoleId_From' 	=> $from->PrimaryRoleId,
             'To_Id' 		=> $receiverId,
@@ -69,7 +69,7 @@ class InboxMutator
             'ReceiverAs' 	=> 'to_forward',
             'Msg' 			=> $message,
             'StatusReceive' => 'unread',
-            'ReceiveDate' 	=> $now->format('Y-m-d H:i:s'),
+            'ReceiveDate' 	=> $now,
             'To_Id_Desc' 	=> $receiver->role->RoleDesc,
             'Status' 	    => 0,
         ];

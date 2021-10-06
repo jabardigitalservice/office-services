@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -158,6 +159,22 @@ class InboxReceiver extends Model
         return InboxDisposition::where('NId', $this->NId)
                         ->where('GIR_Id', $this->GIR_Id)
                         ->get();
+    }
+
+    public function setGirIdAttribute($value)
+    {
+        // GirId = peopleId + now (date in 'dmyhis' format)
+        // 19 means the datetime characters numbers
+        $peopleId = substr($value, 0, -19);
+        $dateString = substr($value, -19);
+        $date = Carbon::parse($dateString)->addHours(7)->format('dmyhis');
+
+        $this->attributes['GIR_Id'] = $peopleId . $date;
+    }
+
+    public function setReceiveDateAttribute($value)
+    {
+        $this->attributes['ReceiveDate'] = $value->addHours(7);
     }
 
     public function getReceiverAsLabelAttribute()
