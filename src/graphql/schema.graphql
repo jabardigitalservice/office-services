@@ -58,6 +58,7 @@ type Mutation {
 
 enum ProposedTypes {
     FORWARD
+    DISPOSITION
 }
 
 input PeopleFilterInput {
