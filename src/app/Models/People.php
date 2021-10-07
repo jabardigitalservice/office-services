@@ -58,21 +58,7 @@ class People extends Authenticatable
             }
         } elseif ($proposedTo == PeopleProposedTypeEnum::DISPOSITION()) {
             // The disposition targets are the people who has the 'RoleAtasan' as the user's roleId.
-
-            // User 'Sekretaris' has unique condition. Its disposition tragets are
-            // the people who has 'RoleAtasan' as the 'Kadis roleId'.
-            // The 'Kadis' is the upper role of the 'Sekretaris'.
-
-            // 'Sekretaris' has roleId pattern that contains 5 digits (4 dots), except for
-            // the sekretaris of 'Dinas Kehutanan' the roleId is uk.1.26.2 (only 3 dots).
-            $roleIdDigit = explode(".", $roleId);
-            if (count($roleIdDigit) == 5 || $roleId == 'uk.1.26.2') {
-                $roleAtasan = auth()->user()->RoleAtasan;
-                $query->where('RoleAtasan', $roleAtasan)
-                    ->where('PrimaryRoleId', '!=', $roleId);
-            } else {
-                $query->where('RoleAtasan', $roleId);
-            }
+            $query->where('RoleAtasan', $roleId);
         }
 
         return $query;
