@@ -36,4 +36,9 @@ class Inbox extends Model
     {
         return config('sikd.base_path_file');
     }
+
+    public function createdBy()
+    {
+        return $this->belongsTo(People::class, 'CreatedBy', 'PeopleId');
+    }
 }
