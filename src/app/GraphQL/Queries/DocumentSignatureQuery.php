@@ -8,7 +8,7 @@ use App\Models\DocumentSignatureSentRead;
 use GraphQL\Type\Definition\ResolveInfo;
 use Nuwave\Lighthouse\Support\Contracts\GraphQLContext;
 
-class DocumentSignature
+class DocumentSignatureQuery
 {
     /**
      * @param $rootValue

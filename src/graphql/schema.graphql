@@ -59,7 +59,7 @@ type Query {
     documentSignatureSent(
         id: ID @eq
     ): DocumentSignatureSent!
-        @field(resolver: "DocumentSignature@detail")
+        @field(resolver: "DocumentSignatureQuery@detail")
         @whereAuth(relation: "receiver")
         @guard
 }
