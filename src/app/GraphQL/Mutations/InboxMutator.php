@@ -36,22 +36,24 @@ class InboxMutator
         $stringReceiversIds = Arr::get($args, 'input.receiversIds');
         $urgency = Arr::get($args, 'input.urgency');
         $receiversIds = explode(", ", $stringReceiversIds);
+        $time = Carbon::now();
+        $groupId = $from->PeopleId . $time;
 
         $inboxReceivers = [];
         foreach ($receiversIds as $receiverId) {
-            $newInboxReceiver = $this->createInboxReceiver($from, $inboxId, $message, $receiverId, $action);
+            $newInboxReceiver = $this->createInboxReceiver($from, $inboxId, $groupId, $time, $message, $receiverId, $action);
             array_push($inboxReceivers, $newInboxReceiver);
         }
 
         // If the action is disposition, should create a inboxDisposition
         if ($action == PeopleProposedTypeEnum::DISPOSITION()) {
-            $this->createInboxDisposition($from, $inboxId, $urgency);
+            $this->createInboxDisposition($from, $inboxId, $groupId, $urgency);
         }
 
         // The origin inbox's status to be marked as actioned (forwarded/dispositioned)
         $this->markActioned($inboxId, $from->PeopleId);
         // Send the notification
-        $this->actionNotification($from, $inboxId, $receiversIds);
+        $this->actionNotification($from, $inboxId, $groupId, $receiversIds);
         return $inboxReceivers;
     }
 
@@ -63,11 +65,10 @@ class InboxMutator
      *
      * @return InboxReceiver
      */
-    protected function createInboxReceiver($from, $inboxId, $message, $receiverId, $action)
+    protected function createInboxReceiver($from, $inboxId, $groupId, $time, $message, $receiverId, $action)
     {
         $receiver = People::findOrFail($receiverId);
         $nkey = TableSetting::first()->tb_key;
-        $now = Carbon::now();
         $label = 'to_forward';
 
         if ($action == PeopleProposedTypeEnum::DISPOSITION()) {
@@ -77,7 +78,7 @@ class InboxMutator
         $inboxReceiver = [
             'NId' 			=> $inboxId,
             'NKey' 			=> $nkey,
-            'GIR_Id' 		=> $from->PeopleId . $now,
+            'GIR_Id' 		=> $groupId,
             'From_Id' 		=> $from->PeopleId,
             'RoleId_From' 	=> $from->PrimaryRoleId,
             'To_Id' 		=> $receiverId,
@@ -85,7 +86,7 @@ class InboxMutator
             'ReceiverAs' 	=> $label,
             'Msg' 			=> $message,
             'StatusReceive' => 'unread',
-            'ReceiveDate' 	=> $now,
+            'ReceiveDate' 	=> $time,
             'To_Id_Desc' 	=> $receiver->role->RoleDesc,
             'Status' 	    => 0,
         ];
@@ -118,23 +119,23 @@ class InboxMutator
      *
      * @return void
      */
-    protected function actionNotification($from, $inboxId, $receiversIds)
+    protected function actionNotification($from, $inboxId, $groupId, $receiversIds)
     {
         $inbox = Inbox::findOrFail($inboxId);
 
         $messageAttribute = [
-            'peopleIds' => $receiversIds,
             'notification' => [
                 'title' => $from->role->rolecode->rolecode_sort,
                 'body' => $inbox->Hal . ' | ' . $inbox->type->JenisName . ' | ' . $inbox->urgency->UrgensiName,
             ],
             'data' => [
-                'id' => $inboxId,
-                'action' => FcmNotificationActionTypeEnum::INBOX_DETAIL(),
+                'inboxId' => $inboxId,
+                'groupId' => $groupId,
+                'peopleIds' => $receiversIds,
             ]
         ];
 
-        $this->sendNotification($messageAttribute);
+        $this->setupInboxReceiverNotification($messageAttribute);
     }
 
     /**
@@ -144,13 +145,11 @@ class InboxMutator
      *
      * @return InboxDisposition
      */
-    protected function createInboxDisposition($from, $inboxId, $urgency)
+    protected function createInboxDisposition($from, $inboxId, $groupId, $urgency)
     {
-        $now = Carbon::now();
-
         $inboxDisposition = [
             'NId' 		=> $inboxId,
-            'GIR_Id' 	=> $from->PeopleId . $now,
+            'GIR_Id' 	=> $groupId,
             'Sifat'     => $urgency,
             'RoleId' 	=> $from->PrimaryRoleId,
         ];

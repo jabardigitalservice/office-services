@@ -21,19 +21,19 @@ class SendNotificationController extends Controller
     {
 
         $messageAttribute = [
-            'peopleIds' => $request->peopleIds,
             'notification' => [
                 'title' => $request->sender,
                 'body' => $request->about . ' | ' . $request->typeName . ' | ' . $request->urgencyName,
             ],
             'data' => [
-                'id' => $request->inboxId,
-                'action' => FcmNotificationActionTypeEnum::INBOX_DETAIL(),
+                'inboxId' => $request->inboxId,
+                'groupId' => $request->groupId,
+                'peopleIds' => $request->peopleIds
             ]
         ];
 
-        $sendNotification = $this->sendNotification($messageAttribute);
+        $sendInboxReceiverNotification = $this->setupInboxReceiverNotification($messageAttribute);
 
-        return $sendNotification;
+        return $sendInboxReceiverNotification;
     }
 }
