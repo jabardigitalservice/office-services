@@ -3,8 +3,10 @@
 namespace App\GraphQL\Mutations;
 
 use App\Enums\FcmNotificationActionTypeEnum;
+use App\Enums\PeopleProposedTypeEnum;
 use App\Http\Traits\SendNotificationTrait;
 use App\Models\Inbox;
+use App\Models\InboxDisposition;
 use App\Models\InboxReceiver;
 use App\Models\People;
 use App\Models\TableSetting;
@@ -25,19 +27,28 @@ class InboxMutator
      */
     public function forward($rootValue, array $args)
     {
+        // Forward is the default action
+        $action = Arr::get($args, 'action') ?? PeopleProposedTypeEnum::FORWARD();
+
         $from = auth()->user();
         $inboxId = Arr::get($args, 'input.inboxId');
         $message = Arr::get($args, 'input.message');
         $stringReceiversIds = Arr::get($args, 'input.receiversIds');
+        $urgency = Arr::get($args, 'urgency');
         $receiversIds = explode(", ", $stringReceiversIds);
 
         $inboxReceivers = [];
         foreach ($receiversIds as $receiverId) {
-            $newInboxReceiver = $this->createInboxReceiver($from, $inboxId, $message, $receiverId);
+            $newInboxReceiver = $this->createInboxReceiver($from, $inboxId, $message, $receiverId, $action);
             array_push($inboxReceivers, $newInboxReceiver);
         }
 
-        // The origin inbox's status to be marked as forwarded
+        // If the action is disposition, should create a inboxDisposition
+        if ($action == PeopleProposedTypeEnum::DISPOSITION()) {
+            $this->createInboxDisposition($from, $inboxId, $urgency);
+        }
+
+        // The origin inbox's status to be marked as actioned (forwarded/dispositioned)
         $this->markActioned($inboxId, $from->PeopleId);
         // Send the notification
         $this->actionNotification($from, $inboxId, $receiversIds);
@@ -52,11 +63,16 @@ class InboxMutator
      *
      * @return InboxReceiver
      */
-    protected function createInboxReceiver($from, $inboxId, $message, $receiverId)
+    protected function createInboxReceiver($from, $inboxId, $message, $receiverId, $action)
     {
         $receiver = People::findOrFail($receiverId);
         $nkey = TableSetting::first()->tb_key;
         $now = Carbon::now();
+        $label = 'to_forward';
+
+        if ($action == PeopleProposedTypeEnum::DISPOSITION()) {
+            $label = 'cc1';
+        }
 
         $inboxReceiver = [
             'NId' 			=> $inboxId,
@@ -66,7 +82,7 @@ class InboxMutator
             'RoleId_From' 	=> $from->PrimaryRoleId,
             'To_Id' 		=> $receiverId,
             'RoleId_To' 	=> $receiver->PrimaryRoleId,
-            'ReceiverAs' 	=> 'to_forward',
+            'ReceiverAs' 	=> $label,
             'Msg' 			=> $message,
             'StatusReceive' => 'unread',
             'ReceiveDate' 	=> $now,
@@ -119,5 +135,26 @@ class InboxMutator
         ];
 
         $this->sendNotification($messageAttribute);
+    }
+
+    /**
+     * @param Object $from
+     * @param String $inboxId
+     * @param String $urgency
+     *
+     * @return InboxDisposition
+     */
+    protected function createInboxDisposition($from, $inboxId, $urgency)
+    {
+        $now = Carbon::now();
+
+        $inboxDisposition = [
+            'NId' 		=> $inboxId,
+            'GIR_Id' 	=> $from->PeopleId . $now,
+            'Sifat'     => $urgency,
+            'RoleId' 	=> $from->PrimaryRoleId,
+        ];
+
+        return InboxDisposition::create($inboxDisposition);
     }
 }

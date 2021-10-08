@@ -53,7 +53,7 @@ type Mutation {
     login(input: LoginInput): AuthPayload
         @field(resolver: "AuthMutator@login")
 
-    inboxForward(input: ForwardInput!): [InboxReceiver]
+    inboxForward(input: ForwardInput!, action: ProposedTypes, urgency: DispositionUrgency): [InboxReceiver]
         @field(resolver: "InboxMutator@forward")
 }
 
@@ -196,6 +196,14 @@ type InboxDisposition {
 type Disposition {
     id: String @rename(attribute: "DisposisiId")
     name: String @rename(attribute: "DisposisiName")
+}
+
+enum DispositionUrgency {
+    NORMAL @enum(value: "XxJyPn38Yh.1")
+    CONFIDENTIAL @enum(value: "XxJyPn38Yh.2")
+    SECRET @enum(value: "XxJyPn38Yh.3")
+    TOPSECRET @enum(value: "XxJyPn38Yh.4")
+    URGENT @enum(value: "XxJyPn38Yh.5")
 }
 
 input ForwardInput {
