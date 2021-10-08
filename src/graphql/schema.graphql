@@ -213,10 +213,20 @@ type Disposition {
     name: String @rename(attribute: "DisposisiName")
 }
 
+enum DispositionUrgency {
+    NORMAL @enum(value: "XxJyPn38Yh.1")
+    CONFIDENTIAL @enum(value: "XxJyPn38Yh.2")
+    SECRET @enum(value: "XxJyPn38Yh.3")
+    TOPSECRET @enum(value: "XxJyPn38Yh.4")
+    URGENT @enum(value: "XxJyPn38Yh.5")
+}
+
 input ForwardInput {
     inboxId: String!
     receiversIds: String!
     message: String
+    action: ProposedTypes
+    urgency: DispositionUrgency
 }
 
 type DocumentSignatureSent {
