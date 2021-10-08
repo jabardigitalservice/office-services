@@ -28,13 +28,13 @@ class InboxMutator
     public function forward($rootValue, array $args)
     {
         // Forward is the default action
-        $action = Arr::get($args, 'action') ?? PeopleProposedTypeEnum::FORWARD();
+        $action = Arr::get($args, 'input.action') ?? PeopleProposedTypeEnum::FORWARD();
 
         $from = auth()->user();
         $inboxId = Arr::get($args, 'input.inboxId');
         $message = Arr::get($args, 'input.message');
         $stringReceiversIds = Arr::get($args, 'input.receiversIds');
-        $urgency = Arr::get($args, 'urgency');
+        $urgency = Arr::get($args, 'input.urgency');
         $receiversIds = explode(", ", $stringReceiversIds);
 
         $inboxReceivers = [];

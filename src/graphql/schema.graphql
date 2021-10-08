@@ -53,7 +53,7 @@ type Mutation {
     login(input: LoginInput): AuthPayload
         @field(resolver: "AuthMutator@login")
 
-    inboxForward(input: ForwardInput!, action: ProposedTypes, urgency: DispositionUrgency): [InboxReceiver]
+    inboxForward(input: ForwardInput!): [InboxReceiver]
         @field(resolver: "InboxMutator@forward")
 }
 
@@ -210,4 +210,6 @@ input ForwardInput {
     inboxId: String!
     receiversIds: String!
     message: String
+    action: ProposedTypes
+    urgency: DispositionUrgency
 }
