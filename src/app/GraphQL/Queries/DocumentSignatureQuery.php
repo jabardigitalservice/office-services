@@ -26,7 +26,6 @@ class DocumentSignatureQuery
                                     ->orderBy('tgl', 'DESC')
                                     ->get();
 
-        dd($data);
         if (!$data) {
             throw new CustomException(
                 'Document not found',
