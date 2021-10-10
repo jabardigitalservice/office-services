@@ -4,7 +4,7 @@ namespace App\Models;
 
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
+use Hoyvoy\CrossDatabase\Eloquent\Model;
 
 class InboxReceiver extends Model
 {
@@ -62,6 +62,11 @@ class InboxReceiver extends Model
     public function receiverByRoleId()
     {
         return $this->belongsTo(People::class, 'RoleId_To', 'PrimaryRoleId');
+    }
+
+    public function personalAccessTokens()
+    {
+        return $this->hasMany(PersonalAccessToken::class, 'tokenable_id', 'To_Id');
     }
 
     public function filter($query, $filter)
