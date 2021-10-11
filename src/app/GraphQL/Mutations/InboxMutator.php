@@ -60,10 +60,30 @@ class InboxMutator
     }
 
     /**
-     * @param Object $from
-     * @param String $inboxId
-     * @param String $message
+     * @param $rootValue
+     * @param $args
+     *
+     * @throws \Exception
+     *
+     * @return String
+     */
+    public function endForward($rootValue, array $args)
+    {
+        $peopleId = auth()->user()->PeopleId;
+        $inboxId = Arr::get($args, 'inboxId');
+
+        InboxReceiver::where('NId', $inboxId)
+            ->where('To_Id', strval($peopleId))
+            ->firstOrFail()
+            ->update(['Status' => 1]);
+
+        return 'status updated';
+    }
+
+    /**
+     * @param Array $inboxData
      * @param String $receiverId
+     * @param String $action
      *
      * @return InboxReceiver
      */
@@ -97,8 +117,7 @@ class InboxMutator
     }
 
     /**
-     * @param String    $inboxId
-     * @param Int       $fromId
+     * @param Array    $inboxData
      *
      * @return void
      */
@@ -119,8 +138,7 @@ class InboxMutator
     }
 
     /**
-     * @param String    $inboxId
-     * @param Int       $fromId
+     * @param Array $inboxData
      *
      * @return void
      */
@@ -144,9 +162,7 @@ class InboxMutator
     }
 
     /**
-     * @param Object $from
-     * @param String $inboxId
-     * @param String $urgency
+     * @param Array $inboxData
      *
      * @return InboxDisposition
      */
