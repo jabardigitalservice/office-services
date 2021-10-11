@@ -48,7 +48,7 @@ type Query {
         @paginate(type: CONNECTION)
         @guard
 
-    # You can use this @field code for experiment query leveling -> @field(resolver: "DocumentSignatureQuery@list") 
+    # You can use this @field code for experiment query leveling -> @field(resolver: "DocumentSignatureQuery@list")
     documentSignatureSents(
         search: String @builder(method: "App\\Models\\DocumentSignatureSent@search")
         filter: documentSignatureSentsInput
@@ -201,6 +201,7 @@ type InboxReceiver {
     purpose: [InboxReceiver]
     receiver: People @belongsTo
     inboxDisposition: [InboxDisposition]
+    isEndForward(inboxId: String): Boolean @method
 }
 
 type InboxDisposition {
