@@ -2,7 +2,6 @@
 
 namespace App\GraphQL\Mutations;
 
-use App\Enums\FcmNotificationActionTypeEnum;
 use App\Enums\PeopleProposedTypeEnum;
 use App\Http\Traits\SendNotificationTrait;
 use App\Models\Inbox;
@@ -29,31 +28,34 @@ class InboxMutator
     {
         // Forward is the default action
         $action = Arr::get($args, 'input.action') ?? PeopleProposedTypeEnum::FORWARD();
-
-        $from = auth()->user();
-        $inboxId = Arr::get($args, 'input.inboxId');
-        $message = Arr::get($args, 'input.message');
         $stringReceiversIds = Arr::get($args, 'input.receiversIds');
-        $urgency = Arr::get($args, 'input.urgency');
-        $receiversIds = explode(", ", $stringReceiversIds);
         $time = Carbon::now();
-        $groupId = $from->PeopleId . $time;
+
+        $inboxData = [
+            'from' => auth()->user(),
+            'inboxId' => Arr::get($args, 'input.inboxId'),
+            'message' => Arr::get($args, 'input.message'),
+            'urgency' => Arr::get($args, 'input.urgency'),
+            'receiversIds' => explode(", ", $stringReceiversIds),
+            'time' => $time,
+            'groupId' => auth()->user()->PeopleId . $time,
+        ];
 
         $inboxReceivers = [];
-        foreach ($receiversIds as $receiverId) {
-            $newInboxReceiver = $this->createInboxReceiver($from, $inboxId, $groupId, $time, $message, $receiverId, $action);
+        foreach ($inboxData['receiversIds'] as $receiverId) {
+            $newInboxReceiver = $this->createInboxReceiver($inboxData, $receiverId, $action);
             array_push($inboxReceivers, $newInboxReceiver);
         }
 
         // If the action is disposition, should create a inboxDisposition
         if ($action == PeopleProposedTypeEnum::DISPOSITION()) {
-            $this->createInboxDisposition($from, $inboxId, $groupId, $urgency);
+            $this->createInboxDisposition($inboxData);
         }
 
         // The origin inbox's status to be marked as actioned (forwarded/dispositioned)
-        $this->markActioned($inboxId, $from->PeopleId);
+        $this->markActioned($inboxData);
         // Send the notification
-        $this->actionNotification($from, $inboxId, $groupId, $receiversIds);
+        $this->actionNotification($inboxData);
         return $inboxReceivers;
     }
 
@@ -65,28 +67,28 @@ class InboxMutator
      *
      * @return InboxReceiver
      */
-    protected function createInboxReceiver($from, $inboxId, $groupId, $time, $message, $receiverId, $action)
+    protected function createInboxReceiver($inboxData, $receiverId, $action)
     {
         $receiver = People::findOrFail($receiverId);
         $nkey = TableSetting::first()->tb_key;
-        $label = 'to_forward';
 
+        $label = 'to_forward';
         if ($action == PeopleProposedTypeEnum::DISPOSITION()) {
             $label = 'cc1';
         }
 
         $inboxReceiver = [
-            'NId' 			=> $inboxId,
+            'NId' 			=> $inboxData['inboxId'],
             'NKey' 			=> $nkey,
-            'GIR_Id' 		=> $groupId,
-            'From_Id' 		=> $from->PeopleId,
-            'RoleId_From' 	=> $from->PrimaryRoleId,
+            'GIR_Id' 		=> $inboxData['groupId'],
+            'From_Id' 		=> $inboxData['from']->PeopleId,
+            'RoleId_From' 	=> $inboxData['from']->PrimaryRoleId,
             'To_Id' 		=> $receiverId,
             'RoleId_To' 	=> $receiver->PrimaryRoleId,
             'ReceiverAs' 	=> $label,
-            'Msg' 			=> $message,
+            'Msg' 			=> $inboxData['message'],
             'StatusReceive' => 'unread',
-            'ReceiveDate' 	=> $time,
+            'ReceiveDate' 	=> $inboxData['time'],
             'To_Id_Desc' 	=> $receiver->role->RoleDesc,
             'Status' 	    => 0,
         ];
@@ -100,8 +102,11 @@ class InboxMutator
      *
      * @return void
      */
-    protected function markActioned($inboxId, $fromId)
+    protected function markActioned($inboxData)
     {
+        $inboxId = $inboxData['inboxId'];
+        $fromId = $inboxData['from']->PeopleId;
+
         $inbox = InboxReceiver::where('NId', $inboxId)
             ->where('To_Id', strval($fromId))
             ->firstOrFail();
@@ -119,19 +124,19 @@ class InboxMutator
      *
      * @return void
      */
-    protected function actionNotification($from, $inboxId, $groupId, $receiversIds)
+    protected function actionNotification($inboxData)
     {
-        $inbox = Inbox::findOrFail($inboxId);
+        $inbox = Inbox::findOrFail($inboxData['inboxId']);
 
         $messageAttribute = [
             'notification' => [
-                'title' => $from->role->rolecode->rolecode_sort,
+                'title' => $inboxData['from']->role->rolecode->rolecode_sort,
                 'body' => $inbox->Hal . ' | ' . $inbox->type->JenisName . ' | ' . $inbox->urgency->UrgensiName,
             ],
             'data' => [
-                'inboxId' => $inboxId,
-                'groupId' => $groupId,
-                'peopleIds' => $receiversIds,
+                'inboxId' => $inboxData['inboxId'],
+                'groupId' => $inboxData['groupId'],
+                'peopleIds' => $inboxData['receiversIds'],
             ]
         ];
 
@@ -145,13 +150,13 @@ class InboxMutator
      *
      * @return InboxDisposition
      */
-    protected function createInboxDisposition($from, $inboxId, $groupId, $urgency)
+    protected function createInboxDisposition($inboxData)
     {
         $inboxDisposition = [
-            'NId' 		=> $inboxId,
-            'GIR_Id' 	=> $groupId,
-            'Sifat'     => $urgency,
-            'RoleId' 	=> $from->PrimaryRoleId,
+            'NId' 		=> $inboxData['inboxId'],
+            'GIR_Id' 	=> $inboxData['groupId'],
+            'Sifat'     => $inboxData['urgency'],
+            'RoleId' 	=> $inboxData['from']->PrimaryRoleId,
         ];
 
         return InboxDisposition::create($inboxDisposition);
