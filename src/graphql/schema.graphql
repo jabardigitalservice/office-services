@@ -71,6 +71,9 @@ type Mutation {
 
     inboxForward(input: ForwardInput!): [InboxReceiver]
         @field(resolver: "InboxMutator@forward")
+
+    endInboxForward(inboxId: String!): String
+        @field(resolver: "InboxMutator@endForward")
 }
 
 enum ProposedTypes {

@@ -59,6 +59,21 @@ class InboxMutator
         return $inboxReceivers;
     }
 
+    public function endForward($rootValue, array $args)
+    {
+        $peopleId = auth()->user()->PeopleId;
+        $inboxId = Arr::get($args, 'inboxId');
+
+        $updatedInbox = InboxReceiver::where('NId', $inboxId)
+            ->where('To_Id', strval($peopleId))
+            ->firstOrFail()
+            ->update(['Status' => 1]);
+
+        if ($updatedInbox) {
+            return "status updated";
+        }
+    }
+
     /**
      * @param Object $from
      * @param String $inboxId
