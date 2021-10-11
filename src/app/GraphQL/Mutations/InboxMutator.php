@@ -64,14 +64,12 @@ class InboxMutator
         $peopleId = auth()->user()->PeopleId;
         $inboxId = Arr::get($args, 'inboxId');
 
-        $updatedInbox = InboxReceiver::where('NId', $inboxId)
+        InboxReceiver::where('NId', $inboxId)
             ->where('To_Id', strval($peopleId))
             ->firstOrFail()
             ->update(['Status' => 1]);
 
-        if ($updatedInbox) {
-            return "status updated";
-        }
+        return "status updated";
     }
 
     /**
