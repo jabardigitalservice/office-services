@@ -77,6 +77,7 @@ class InboxReceiver extends Model
         $urgencies = $filter["urgencies"] ?? null;
         $forwarded = $filter["forwarded"] ?? null;
         $folder = $filter["folder"] ?? null;
+        $receiverTypes = $filter["receiverTypes"] ?? null;
 
         if ($statuses) {
             $arrayStatuses = explode(", ", $statuses);
@@ -131,6 +132,11 @@ class InboxReceiver extends Model
         if ($forwarded || $forwarded == '0') {
             $arrayForwarded = explode(", ", $forwarded);
             $query->whereIn('Status', $arrayForwarded);
+        }
+
+        if ($receiverTypes) {
+            $arrayReceiverTypes = explode(", ", $receiverTypes);
+            $query->whereIn('ReceiverAs', $arrayReceiverTypes);
         }
 
         return $query;

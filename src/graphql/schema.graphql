@@ -48,7 +48,7 @@ type Query {
         @paginate(type: CONNECTION)
         @guard
 
-    # You can use this @field code for experiment query leveling -> @field(resolver: "DocumentSignatureQuery@list") 
+    # You can use this @field code for experiment query leveling -> @field(resolver: "DocumentSignatureQuery@list")
     documentSignatureSents(
         search: String @builder(method: "App\\Models\\DocumentSignatureSent@search")
         filter: documentSignatureSentsInput
@@ -158,6 +158,7 @@ input FilterInput {
     statuses: String
     forwarded: String
     folder: String
+    receiverTypes: String
 }
 
 type Inbox {
