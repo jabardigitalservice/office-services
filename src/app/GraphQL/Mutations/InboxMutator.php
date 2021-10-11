@@ -128,6 +128,10 @@ class InboxMutator
     {
         $inbox = Inbox::findOrFail($inboxData['inboxId']);
 
+        $peopleId = substr($inboxData['groupId'], 0, -19);
+        $dateString = substr($inboxData['groupId'], -19);
+        $date = Carbon::parse($dateString)->addHours(7)->format('dmyhis');
+
         $messageAttribute = [
             'notification' => [
                 'title' => $inboxData['from']->role->rolecode->rolecode_sort,
@@ -135,7 +139,7 @@ class InboxMutator
             ],
             'data' => [
                 'inboxId' => $inboxData['inboxId'],
-                'groupId' => $inboxData['groupId'],
+                'groupId' => $peopleId . $date,
                 'peopleIds' => $inboxData['receiversIds'],
             ]
         ];
