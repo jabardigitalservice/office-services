@@ -161,6 +161,7 @@ input FilterInput {
     statuses: String
     forwarded: String
     folder: String
+    receiverTypes: String
 }
 
 type Inbox {
