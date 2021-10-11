@@ -13,6 +13,8 @@ class DocumentSignatureSent extends Model
 
     protected $table = 'm_ttd_kirim';
 
+    protected $appends = ['urutan_parent'];
+
     public $timestamps = false;
 
     public function receiver()
@@ -57,5 +59,21 @@ class DocumentSignatureSent extends Model
         }
 
         return $query;
+    }
+
+    public function search($query, $search)
+    {
+        $query->whereIn('ttd_id', function ($inboxQuery) use ($search) {
+            $inboxQuery->select('id')
+            ->from('m_ttd')
+            ->where('nama_file', 'LIKE', '%' . $search . '%');
+        });
+
+        return $query;
+    }
+
+    public function getUrutanParentAttribute()
+    {
+        return $this->urutan - 1;
     }
 }

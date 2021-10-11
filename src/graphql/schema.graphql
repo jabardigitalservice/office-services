@@ -48,10 +48,11 @@ type Query {
         @paginate(type: CONNECTION)
         @guard
 
+    # You can use this @field code for experiment query leveling -> @field(resolver: "DocumentSignatureQuery@list") 
     documentSignatureSents(
-        filter: documentSignatureSentsInput @builder(method: "App\\Models\\DocumentSignatureSent@filter")
+        search: String @builder(method: "App\\Models\\DocumentSignatureSent@search")
+        filter: documentSignatureSentsInput
     ): [DocumentSignatureSent!]!
-        @whereAuth(relation: "receiver")
         @orderBy(column: "tgl", direction: DESC)
         @paginate(type: CONNECTION)
         @guard
