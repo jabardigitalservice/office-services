@@ -12,4 +12,15 @@ class InboxFile extends Model
     protected $connection = 'sikdweb';
 
     protected $table = "inbox_files";
+
+    public $timestamps = false;
+
+    protected $keyType = 'string';
+
+    protected $primaryKey = 'Id_dokumen';
+
+    public function inboxDetail()
+    {
+        return $this->belongsTo(Inbox::class, 'NId', 'NId');
+    }
 }
