@@ -69,24 +69,6 @@ class InboxReceiver extends Model
         return $this->hasMany(PersonalAccessToken::class, 'tokenable_id', 'To_Id');
     }
 
-    public function isEndForward($inboxId)
-    {
-        $isForwarded = InboxReceiver::where('NId', $inboxId)
-            ->where('To_Id', strval(auth()->user()->PeopleId))
-            ->where('Status', 1)
-            ->first();
-
-        $hasForwardedSender = InboxReceiver::where('NId', $inboxId)
-            ->where('From_Id', auth()->user()->PrimaryRoleId)
-            ->first();
-
-        if ($isForwarded && !$hasForwardedSender) {
-            return true;
-        }
-
-        return false;
-    }
-
     public function filter($query, $filter)
     {
         $sources = $filter["sources"] ?? null;
