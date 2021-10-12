@@ -205,7 +205,7 @@ type InboxReceiver {
     purpose: [InboxReceiver]
     receiver: People @belongsTo
     inboxDisposition: [InboxDisposition]
-    isEndForward(inboxId: String): Boolean @method
+    isEndForward: Boolean @field(resolver: "App\\GraphQL\\Types\\InboxReceiverType@isEndForward")
 }
 
 type InboxDisposition {
