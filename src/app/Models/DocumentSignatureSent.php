@@ -48,14 +48,12 @@ class DocumentSignatureSent extends Model
             $query->whereIn('status', $arrayStatuses);
         }
 
-        if ($read != true && !$unread != true) {
-            if ($read) {
-                $query->whereHas('documentSignatureSentRead');
-            }
+        if ($read && !$unread) {
+            $query->whereHas('documentSignatureSentRead');
+        }
 
-            if ($unread) {
-                $query->whereDoesntHave('documentSignatureSentRead');
-            }
+        if (!$read && $unread) {
+            $query->whereDoesntHave('documentSignatureSentRead');
         }
 
         return $query;
