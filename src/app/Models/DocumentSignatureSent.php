@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Hoyvoy\CrossDatabase\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
 
 class DocumentSignatureSent extends Model
 {
@@ -48,12 +49,21 @@ class DocumentSignatureSent extends Model
             $query->whereIn('status', $arrayStatuses);
         }
 
+        if ($read || $unread) {
+            $readedId = DB::connection('mysql')->table('document_signature_sent_reads')
+            ->select('document_signature_sent_id')
+            ->pluck('document_signature_sent_id');
+        }
+
         if ($read && !$unread) {
-            $query->whereHas('documentSignatureSentRead');
+            $query->whereIn('id', $readedId);
         }
 
         if (!$read && $unread) {
-            $query->whereDoesntHave('documentSignatureSentRead');
+            $readedId = DB::connection('mysql')->table('document_signature_sent_reads')
+            ->select('document_signature_sent_id')
+            ->pluck('document_signature_sent_id');
+            $query->whereNotIn('id', $readedId);
         }
 
         return $query;
