@@ -74,4 +74,9 @@ class DocumentSignatureSent extends Model
     {
         return $this->urutan - 1;
     }
+
+    public function setTglTtdAttribute($value)
+    {
+        $this->attributes['tgl_ttd'] = $value->addHours(7);
+    }
 }

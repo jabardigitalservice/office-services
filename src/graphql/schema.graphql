@@ -74,12 +74,21 @@ type Mutation {
 
     endInboxForward(inboxId: String!): String
         @field(resolver: "InboxMutator@endForward")
+
+    documentSignature(input: DocumentSignatureInput): DocumentSignatureSent
+        @field(resolver: "DocumentSignatureMutator@signature")
 }
 
 enum ProposedTypes {
     FORWARD
     DISPOSITION
 }
+
+input DocumentSignatureInput {
+    id: String!
+    passphrase: String!
+}
+
 
 input PeopleFilterInput {
     proposedTo: ProposedTypes

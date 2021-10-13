@@ -17,13 +17,18 @@ class DocumentSignature extends Model
 
     public function getUrlAttribute()
     {
-        $path = config('sikd.base_path_file_signature');
+        $path = config('sikd.base_path_file');
 
-        $folder = 'sudah_ttd';
+        return $path . $this->folder_url . $this->file;
+    }
+
+    public function getFolderUrlAttribute()
+    {
+        $folder = 'ttd/sudah_ttd/';
         if ($this->status == 0) {
-            $folder = 'belum_ttd';
+            $folder = 'ttd/blm_ttd/';
         }
 
-        return $path . $folder . '/' . $this->file;
+        return $folder;
     }
 }
