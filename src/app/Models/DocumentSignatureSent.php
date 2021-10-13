@@ -60,9 +60,6 @@ class DocumentSignatureSent extends Model
         }
 
         if (!$read && $unread) {
-            $readedId = DB::connection('mysql')->table('document_signature_sent_reads')
-            ->select('document_signature_sent_id')
-            ->pluck('document_signature_sent_id');
             $query->whereNotIn('id', $readedId);
         }
 
