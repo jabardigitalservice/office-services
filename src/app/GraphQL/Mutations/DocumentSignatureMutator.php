@@ -178,7 +178,7 @@ class DocumentSignatureMutator
      */
     protected function setupBodyRequestSignature($setupConfig, $data, $passphrase)
     {
-        $linkQR = config('sikd.base_url') . 'administrator/tandatangan/verifikasi/' . $data->ttd_id;
+        $linkQR = config('sikd.url') . 'administrator/tandatangan/verifikasi/' . $data->ttd_id;
         $body = [
             'file' => $this->cURLFile($data->documentSignature->url, $data->documentSignature->file),
             'nik' => $setupConfig['nik'],

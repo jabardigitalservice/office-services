@@ -18,6 +18,10 @@ type Query {
         @paginate(type: CONNECTION)
         @guard
 
+    inboxFile(id: ID! @eq(key: "Id_dokumen")): InboxFile
+        @find
+        @guard
+
     outboxes(
         search: String @builder(method: "App\\Models\\InboxReceiver@search")
         filter: FilterInput @builder(method: "App\\Models\\InboxReceiver@filter")
@@ -192,7 +196,15 @@ type Inbox {
 }
 
 type InboxFile {
+    id: String @rename(attribute: "Id_dokumen")
     name: String @rename(attribute: "FileName_fake")
+    inboxDetail: Inbox @belongsTo
+    validation: Validation @field(resolver: "App\\GraphQL\\Types\\InboxFileType@validate")
+}
+
+type Validation {
+    isValid: Boolean
+    signatures: [People]
 }
 
 type InboxReceiver {

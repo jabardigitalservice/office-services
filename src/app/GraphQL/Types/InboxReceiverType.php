@@ -17,12 +17,12 @@ class InboxReceiverType
     public function isEndForward($rootValue, array $args, GraphQLContext $context)
     {
         $isForwarded = InboxReceiver::where('NId', $rootValue->NId)
-            ->where('To_Id', strval(auth()->user()->PeopleId))
+            ->where('RoleId_To', auth()->user()->PrimaryRoleId)
             ->where('Status', 1)
             ->first();
 
         $hasForwardedSender = InboxReceiver::where('NId', $rootValue->NId)
-            ->where('From_Id', auth()->user()->PrimaryRoleId)
+            ->where('RoleId_From', auth()->user()->PrimaryRoleId)
             ->first();
 
         if ($isForwarded && !$hasForwardedSender) {
