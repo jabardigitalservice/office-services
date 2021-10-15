@@ -85,7 +85,7 @@ enum ProposedTypes {
 }
 
 input DocumentSignatureInput {
-    id: String!
+    documentSignatureSentId: String!
     passphrase: String!
 }
 

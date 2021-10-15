@@ -18,7 +18,6 @@ class DocumentSignature extends Model
     public function getUrlAttribute()
     {
         $path = config('sikd.base_path_file');
-
         return $path . $this->folder_url . $this->file;
     }
 

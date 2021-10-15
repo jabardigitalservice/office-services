@@ -9,7 +9,7 @@ use App\Models\PassphraseSession;
 use Carbon\Carbon;
 use Illuminate\Support\Arr;
 use GuzzleHttp\Client as GuzzleClient;
-use League\CommonMark\Block\Element\Document;
+use Illuminate\Support\Facades\Storage;
 
 class DocumentSignatureMutator
 {
@@ -23,33 +23,28 @@ class DocumentSignatureMutator
      */
     public function signature($rootValue, array $args)
     {
-        $documentSignatureSentId = Arr::get($args, 'input.id');
+        $documentSignatureSentId = Arr::get($args, 'input.documentSignatureSentId');
         $passphrase = Arr::get($args, 'input.passphrase');
         $documentSignatureSent = DocumentSignatureSent::findOrFail($documentSignatureSentId);
-        $setupConfig = $this->setupConfigSignature();
 
+        if ($documentSignatureSent->status == 1) {
+            throw new CustomException('User already signatured', 'User already signatured this document');
+        }
+
+        $setupConfig = $this->setupConfigSignature();
         $file = $this->fileExist($documentSignatureSent->documentSignature->url);
 
         if (!$file) {
-            throw new CustomException(
-                'Document not found',
-                'Document signature not found at website server'
-            );
+            throw new CustomException('Document not found', 'Document signature not found at website server');
         }
 
         $checkUser = json_decode($this->checkUserSignature($setupConfig));
-
         if ($checkUser->status_code != 1111) {
-            throw new CustomException(
-                'User not found',
-                'User not found at BSRE Service'
-            );
+            throw new CustomException('User not found', 'User not found at BSRE Service');
         }
 
         $signature = $this->doSignature($setupConfig, $documentSignatureSent, $passphrase);
-
         return $signature;
-
     }
 
     /**
@@ -60,36 +55,18 @@ class DocumentSignatureMutator
      * @param  string $passphrase
      * @return collection
      */
-    public function doSignature($setupConfig, $data, $passphrase)
+    protected function doSignature($setupConfig, $data, $passphrase)
     {
-        $signUrl = $setupConfig['url'] . '/api/sign/pdf';
-        $ch = curl_init();
-
+        $url = $setupConfig['url'] . '/api/sign/pdf';
 		$headers =  [
             'Authorization: Basic ' . $setupConfig['auth'],
             'Cookie: JSESSIONID=' . $setupConfig['cookies'],
 			'Content-Type: multipart/form-data',
 
         ];
-
-        $linkQR = config('sikd.base_url') . 'administrator/tandatangan/verifikasi/' . $data->ttd_id;
-
-        $body = [
-            'file' => new \CURLFile(config('sikd.server_path_file') . $data->documentSignature->folder_url . $data->documentSignature->file, 'application/pdf', $data->documentSignature->file),
-            'nik' => $setupConfig['nik'],
-            'passphrase' => $passphrase,
-            'tampilan' => 'invisible',
-            'page' => '1',
-            'image' => 'false',
-            'imageTTD' => '',
-            'linkQR' => $linkQR,
-            'xAxis' => 0,
-            'yAxis' => 0,
-            'width' => '200',
-            'height' => '100'
-        ];
-
-        curl_setopt($ch, CURLOPT_URL, $signUrl);
+        $body= $this->setupBodyRequestSignature($setupConfig, $data, $passphrase);
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $url);
         curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
         curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
@@ -103,31 +80,9 @@ class DocumentSignatureMutator
 
         //Save log
         $this->createPassphraseSessionLog($httpStatusCode);
-
-        $time = time();
-        $newFilePath = config('sikd.server_path_file') . 'ttd/sudah_ttd/' . $time . '_signed.pdf';
-        $newFileName = $time .'_signed.pdf';
-
-        file_put_contents($newFilePath, $response);
-
-        $updateFileData = DocumentSignature::where('id', $data->ttd_id)->update([
-            'status' => 1,
-            'file' => $newFileName
-        ]);
-
-        $updateDocumentSent = tap(DocumentSignatureSent::where('id', $data->id))->update([
-            'status' => 1,
-            'next' => 1,
-            'tgl_ttd' => Carbon::now()
-        ])->first();
-
-        $nextDocumentSent = DocumentSignatureSent::where('id', $data->id)
-                                                ->where('urutan', $data->urutan + 1);
-        if ($nextDocumentSent->first()) {
-            $nextDocumentSent->update(['next', 1]);
-        }
-
-        return $updateDocumentSent;
+        //Save new file & update status
+        $newFile = $this->saveNewFile($response, $data);
+        return $newFile;
     }
 
     /**
@@ -136,7 +91,7 @@ class DocumentSignatureMutator
      * @param  array $setupConfig
      * @return string
      */
-    public function checkUserSignature($setupConfig)
+    protected function checkUserSignature($setupConfig)
     {
         $checkUrl = $setupConfig['url'] . '/api/user/status/' . $setupConfig['nik'];
         $client = new GuzzleClient();
@@ -157,7 +112,7 @@ class DocumentSignatureMutator
      *
      * @return array
      */
-    public function setupConfigSignature()
+    protected function setupConfigSignature()
     {
         $env = config('app.env');
         $setup = [
@@ -192,7 +147,7 @@ class DocumentSignatureMutator
      * @param  mixed $httpStatusCode
      * @return void
      */
-    public function createPassphraseSessionLog($httpStatusCode)
+    protected function createPassphraseSessionLog($httpStatusCode)
     {
         $passphraseSession = new PassphraseSession();
         $passphraseSession->nama_lengkap    = auth()->user()->PeopleName;
@@ -206,7 +161,142 @@ class DocumentSignatureMutator
         }
 
         $passphraseSession->save();
+        if ($httpStatusCode != 200) {
+            throw new CustomException('Signature failed', 'Signature failed, check your passpharse or file');
+        }
 
         return $passphraseSession;
+    }
+
+    /**
+     * setupBodyRequestSignature
+     *
+     * @param  array $setupConfig
+     * @param  collection $data
+     * @param  string $passphrase
+     * @return array
+     */
+    protected function setupBodyRequestSignature($setupConfig, $data, $passphrase)
+    {
+        $linkQR = config('sikd.base_url') . 'administrator/tandatangan/verifikasi/' . $data->ttd_id;
+        $body = [
+            'file' => $this->cURLFile($data->documentSignature->url, $data->documentSignature->file),
+            'nik' => $setupConfig['nik'],
+            'passphrase' => $passphrase,
+            'tampilan' => 'invisible',
+            'page' => '1',
+            'image' => 'false',
+            'imageTTD' => '',
+            'linkQR' => $linkQR,
+            'xAxis' => 0,
+            'yAxis' => 0,
+            'width' => '0',
+            'height' => '0'
+        ];
+
+        return $body;
+    }
+
+    /**
+     * saveNewFile
+     *
+     * @param  object $response
+     * @param  collection $data
+     * @return collection
+     */
+    protected function saveNewFile($pdf, $data)
+    {
+        //save to storage path
+        $time = time();
+        $newFileName = $time .'_signed.pdf';
+        $newPathFile = storage_path('app') . '/' . $newFileName;
+        file_put_contents($newPathFile, $pdf);
+
+        $url = config('sikd.webhook_url') . 'file_signatured';
+        $headers =  [
+            'Secret: ' . config('sikd.webhook_secret'),
+			'Content-Type: multipart/form-data',
+        ];
+        $body = ['file' => $this->cURLFile($newPathFile, $newFileName)];
+
+        list($response, $httpStatusCode) = $this->cURLPost($url, $headers, $body);
+
+        if ($httpStatusCode != 200) {
+            throw new CustomException('Webhook failed', json_decode($response));
+        }
+
+        unlink($newPathFile);
+
+        $updateDocumentSent = $this->updateDocumentSentStatus($data, $newFileName);
+
+        return $updateDocumentSent;
+    }
+
+    /**
+     * updateDocumentSentStatus
+     *
+     * @param  collection $data
+     * @param  string $newFileName
+     * @return collection
+     */
+    protected function updateDocumentSentStatus($data, $newFileName)
+    {
+        //change filename with _signed & update stastus
+        $updateFileData = DocumentSignature::where('id', $data->ttd_id)->update([
+            'status' => 1,
+            'file' => $newFileName
+        ]);
+
+        //update status document sent to 1 (signed)
+        $updateDocumentSent = tap(DocumentSignatureSent::where('id', $data->id))->update([
+            'status' => 1,
+            'next' => 1,
+            'tgl_ttd' => Carbon::now()
+        ])->first();
+
+        //check if any next siganture require
+        $nextDocumentSent = DocumentSignatureSent::where('id', $data->id)
+                                                ->where('urutan', $data->urutan + 1);
+        if ($nextDocumentSent->first()) {
+            $nextDocumentSent->update(['next', 1]);
+        }
+
+        return $updateDocumentSent;
+    }
+
+    /**
+     * cURLPost
+     *
+     * @param  string $url
+     * @param  array $headers
+     * @param  array $body
+     * @return array
+     */
+    protected function cURLPost($url, $headers, $body)
+    {
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $body);
+
+        $response = curl_exec($ch);
+        $httpStatusCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+
+        return [$response, $httpStatusCode];
+    }
+
+    /**
+     * cURLFile
+     *
+     * @param  string $file
+     * @param  string $name
+     * @return void
+     */
+    protected function cURLFile($file, $name)
+    {
+        return new \CURLFile($file, 'application/pdf', $name);
     }
 }
