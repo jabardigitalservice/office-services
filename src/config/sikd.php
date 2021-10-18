@@ -5,6 +5,7 @@ return [
     'url' => env('SIKD_BASE_URL'),
     'webhook_url' => env('SIKD_WEBHOOK_URL'),
     'webhook_secret' => env('SIKD_WEBHOOK_SECRET'),
+    'enable_sign_with_nik' => env('ENABLE_SIGN_WITH_NIK'),
     'signature_nik' => env('SIKD_SIGNATURE_NIK'),
     'signature_url' => env('SIKD_SIGNATURE_URL'),
     'signature_verify_url' => env('SIKD_SIGNATURE_VERIFY_URL'),

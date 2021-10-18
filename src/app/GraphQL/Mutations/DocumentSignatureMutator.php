@@ -114,18 +114,14 @@ class DocumentSignatureMutator
      */
     protected function setupConfigSignature()
     {
-        $env = config('app.env');
         $setup = [
-            'nik' => config('sikd.signature_nik'),
+            'nik' => (config('sikd.enable_sign_with_nik')) ? auth()->user()->NIK : config('sikd.signature_nik'),
             'url' => config('sikd.signature_url'),
             'auth' => config('sikd.signature_auth'),
             'cookies' => config('sikd.signature_cookies'),
         ];
 
-        //check if production, set with auth data
-        if ($env == 'production') {
-            $setup['nik'] = auth()->user()->NIK;
-        }
+        dd($setup);
 
         return $setup;
     }
