@@ -121,8 +121,6 @@ class DocumentSignatureMutator
             'cookies' => config('sikd.signature_cookies'),
         ];
 
-        dd($setup);
-
         return $setup;
     }
 
