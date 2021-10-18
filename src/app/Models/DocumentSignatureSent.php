@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use App\Enums\SignatureStatusTypeEnum;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Hoyvoy\CrossDatabase\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
@@ -18,10 +17,6 @@ class DocumentSignatureSent extends Model
     protected $appends = ['urutan_parent'];
 
     public $timestamps = false;
-
-    protected $enums = [
-        'status' => SignatureStatusTypeEnum::class,
-    ];
 
     public function receiver()
     {
