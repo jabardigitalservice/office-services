@@ -9,6 +9,7 @@ use App\Models\PassphraseSession;
 use Carbon\Carbon;
 use Illuminate\Support\Arr;
 use GuzzleHttp\Client as GuzzleClient;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
 
 class DocumentSignatureMutator
@@ -94,17 +95,12 @@ class DocumentSignatureMutator
     protected function checkUserSignature($setupConfig)
     {
         $checkUrl = $setupConfig['url'] . '/api/user/status/' . $setupConfig['nik'];
-        $client = new GuzzleClient();
-        $r = $client->request('GET', $checkUrl, [
-            'headers' => [
-                'Authorization' => 'Basic ' . $setupConfig['auth'],
-                'Cookie' => 'JSESSIONID=' . $setupConfig['cookies'],
-            ]
-        ]);
+        $response = Http::withHeaders([
+            'Authorization' => 'Basic ' . $setupConfig['auth'],
+            'Cookie' => 'JSESSIONID=' . $setupConfig['cookies'],
+        ])->get($checkUrl);
 
-        $response = $r->getBody()->getContents();
-
-        return $response;
+        return $response->body();
     }
 
     /**
