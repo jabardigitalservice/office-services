@@ -200,18 +200,16 @@ class DocumentSignatureMutator
      */
     protected function saveNewFile($pdf, $data)
     {
-        //save to storage path
-        $time = time();
-        $newFileName = $time .'_signed.pdf';
-        $newPathFile = storage_path('app') . '/' . $newFileName;
-        file_put_contents($newPathFile, $pdf);
+        //save to storage path for temporary file
+        $newFileName = time() .'_signed.pdf';
+        Storage::disk('local')->put($newFileName, $pdf);
 
         $url = config('sikd.webhook_url') . 'file_signatured';
         $headers =  [
             'Secret: ' . config('sikd.webhook_secret'),
 			'Content-Type: multipart/form-data',
         ];
-        $body = ['file' => $this->cURLFile($newPathFile, $newFileName)];
+        $body = ['file' => $this->cURLFile(Storage::path($newFileName), $newFileName)];
 
         list($response, $httpStatusCode) = $this->cURLPost($url, $headers, $body);
 
@@ -219,7 +217,7 @@ class DocumentSignatureMutator
             throw new CustomException('Webhook failed', json_decode($response));
         }
 
-        unlink($newPathFile);
+        Storage::disk('local')->delete($newFileName);
 
         $updateDocumentSent = $this->updateDocumentSentStatus($data, $newFileName);
 
