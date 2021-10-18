@@ -8,7 +8,6 @@ use App\Models\DocumentSignatureSent;
 use App\Models\PassphraseSession;
 use Carbon\Carbon;
 use Illuminate\Support\Arr;
-use GuzzleHttp\Client as GuzzleClient;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
 
@@ -59,30 +58,32 @@ class DocumentSignatureMutator
     protected function doSignature($setupConfig, $data, $passphrase)
     {
         $url = $setupConfig['url'] . '/api/sign/pdf';
-		$headers =  [
-            'Authorization: Basic ' . $setupConfig['auth'],
-            'Cookie: JSESSIONID=' . $setupConfig['cookies'],
-			'Content-Type: multipart/form-data',
+        $linkQR = config('sikd.url') . 'administrator/tandatangan/verifikasi/' . $data->documentSignature->ttd_id;
 
-        ];
-        $body= $this->setupBodyRequestSignature($setupConfig, $data, $passphrase);
-        $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, $url);
-        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
-        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, $body);
+        $response = Http::withHeaders([
+            'Authorization' => 'Basic ' . $setupConfig['auth'],
+            'Cookie' => 'JSESSIONID=' . $setupConfig['cookies'],
+        ])->attach(
+            'file', file_get_contents($data->documentSignature->url), $data->documentSignature->file
+        )->post($url, [
+            'nik' => $setupConfig['nik'],
+            'passphrase' => $passphrase,
+            'tampilan' => 'invisible',
+            'page' => '1',
+            'image' => 'false',
+            'imageTTD' => '',
+            'linkQR' => $linkQR,
+            'xAxis' => 0,
+            'yAxis' => 0,
+            'width' => '0',
+            'height' => '0'
+        ]);
 
-        $response = curl_exec($ch);
-        $httpStatusCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-
-        curl_close($ch);
-
-        //Save log
-        $this->createPassphraseSessionLog($httpStatusCode);
         //Save new file & update status
         $newFile = $this->saveNewFile($response, $data);
+        //Save log
+        $this->createPassphraseSessionLog($response);
+
         return $newFile;
     }
 
@@ -134,10 +135,10 @@ class DocumentSignatureMutator
     /**
      * createPassphraseSessionLog
      *
-     * @param  mixed $httpStatusCode
+     * @param  mixed $response
      * @return void
      */
-    protected function createPassphraseSessionLog($httpStatusCode)
+    protected function createPassphraseSessionLog($response)
     {
         $passphraseSession = new PassphraseSession();
         $passphraseSession->nama_lengkap    = auth()->user()->PeopleName;
@@ -145,46 +146,17 @@ class DocumentSignatureMutator
         $passphraseSession->keterangan      = 'Insert Passphrase Berhasil, Data disimpan';
         $passphraseSession->log_desc        = 'sukses';
 
-        if ($httpStatusCode != 200) {
+        if ($response->status() != 200) {
             $passphraseSession->keterangan      = 'Insert Passphrase Gagal, Data failed';
             $passphraseSession->log_desc        = 'gagal';
         }
 
         $passphraseSession->save();
-        if ($httpStatusCode != 200) {
+        if ($response->status() != 200) {
             throw new CustomException('Signature failed', 'Signature failed, check your passpharse or file');
         }
 
         return $passphraseSession;
-    }
-
-    /**
-     * setupBodyRequestSignature
-     *
-     * @param  array $setupConfig
-     * @param  collection $data
-     * @param  string $passphrase
-     * @return array
-     */
-    protected function setupBodyRequestSignature($setupConfig, $data, $passphrase)
-    {
-        $linkQR = config('sikd.url') . 'administrator/tandatangan/verifikasi/' . $data->ttd_id;
-        $body = [
-            'file' => $this->cURLFile($data->documentSignature->url, $data->documentSignature->file),
-            'nik' => $setupConfig['nik'],
-            'passphrase' => $passphrase,
-            'tampilan' => 'invisible',
-            'page' => '1',
-            'image' => 'false',
-            'imageTTD' => '',
-            'linkQR' => $linkQR,
-            'xAxis' => 0,
-            'yAxis' => 0,
-            'width' => '0',
-            'height' => '0'
-        ];
-
-        return $body;
     }
 
     /**
@@ -198,18 +170,17 @@ class DocumentSignatureMutator
     {
         //save to storage path for temporary file
         $newFileName = time() .'_signed.pdf';
-        Storage::disk('local')->put($newFileName, $pdf);
+        Storage::disk('local')->put($newFileName, $pdf->body());
 
         $url = config('sikd.webhook_url') . 'file_signatured';
-        $headers =  [
-            'Secret: ' . config('sikd.webhook_secret'),
-			'Content-Type: multipart/form-data',
-        ];
-        $body = ['file' => $this->cURLFile(Storage::path($newFileName), $newFileName)];
+        $fileSignatured = fopen(Storage::path($newFileName), 'r');
+        $response = Http::withHeaders([
+            'Secret' => config('sikd.webhook_secret'),
+        ])->attach(
+            'file', $fileSignatured, $newFileName
+        )->post($url);
 
-        list($response, $httpStatusCode) = $this->cURLPost($url, $headers, $body);
-
-        if ($httpStatusCode != 200) {
+        if ($response->status() != 200) {
             throw new CustomException('Webhook failed', json_decode($response));
         }
 
@@ -250,41 +221,5 @@ class DocumentSignatureMutator
         }
 
         return $updateDocumentSent;
-    }
-
-    /**
-     * cURLPost
-     *
-     * @param  string $url
-     * @param  array $headers
-     * @param  array $body
-     * @return array
-     */
-    protected function cURLPost($url, $headers, $body)
-    {
-        $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, $url);
-        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
-        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, $body);
-
-        $response = curl_exec($ch);
-        $httpStatusCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-
-        return [$response, $httpStatusCode];
-    }
-
-    /**
-     * cURLFile
-     *
-     * @param  string $file
-     * @param  string $name
-     * @return void
-     */
-    protected function cURLFile($file, $name)
-    {
-        return new \CURLFile($file, 'application/pdf', $name);
     }
 }
