@@ -2,6 +2,7 @@
 
 namespace App\GraphQL\Mutations;
 
+use App\Enums\SignatureStatusTypeEnum;
 use App\Exceptions\CustomException;
 use App\Models\DocumentSignature;
 use App\Models\DocumentSignatureSent;
@@ -27,7 +28,7 @@ class DocumentSignatureMutator
         $passphrase = Arr::get($args, 'input.passphrase');
         $documentSignatureSent = DocumentSignatureSent::findOrFail($documentSignatureSentId);
 
-        if ($documentSignatureSent->status == 1) {
+        if ($documentSignatureSent->status != SignatureStatusTypeEnum::WAITING()->value) {
             throw new CustomException('User already signed this document', 'Status of this document is already signed');
         }
 
