@@ -28,7 +28,7 @@ class DocumentSignatureMutator
         $documentSignatureSent = DocumentSignatureSent::findOrFail($documentSignatureSentId);
 
         if ($documentSignatureSent->status == 1) {
-            throw new CustomException('User already signatured', 'User already signatured this document');
+            throw new CustomException('User already signed this document', 'Status of this document is already signed');
         }
 
         $setupConfig = $this->setupConfigSignature();
