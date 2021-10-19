@@ -81,6 +81,9 @@ type Mutation {
 
     documentSignature(input: DocumentSignatureInput): DocumentSignatureSent
         @field(resolver: "DocumentSignatureMutator@signature")
+
+    documentSignatureReject(input: DocumentSignaturRejectInput): DocumentSignatureSent
+        @field(resolver: "DocumentSignatureRejectMutator@reject")
 }
 
 enum ProposedTypes {
@@ -91,6 +94,11 @@ enum ProposedTypes {
 input DocumentSignatureInput {
     documentSignatureSentId: String!
     passphrase: String!
+}
+
+input DocumentSignaturRejectInput {
+    documentSignatureSentId: String!
+    note: String
 }
 
 
