@@ -64,7 +64,10 @@ class InboxReceiver extends Model
 
     public function receiverByRoleId()
     {
-        return $this->belongsTo(People::class, 'RoleId_To', 'PrimaryRoleId');
+        if (auth()->user()->GroupId == 8) {
+            return $this->belongsTo(People::class, 'RoleId_To', 'PrimaryRoleId');
+        }
+        return $this->receiver();
     }
 
     public function personalAccessTokens()
