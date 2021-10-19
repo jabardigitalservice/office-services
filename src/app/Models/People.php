@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\PeopleGroupTypeEnum;
 use App\Enums\PeopleProposedTypeEnum;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -62,7 +63,11 @@ class People extends Authenticatable
             $query->where('RoleAtasan', $roleId)
             ->where('PeopleId', '<>', $peopleId)
             // Data from group table: 3=Pejabat Struktural 4=Sekdis 7=Staf
-            ->whereIn('GroupId', [3, 4, 7]);
+            ->whereIn('GroupId', [
+                PeopleGroupTypeEnum::STRUCTURAL()->value,
+                PeopleGroupTypeEnum::SECRETARY()->value,
+                PeopleGroupTypeEnum::STAFF()->value
+            ]);
         }
 
         return $query;

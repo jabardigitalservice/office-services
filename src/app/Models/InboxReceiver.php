@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\PeopleGroupTypeEnum;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Hoyvoy\CrossDatabase\Eloquent\Model;
@@ -64,7 +65,7 @@ class InboxReceiver extends Model
 
     public function receiverByRoleId()
     {
-        if (auth()->user()->GroupId == 8) {
+        if (auth()->user()->GroupId == PeopleGroupTypeEnum::TU()->value) {
             return $this->belongsTo(People::class, 'RoleId_To', 'PrimaryRoleId');
         }
         return $this->receiver();
