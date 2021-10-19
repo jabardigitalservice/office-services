@@ -211,7 +211,7 @@ class DocumentSignatureMutator
         $updateDocumentSent = tap(DocumentSignatureSent::where('id', $data->id))->update([
             'status' => 1,
             'next' => 1,
-            'tgl_ttd' => Carbon::now()
+            'tgl_ttd' => setDateTimeNowValue()
         ])->first();
 
         //check if any next siganture require

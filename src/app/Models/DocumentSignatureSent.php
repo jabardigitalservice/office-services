@@ -23,6 +23,12 @@ class DocumentSignatureSent extends Model
         'status' => SignatureStatusTypeEnum::class,
     ];
 
+    protected $fillable = [
+        'status',
+        'next',
+        'tgl_ttd'
+    ];
+
     public function receiver()
     {
         return $this->belongsTo(People::class, 'PeopleIDTujuan', 'PeopleId');
@@ -85,10 +91,5 @@ class DocumentSignatureSent extends Model
     public function getUrutanParentAttribute()
     {
         return $this->urutan - 1;
-    }
-
-    public function setTglTtdAttribute($value)
-    {
-        $this->attributes['tgl_ttd'] = $value->addHours(7);
     }
 }

@@ -17,6 +17,6 @@ class PassphraseSession extends Model
 
     public function setJamAksesAttribute($value)
     {
-        $this->attributes['jam_akses'] = $value->addHours(7);
+        $this->attributes['jam_akses'] = $value->setTimezone(config('sikd.timezone_server'));
     }
 }
