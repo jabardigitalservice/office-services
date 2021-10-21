@@ -149,8 +149,9 @@ class InboxMutator
 
         $peopleId = substr($inboxData['groupId'], 0, -19);
         $dateString = substr($inboxData['groupId'], -19);
-        $date = Carbon::parse($dateString)->addHours(7)->format('dmyhis');
+        $date = Carbon::parse($dateString)->setTimezone(config('sikd.timezone_server'))->format('dmyhis');
 
+        // Default message for forward action
         $title = $inboxData['from']->role->rolecode->rolecode_sort;
         $body = $inbox->Hal . ' | ' . $inbox->type->JenisName . ' | ' . $inbox->urgency->UrgensiName;
 
