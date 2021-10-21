@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\PeopleGroupTypeEnum;
 use App\Enums\PeopleProposedTypeEnum;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -34,13 +35,14 @@ class People extends Authenticatable
     public function filter($query, $filter)
     {
         $proposedTo = $filter["proposedTo"] ?? null;
+        $peopleId = auth()->user()->PeopleId;
         $roleId = auth()->user()->PrimaryRoleId;
-        $query->where('NIP', '<>', null);
 
         if ($proposedTo == PeopleProposedTypeEnum::FORWARD()) {
 
             // A special condition when the archiver (unit kearsipan) is 'unit kearsipan setda (uk.setda)'
             // uk.setda role id is uk.1.1.1.1.1
+            $query->where('NIP', '<>', null);
             if ($roleId == 'uk.1.1.1.1.1') {
                 $query->whereIn('PrimaryRoleId', function ($roleQuery){
                     $roleQuery->select('RoleId')
@@ -58,7 +60,14 @@ class People extends Authenticatable
             }
         } elseif ($proposedTo == PeopleProposedTypeEnum::DISPOSITION()) {
             // The disposition targets are the people who has the 'RoleAtasan' as the user's roleId.
-            $query->where('RoleAtasan', $roleId);
+            $query->where('RoleAtasan', $roleId)
+            ->where('PeopleId', '<>', $peopleId)
+            // Data from group table: 3=Pejabat Struktural 4=Sekdis 7=Staf
+            ->whereIn('GroupId', [
+                PeopleGroupTypeEnum::STRUCTURAL()->value,
+                PeopleGroupTypeEnum::SECRETARY()->value,
+                PeopleGroupTypeEnum::STAFF()->value
+            ]);
         }
 
         return $query;
