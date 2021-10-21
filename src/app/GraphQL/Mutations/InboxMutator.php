@@ -55,7 +55,7 @@ class InboxMutator
         // The origin inbox's status to be marked as actioned (forwarded/dispositioned)
         $this->markActioned($inboxData);
         // Send the notification
-        $this->actionNotification($inboxData);
+        $this->actionNotification($inboxData, $action);
         return $inboxReceivers;
     }
 
@@ -139,10 +139,11 @@ class InboxMutator
 
     /**
      * @param Array $inboxData
+     * @param String $action
      *
      * @return void
      */
-    protected function actionNotification($inboxData)
+    protected function actionNotification($inboxData, $action)
     {
         $inbox = Inbox::findOrFail($inboxData['inboxId']);
 
@@ -150,10 +151,19 @@ class InboxMutator
         $dateString = substr($inboxData['groupId'], -19);
         $date = Carbon::parse($dateString)->addHours(7)->format('dmyhis');
 
+        $title = $inboxData['from']->role->rolecode->rolecode_sort;
+        $body = $inbox->Hal . ' | ' . $inbox->type->JenisName . ' | ' . $inbox->urgency->UrgensiName;
+
+        if ($action == PeopleProposedTypeEnum::DISPOSITION()) {
+            $sender = auth()->user()->PeopleName;
+            $title = 'Disposisi Naskah';
+            $body = 'Wah ada Disposisi nih terkait dengan ' . $inbox->Hal . ' dari ' . $sender . '. Yuk cek sekarang juga!' . ' | ' . $inbox->urgency->UrgensiName;
+        }
+
         $messageAttribute = [
             'notification' => [
-                'title' => $inboxData['from']->role->rolecode->rolecode_sort,
-                'body' => $inbox->Hal . ' | ' . $inbox->type->JenisName . ' | ' . $inbox->urgency->UrgensiName,
+                'title' => $title,
+                'body' => $body,
             ],
             'data' => [
                 'inboxId' => $inboxData['inboxId'],
