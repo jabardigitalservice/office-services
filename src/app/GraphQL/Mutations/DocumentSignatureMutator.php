@@ -69,15 +69,15 @@ class DocumentSignatureMutator
         )->post($url, [
             'nik' => $setupConfig['nik'],
             'passphrase' => $passphrase,
-            'tampilan' => 'invisible',
+            'tampilan' => 'visible',
             'page' => '1',
             'image' => 'false',
             'imageTTD' => '',
-            'linkQR' => $linkQR,
-            'xAxis' => 0,
-            'yAxis' => 0,
-            'width' => '0',
-            'height' => '0'
+            'linkQR'=>$linkQR,
+            'xAxis'=>10,
+            'yAxis'=>10,
+            'width'=>80,
+            'height'=>80
         ]);
 
         //Save new file & update status
