@@ -32,7 +32,6 @@ jobs:
       id: docker_build
       uses: docker/build-push-action@v2
       with:
-        file: docker/Dockerfile
         push: true
         tags: ${{ secrets.DOCKER_IMAGENAME }}:${{ steps.vars.outputs.sha_short }}
 
@@ -43,8 +42,6 @@ jobs:
         host: ${{ secrets.SERVER_SSH_HOST_STAGING }}
         key: ${{ secrets.SERVER_SSH_PRIVATEKEY_STAGING }}
         script: |
-          cd ${{ secrets.STAGING_WORKDIR }}
-          export DOCKER_IMAGE=${{ secrets.DOCKER_IMAGENAME }}:${{ steps.vars.outputs.sha_short }}
-          docker stack deploy --compose-file docker-stack-backend.yml ${{ secrets.DOCKER_SERVICE_NAME}}
+          docker service update -q --image ${{ secrets.DOCKER_IMAGENAME }}:${{ steps.vars.outputs.sha_short }} ${{ secrets.DOCKER_SERVICE_NAME}}
           docker service ls --filter name=${{ secrets.DOCKER_SERVICE_NAME}} --format "{{.Image}}"
           docker exec $(docker container ls  | grep ${{ secrets.DOCKER_SERVICE_NAME}}| awk '{print $1}') php artisan migrate
