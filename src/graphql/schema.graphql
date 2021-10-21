@@ -58,6 +58,7 @@ type Query {
         filter: documentSignatureSentsInput @builder(method: "App\\Models\\DocumentSignatureSent@filter")
     ): [DocumentSignatureSent!]!
         @orderBy(column: "tgl", direction: DESC)
+        @whereAuth(relation: "receiver")
         @paginate(type: CONNECTION)
         @guard
 
