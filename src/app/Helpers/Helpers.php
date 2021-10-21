@@ -11,3 +11,8 @@ function parseDateTimeValue($value)
 {
     return Carbon::parse($value)->addHours(config('sikd.timezone_server'));
 }
+
+function parseDateTimeFormat($value, $format)
+{
+    return parseDateTimeValue($value)->format($format);
+}

@@ -180,7 +180,7 @@ class InboxReceiver extends Model
         // 19 means the datetime characters numbers
         $peopleId = substr($value, 0, -19);
         $dateString = substr($value, -19);
-        $date = Carbon::parse($dateString)->addHours(7)->format('dmyhis');
+        $date = parseDateTimeFormat($dateString, 'dmyhis');
 
         $this->attributes['GIR_Id'] = $peopleId . $date;
     }

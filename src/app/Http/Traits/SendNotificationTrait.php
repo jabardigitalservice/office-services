@@ -5,6 +5,7 @@ namespace App\Http\Traits;
 use App\Enums\FcmNotificationActionTypeEnum;
 use App\Models\InboxReceiver;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Http;
 
 trait SendNotificationTrait
 {
@@ -45,25 +46,11 @@ trait SendNotificationTrait
             'data' => $request['data']
         ];
 
-        $dataString = json_encode($data);
-
-        $headers = [
-            'Authorization: key=' . $SERVER_API_KEY,
-            'Content-Type: application/json',
-        ];
-
-        $ch = curl_init();
-
-        curl_setopt($ch, CURLOPT_URL, 'https://fcm.googleapis.com/fcm/send');
-        curl_setopt($ch, CURLOPT_POST, true);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, $dataString);
-
-        $response = curl_exec($ch);
+        $response = Http::withHeaders([
+            'Authorization' => 'key=' . $SERVER_API_KEY,
+            'Content-Type' => 'application/json',
+        ])->post('https://fcm.googleapis.com/fcm/send', $data);
 
         return json_decode($response);
-
     }
 }
