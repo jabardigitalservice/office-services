@@ -282,6 +282,7 @@ type DocumentSignatureSent {
     signatureDate: String @rename(attribute: "tgl_ttd")
     next: String
     sender: People!
+    receiver: People!
     readStatus: readStatus @belongsTo(relation: "documentSignatureSentRead")
     documentSignature: DocumentSignature @belongsTo
 }

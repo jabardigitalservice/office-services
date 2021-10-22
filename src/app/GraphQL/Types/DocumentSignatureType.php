@@ -2,6 +2,7 @@
 
 namespace App\GraphQL\Types;
 
+use App\Enums\SignatureStatusTypeEnum;
 use App\Models\People;
 use Illuminate\Support\Facades\Http;
 use Nuwave\Lighthouse\Support\Contracts\GraphQLContext;
@@ -20,9 +21,9 @@ class DocumentSignatureType
         $signatures = $this->getSignatures($rootValue);
 
         $isValid = false;
-        $signers = $this->getSigners($signatures);
+        $signers = $this->getSigners($rootValue);
 
-        if (count($signers) != 0) {
+        if ($signatures->jumlah_signature > 0) {
             $isValid = true;
         }
 
@@ -51,25 +52,20 @@ class DocumentSignatureType
     }
 
     /**
-     * @param Object $signaturesDetails
+     * @param Object $data
      *
      * @return Array
      */
-    protected function getSigners($signaturesDetails)
+    protected function getSigners($data)
     {
-        $signatures = $signaturesDetails->details;
-        $regex = "/=.[0-9]+/i";
+        $people = People::whereIn('PeopleId', function($query) use ($data) {
+            $query->select('PeopleIDTujuan')
+                ->from('m_ttd_kirim')
+                ->where('status', SignatureStatusTypeEnum::SUCCESS()->value)
+                ->where('ttd_id', $data->id)
+                ->whereIn('PeopleIDTujuan', $data->documentSignatureSents->pluck('PeopleIDTujuan'));
+        })->get();
 
-        $signersIds = [];
-        foreach ($signatures as $signature) {
-            $signer = $signature->info_signer->signer_dn;
-            preg_match($regex, $signer, $rawSignerId);
-            $signerId = explode("=", $rawSignerId[0])[1];
-            array_push($signersIds, $signerId);
-        }
-
-        $signers = People::whereIn('NIP', $signersIds)->get();
-
-        return $signers;
+        return $people;
     }
 }
