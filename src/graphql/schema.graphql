@@ -68,6 +68,11 @@ type Query {
         @field(resolver: "DocumentSignatureQuery@detail")
         @whereAuth(relation: "receiver")
         @guard
+
+    documentSignature(id: ID@eq): DocumentSignature!
+        @find
+        @guard
+
 }
 
 type Mutation {
@@ -278,13 +283,15 @@ type DocumentSignatureSent {
     next: String
     sender: People!
     readStatus: readStatus @belongsTo(relation: "documentSignatureSentRead")
-    documentSignature: documentSignature @belongsTo
+    documentSignature: DocumentSignature @belongsTo
 }
 
-type documentSignature {
-    id: String
+type DocumentSignature {
+    id: String!
     name: String @rename(attribute: "nama_file")
     url: String
+    validation: Validation @field(resolver: "App\\GraphQL\\Types\\DocumentSignatureType@validate")
+    documentSignatureSents: [DocumentSignatureSent]
 }
 
 type readStatus {
@@ -296,3 +303,4 @@ input documentSignatureSentsInput {
     read: Boolean
     unread: Boolean
 }
+
