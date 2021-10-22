@@ -17,16 +17,19 @@ class InboxFileType
     public function validate($rootValue, array $args, GraphQLContext $context)
     {
         $fileName = $rootValue->FileName_fake;
-        $signatures = $this->getSignatures($fileName);
 
-        $isValid = false;
+        $signatures = $this->getSignatures($fileName);
+        if (property_exists($signatures, 'error') || $signatures->jumlah_signature == 0){
+            return [
+                'isValid' => false,
+                'signatures' => null
+            ];
+        };
+
         $signers = $this->getSigners($signatures);
-        if (count($signers) != 0) {
-            $isValid = true;
-        }
 
         $validation = [
-            'isValid' => $isValid,
+            'isValid' => true,
             'signatures' => $signers
         ];
 
