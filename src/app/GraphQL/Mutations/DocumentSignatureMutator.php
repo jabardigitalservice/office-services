@@ -59,7 +59,8 @@ class DocumentSignatureMutator
     protected function doSignature($setupConfig, $data, $passphrase)
     {
         $url = $setupConfig['url'] . '/api/sign/pdf';
-        $linkQR = config('sikd.url') . 'administrator/tandatangan/verifikasi/' . $data->documentSignature->ttd_id;
+        //flagging for easy define by mobile
+        $linkQR = 'document_direct_upload-' . $data->ttd_id;
 
         $response = Http::withHeaders([
             'Authorization' => 'Basic ' . $setupConfig['auth'],

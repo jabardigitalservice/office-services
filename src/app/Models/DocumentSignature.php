@@ -30,4 +30,9 @@ class DocumentSignature extends Model
 
         return $folder;
     }
+
+    public function documentSignatureSents()
+    {
+        return $this->hasMany(DocumentSignatureSent::class, 'ttd_id', 'id');
+    }
 }
