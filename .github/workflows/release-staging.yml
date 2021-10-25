@@ -18,10 +18,17 @@ jobs:
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v1
     
+    # Setup gcloud CLI
+    - uses: google-github-actions/setup-gcloud@master
+      with:
+        service_account_email: ${{ secrets.GCLOUD_EMAIL }}
+        service_account_key: ${{ secrets.GCLOUD_CREDENTIALS }}
+        export_default_credentials: true
+    
     # Configure Docker with Credentials
     - name: Configure Docker
       run: |
-        docker login ${{ secrets.REGISTRY_URL }} -u ${{ secrets.REGISTRY_USERNAME }} -p ${{ secrets.REGISTRY_PASSWORD }}
+        gcloud auth configure-docker
       
     # Build the Docker image
     - name: Set version tag
@@ -43,6 +50,6 @@ jobs:
         host: ${{ secrets.SERVER_SSH_HOST_STAGING }}
         key: ${{ secrets.SERVER_SSH_PRIVATEKEY_STAGING }}
         script: |
-          docker service update -q --image ${{ secrets.DOCKER_IMAGENAME }}:${{ steps.vars.outputs.sha_short }} ${{ secrets.DOCKER_SERVICE_NAME}}
-          docker service ls --filter name=${{ secrets.DOCKER_SERVICE_NAME}} --format "{{.Image}}"
-          docker exec $(docker container ls  | grep ${{ secrets.DOCKER_SERVICE_NAME}}| awk '{print $1}') php artisan migrate
+          docker service update -q --image ${{ secrets.DOCKER_IMAGENAME }}:${{ steps.vars.outputs.sha_short }} ${{ secrets.DOCKER_SERVICE_NAME_STAGING}}
+          docker service ls --filter name=${{ secrets.DOCKER_SERVICE_NAME_STAGING}} --format "{{.Image}}"
+          docker exec $(docker container ls  | grep ${{ secrets.DOCKER_SERVICE_NAME_STAGING}}| awk '{print $1}') php artisan migrate
