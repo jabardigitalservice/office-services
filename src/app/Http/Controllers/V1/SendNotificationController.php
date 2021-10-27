@@ -6,6 +6,7 @@ use App\Enums\FcmNotificationActionTypeEnum;
 use App\Http\Controllers\Controller;
 use App\Http\Traits\SendNotificationTrait;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 
 class SendNotificationController extends Controller
 {
@@ -19,21 +20,29 @@ class SendNotificationController extends Controller
      */
     public function __invoke(Request $request)
     {
-
         $messageAttribute = [
             'notification' => [
                 'title' => $request->sender,
-                'body' => $request->about . ' | ' . $request->typeName . ' | ' . $request->urgencyName,
-            ],
-            'data' => [
-                'inboxId' => $request->inboxId,
-                'groupId' => $request->groupId,
-                'peopleIds' => $request->peopleIds
+                'body' => $request->body,
             ]
         ];
 
-        $sendInboxReceiverNotification = $this->setupInboxReceiverNotification($messageAttribute);
+        switch ($request->action) {
+            case FcmNotificationActionTypeEnum::INBOX_DETAIL():
+                $messageAttribute['data'] = [
+                    'inboxId' => $request->inboxId,
+                    'groupId' => $request->groupId,
+                    'peopleIds' => $request->peopleIds
+                ];
 
-        return $sendInboxReceiverNotification;
+                $doNotification = $this->setupInboxReceiverNotification($messageAttribute);
+                break;
+
+            default:
+                return response()->json(['message' => 'Action undefined'], Response::HTTP_INTERNAL_SERVER_ERROR);
+                break;
+        }
+
+        return $doNotification;
     }
 }
