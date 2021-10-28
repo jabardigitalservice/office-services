@@ -2,13 +2,17 @@
 
 namespace App\GraphQL\Mutations;
 
+use App\Enums\DocumentSignatureSentNotificationTypeEnum;
 use App\Enums\SignatureStatusTypeEnum;
+use App\Http\Traits\SendNotificationTrait;
 use App\Exceptions\CustomException;
 use App\Models\DocumentSignatureSent;
 use Illuminate\Support\Arr;
 
 class DocumentSignatureRejectMutator
 {
+    use SendNotificationTrait;
+
     /**
      * @param $rootValue
      * @param $args
@@ -36,5 +40,27 @@ class DocumentSignatureRejectMutator
         }
 
         return $documentSignatureSent;
+    }
+
+    /**
+     * sendNotification
+     *
+     * @param  object $data
+     * @return void
+     */
+    protected function sendNotification($data)
+    {
+        $messageAttribute = [
+            'notification' => [
+                'title' => 'TTE Naskah',
+                'body' => 'Dokumen ' . $data->documentSignature . ' ditolak untuk di tandatangi oleh ' . $data->receiver->PeopleName . 'dengan catatan ' . $data->catatan,
+            ],
+            'data' => [
+                'documentSignatureSentId' => [$data['id']],
+                'type' => DocumentSignatureSentNotificationTypeEnum::SENDER()
+            ]
+        ];
+
+        $this->setupDocumentSignatureSentNotification($messageAttribute);
     }
 }
