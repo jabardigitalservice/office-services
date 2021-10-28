@@ -243,7 +243,7 @@ class DocumentSignatureMutator
         $messageAttribute = [
             'notification' => [
                 'title' => 'TTE Naskah',
-                'body' => 'Dokumen ' . $data->documentSignature . ' telah berhasil di tandatangi oleh ' . $data->receiver->PeopleName,
+                'body' => 'Dokumen ' . $data->documentSignature->nama_file . ' telah berhasil di tandatangi oleh ' . $data->receiver->PeopleName,
             ],
             'data' => [
                 'documentSignatureSentId' => [$data['id']],
