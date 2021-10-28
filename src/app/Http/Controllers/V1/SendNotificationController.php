@@ -22,7 +22,7 @@ class SendNotificationController extends Controller
     {
         $messageAttribute = [
             'notification' => [
-                'title' => $request->sender,
+                'title' => $request->title,
                 'body' => $request->body,
             ]
         ];
