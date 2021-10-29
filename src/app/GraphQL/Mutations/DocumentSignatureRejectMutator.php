@@ -57,7 +57,7 @@ class DocumentSignatureRejectMutator
             ],
             'data' => [
                 'documentSignatureSentId' => [$data['id']],
-                'type' => DocumentSignatureSentNotificationTypeEnum::SENDER()
+                'target' => DocumentSignatureSentNotificationTypeEnum::SENDER()
             ]
         ];
 

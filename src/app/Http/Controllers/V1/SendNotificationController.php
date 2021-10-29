@@ -41,7 +41,7 @@ class SendNotificationController extends Controller
             case FcmNotificationActionTypeEnum::DOC_SIGNATURE_DETAIL():
                 $messageAttribute['data'] = [
                     'documentSignatureSentId' => $request['documentSignatureSentId'],
-                    'type' => $request['type']
+                    'target' => $request['target']
                 ];
 
                 $doNotification = $this->setupDocumentSignatureSentNotification($messageAttribute);
