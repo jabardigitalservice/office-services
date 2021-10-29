@@ -38,6 +38,15 @@ class SendNotificationController extends Controller
                 $doNotification = $this->setupInboxReceiverNotification($messageAttribute);
                 break;
 
+            case FcmNotificationActionTypeEnum::DOC_SIGNATURE_DETAIL():
+                $messageAttribute['data'] = [
+                    'documentSignatureSentId' => $request['documentSignatureSentId'],
+                    'target' => $request['target']
+                ];
+
+                $doNotification = $this->setupDocumentSignatureSentNotification($messageAttribute);
+                break;
+
             default:
                 return response()->json(['message' => 'Action undefined'], Response::HTTP_INTERNAL_SERVER_ERROR);
                 break;

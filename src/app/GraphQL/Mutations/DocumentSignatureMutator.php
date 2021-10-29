@@ -2,7 +2,9 @@
 
 namespace App\GraphQL\Mutations;
 
+use App\Enums\DocumentSignatureSentNotificationTypeEnum;
 use App\Enums\SignatureStatusTypeEnum;
+use App\Http\Traits\SendNotificationTrait;
 use App\Exceptions\CustomException;
 use App\Models\DocumentSignature;
 use App\Models\DocumentSignatureSent;
@@ -14,6 +16,8 @@ use Illuminate\Support\Facades\Storage;
 
 class DocumentSignatureMutator
 {
+    use SendNotificationTrait;
+
     /**
      * @param $rootValue
      * @param $args
@@ -81,12 +85,18 @@ class DocumentSignatureMutator
             'height'=>80
         ]);
 
-        //Save new file & update status
-        $newFile = $this->saveNewFile($response, $data);
-        //Save log
-        $this->createPassphraseSessionLog($response);
+        if ($response->status() != 200) {
+            throw new CustomException('Signature failed', 'Signature failed, check your passpharse or file');
+        } else {
+            //Save new file & update status
+            $data = $this->saveNewFile($response, $data);
+            //Send notification
+            $this->sendNotification($data);
+            //Save log
+            $this->createPassphraseSessionLog($response);
+        }
 
-        return $newFile;
+        return $data;
     }
 
     /**
@@ -154,9 +164,6 @@ class DocumentSignatureMutator
         }
 
         $passphraseSession->save();
-        if ($response->status() != 200) {
-            throw new CustomException('Signature failed', 'Signature failed, check your passpharse or file');
-        }
 
         return $passphraseSession;
     }
@@ -223,5 +230,27 @@ class DocumentSignatureMutator
         }
 
         return $updateDocumentSent;
+    }
+
+    /**
+     * sendNotification
+     *
+     * @param  object $data
+     * @return void
+     */
+    protected function sendNotification($data)
+    {
+        $messageAttribute = [
+            'notification' => [
+                'title' => 'TTE Naskah',
+                'body' => 'Dokumen ' . $data->documentSignature->nama_file . ' telah berhasil di tandatangi oleh ' . $data->receiver->PeopleName,
+            ],
+            'data' => [
+                'documentSignatureSentId' => [$data['id']],
+                'target' => DocumentSignatureSentNotificationTypeEnum::SENDER()
+            ]
+        ];
+
+        $this->setupDocumentSignatureSentNotification($messageAttribute);
     }
 }
