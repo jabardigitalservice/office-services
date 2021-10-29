@@ -18,7 +18,9 @@ type Query {
         @paginate(type: CONNECTION)
         @guard
 
-    inboxFile(id: ID! @eq(key: "Id_dokumen")): InboxFile
+    inboxFile(
+        id: ID! @builder(method: "App\\Models\\InboxFile@find")
+    ): InboxFile
         @find
         @guard
 

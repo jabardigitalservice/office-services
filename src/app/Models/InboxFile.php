@@ -23,4 +23,12 @@ class InboxFile extends Model
     {
         return $this->belongsTo(Inbox::class, 'NId', 'NId');
     }
+
+    public function find($query, $id)
+    {
+        $query->where('Id_dokumen', $id)
+            ->orWhere('NId', $id);
+
+        return $query;
+    }
 }
