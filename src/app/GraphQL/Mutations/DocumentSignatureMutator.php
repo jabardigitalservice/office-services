@@ -45,7 +45,7 @@ class DocumentSignatureMutator
 
         $checkUser = json_decode($this->checkUserSignature($setupConfig));
         if ($checkUser->status_code != 1111) {
-            throw new CustomException('User not found', 'User not found at BSRE Service');
+            throw new CustomException('Invalid user', 'Invalid credential user, please check your passphrase again');
         }
 
         $signature = $this->doSignature($setupConfig, $documentSignatureSent, $passphrase);
@@ -86,7 +86,7 @@ class DocumentSignatureMutator
         ]);
 
         if ($response->status() != 200) {
-            throw new CustomException('Signature failed', 'Signature failed, check your passpharse or file');
+            throw new CustomException('Document failed', 'Signature failed, check your file again');
         } else {
             //Save new file & update status
             $data = $this->saveNewFile($response, $data);
