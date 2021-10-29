@@ -34,12 +34,12 @@ trait SendNotificationTrait
     public function setupDocumentSignatureSentNotification($request)
     {
         $documentSignatureSent = DocumentSignatureSent::whereIn('id', $request['data']['documentSignatureSentId']);
-        if ($request->target == DocumentSignatureSentNotificationTypeEnum::SENDER()) {
-            $documentSignatureSent->with('senderPersonsalAccessTokens');
+        if ($request['data']['target'] == DocumentSignatureSentNotificationTypeEnum::SENDER()) {
+            $documentSignatureSent->with('senderPersonalAccessTokens');
         }
 
-        if ($request->target == DocumentSignatureSentNotificationTypeEnum::RECEIVER()) {
-            $documentSignatureSent->with('receiverPersonsalAccessTokens');
+        if ($request['data']['target'] == DocumentSignatureSentNotificationTypeEnum::RECEIVER()) {
+            $documentSignatureSent->with('receiverPersonalAccessTokens');
         }
 
         $documentSignatureSent->get();
@@ -49,12 +49,12 @@ trait SendNotificationTrait
         }
 
         foreach ($documentSignatureSent as $message) {
-            if ($request->target == DocumentSignatureSentNotificationTypeEnum::SENDER()) {
-                $token = $message->senderPersonsalAccessTokens->pluck('fcm_token');
+            if ($request['data']['target'] == DocumentSignatureSentNotificationTypeEnum::SENDER()) {
+                $token = $message->senderPersonalAccessTokens->pluck('fcm_token');
             }
 
-            if ($request->target == DocumentSignatureSentNotificationTypeEnum::RECEIVER()) {
-                $token = $message->receiverPersonsalAccessTokens->pluck('fcm_token');
+            if ($request['data']['target'] == DocumentSignatureSentNotificationTypeEnum::RECEIVER()) {
+                $token = $message->receiverPersonalAccessTokens->pluck('fcm_token');
             }
 
             $messageAttribute = $this->setNotificationAttribute($token, $request['notification'], $message->id, FcmNotificationActionTypeEnum::DOC_SIGNATURE_DETAIL());
