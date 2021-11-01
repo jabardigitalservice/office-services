@@ -2,6 +2,7 @@
 
 namespace App\GraphQL\Mutations;
 
+use App\Enums\FcmNotificationActionTypeEnum;
 use App\Enums\PeopleProposedTypeEnum;
 use App\Http\Traits\SendNotificationTrait;
 use App\Models\Inbox;
@@ -154,11 +155,13 @@ class InboxMutator
         // Default message for forward action
         $title = $inboxData['from']->role->rolecode->rolecode_sort;
         $body = $inbox->Hal . ' | ' . $inbox->type->JenisName . ' | ' . $inbox->urgency->UrgensiName;
+        $actionMessage = FcmNotificationActionTypeEnum::INBOX_DETAIL();
 
         if ($action == PeopleProposedTypeEnum::DISPOSITION()) {
             $sender = auth()->user()->PeopleName;
             $title = 'Disposisi Naskah';
             $body = 'Wah ada Disposisi nih terkait dengan ' . $inbox->Hal . ' dari ' . $sender . '. Yuk cek sekarang juga!' . ' | ' . $inbox->urgency->UrgensiName;
+            $actionMessage = FcmNotificationActionTypeEnum::DISPOSITION_DETAIL();
         }
 
         $messageAttribute = [
@@ -170,6 +173,7 @@ class InboxMutator
                 'inboxId' => $inboxData['inboxId'],
                 'groupId' => $peopleId . $date,
                 'peopleIds' => $inboxData['receiversIds'],
+                'action' => $actionMessage,
             ]
         ];
 

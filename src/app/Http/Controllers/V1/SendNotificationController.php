@@ -29,10 +29,12 @@ class SendNotificationController extends Controller
 
         switch ($request->action) {
             case FcmNotificationActionTypeEnum::INBOX_DETAIL():
+            case FcmNotificationActionTypeEnum::DISPOSITION_DETAIL():
                 $messageAttribute['data'] = [
                     'inboxId' => $request->inboxId,
                     'groupId' => $request->groupId,
-                    'peopleIds' => $request->peopleIds
+                    'peopleIds' => $request->peopleIds,
+                    'action' => $request->action,
                 ];
 
                 $doNotification = $this->setupInboxReceiverNotification($messageAttribute);

@@ -24,7 +24,7 @@ trait SendNotificationTrait
 
         foreach ($inboxReceiver as $message) {
             $token = $message->personalAccessTokens->pluck('fcm_token');
-            $messageAttribute = $this->setNotificationAttribute($token, $request['notification'], $message->id, FcmNotificationActionTypeEnum::INBOX_DETAIL());
+            $messageAttribute = $this->setNotificationAttribute($token, $request['notification'], $message->id, $request['data']['action']);
             $this->sendNotification($messageAttribute);
         }
 
