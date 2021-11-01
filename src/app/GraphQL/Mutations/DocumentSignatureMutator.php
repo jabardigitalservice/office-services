@@ -181,23 +181,22 @@ class DocumentSignatureMutator
         $newFileName = time() .'_signed.pdf';
         Storage::disk('local')->put($newFileName, $pdf->body());
 
-        $url = config('sikd.webhook_url') . 'file_signatured';
         $fileSignatured = fopen(Storage::path($newFileName), 'r');
         $response = Http::withHeaders([
             'Secret' => config('sikd.webhook_secret'),
         ])->attach(
             'file', $fileSignatured, $newFileName
-        )->post($url);
+        )->post(config('sikd.webhook_url'));
 
         if ($response->status() != 200) {
             throw new CustomException('Webhook failed', json_decode($response));
+        } else {
+            $data = $this->updateDocumentSentStatus($data, $newFileName);
         }
 
         Storage::disk('local')->delete($newFileName);
 
-        $updateDocumentSent = $this->updateDocumentSentStatus($data, $newFileName);
-
-        return $updateDocumentSent;
+        return $data;
     }
 
     /**
