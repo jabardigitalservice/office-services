@@ -64,6 +64,8 @@ class DocumentSignatureSent extends Model
         $statuses = $filter["statuses"] ?? null;
         $read = $filter["read"] ?? null;
         $unread = $filter["unread"] ?? null;
+        $withSender = $filter["withSender"] ?? null;
+        $withReceiver = $filter["withReceiver"] ?? null;
 
         if ($statuses  || $statuses == '0') {
             $arrayStatuses = explode(", ", $statuses);
@@ -82,6 +84,24 @@ class DocumentSignatureSent extends Model
 
         if (!$read && $unread) {
             $query->whereNotIn('id', $readedId);
+        }
+
+        //get data by sender if data has success/reject status value
+        if ($withSender) {
+            $query->orWhereIn('id', function ($senderQuery) {
+                $senderQuery->select('id')
+                ->from('m_ttd_kirim')
+                ->where('PeopleID', auth()->user()->PeopleId)
+                ->where('status', '!=', SignatureStatusTypeEnum::WAITING()->value);
+            });
+        }
+
+        if ($withReceiver) {
+            $query->orWhereIn('id', function ($senderQuery) {
+                $senderQuery->select('id')
+                ->from('m_ttd_kirim')
+                ->where('PeopleIDTujuan', auth()->user()->PeopleId);
+            });
         }
 
         return $query;
