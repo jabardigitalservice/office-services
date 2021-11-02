@@ -1,0 +1,27 @@
+type DocumentSignatureSent {
+    id: ID!
+    signatureId: String! @rename(attribute: "ttd_id")
+    peopleId: String! @rename(attribute: "PeopleID")
+    to: String! @rename(attribute: "PeopleIDTujuan")
+    date: String! @rename(attribute: "tgl")
+    note: String @rename(attribute: "catatan")
+    status: String
+    sort: String @rename(attribute: "urutan")
+    signatureDate: String @rename(attribute: "tgl_ttd")
+    next: String
+    sender: People!
+    receiver: People!
+    read: Boolean @belongsTo(relation: "documentSignatureSentRead")
+    documentSignature: DocumentSignature @belongsTo
+}
+
+input documentSignatureSentsInput {
+    statuses: String
+    read: Boolean
+    unread: Boolean
+    withSender: Boolean
+    withReceiver: Boolean
+}
+
+#import people.graphql
+#import documentSignature.graphql

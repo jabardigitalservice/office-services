@@ -1,0 +1,43 @@
+type InboxReceiver {
+    id: ID!
+    inboxId: String! @rename(attribute: "NId")
+    groupId: String! @rename(attribute: "GIR_Id")
+    date: DateTime! @rename(attribute: "ReceiveDate")
+    fromId: Int @rename(attribute: "From_Id")
+    toId: String @rename(attribute: "To_Id")
+    message: String @rename(attribute: "Msg")
+    receiverAs: String @rename(attribute: "ReceiverAs")
+    receiverAsLabel: String @rename(attribute: "receiver_as_label")
+    receiveStatus: String @rename(attribute: "StatusReceive")
+    toIdMessage: String @rename(attribute: "To_Id_Message")
+    isForwarded: Int @rename(attribute: "Status")
+    message: String @rename(attribute: "Msg")
+    inboxDetail: Inbox @belongsTo
+    sender: People @belongsTo
+    purpose: [InboxReceiver]
+    receiver: People @belongsTo
+    inboxDisposition: [InboxDisposition]
+    isEndForward: Boolean @field(resolver: "App\\GraphQL\\Types\\InboxReceiverType@isEndForward")
+}
+
+input FilterInput {
+    sources: String
+    types: String
+    urgencies: String
+    statuses: String
+    forwarded: String
+    folder: String
+    receiverTypes: String
+}
+
+input ForwardInput {
+    inboxId: String!
+    receiversIds: String!
+    message: String
+    action: ProposedTypes
+    urgency: DispositionUrgency
+}
+
+#import inbox.graphql
+#import people.graphql
+#import inboxDisposition.graphql

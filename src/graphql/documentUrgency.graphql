@@ -1,0 +1,4 @@
+type DocumentUrgency {
+    id: String @rename(attribute: "UrgensiId")
+    name: String @rename(attribute: "UrgensiName")
+}

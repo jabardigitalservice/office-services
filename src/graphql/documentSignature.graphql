@@ -1,0 +1,19 @@
+type DocumentSignature {
+    id: String!
+    name: String @rename(attribute: "nama_file")
+    url: String
+    validation: Validation @field(resolver: "App\\GraphQL\\Types\\DocumentSignatureType@validate")
+    documentSignatureSents: [DocumentSignatureSent]
+}
+
+input DocumentSignatureInput {
+    documentSignatureSentId: String!
+    passphrase: String!
+}
+
+input DocumentSignaturRejectInput {
+    documentSignatureSentId: String!
+    note: String
+}
+
+#import validation.graphql

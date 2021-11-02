@@ -1,0 +1,14 @@
+type AuthPayload {
+    message: String
+    access_token: String
+    token_type: String
+    expires_in: Int
+    profile: People
+}
+
+input LoginInput {
+    username: String!
+    password: String!
+    device: String!
+    fcm_token: String! @rules(apply: ["unique:personal_access_tokens,fcm_token"])
+}

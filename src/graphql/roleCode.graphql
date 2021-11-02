@@ -1,0 +1,5 @@
+type Rolecode {
+    id: ID! @rename(attribute: "rolecode_id")
+    name: String! @rename(attribute: "rolecode_name")
+    shortName: String! @rename(attribute: "rolecode_sort")
+}
