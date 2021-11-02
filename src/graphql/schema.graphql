@@ -60,7 +60,6 @@ type Query {
         filter: documentSignatureSentsInput @builder(method: "App\\Models\\DocumentSignatureSent@filter")
     ): [DocumentSignatureSent!]!
         @orderBy(column: "tgl", direction: DESC)
-        @whereAuth(relation: "receiver")
         @paginate(type: CONNECTION)
         @guard
 
@@ -68,7 +67,6 @@ type Query {
         id: ID @eq
     ): DocumentSignatureSent!
         @field(resolver: "DocumentSignatureQuery@detail")
-        @whereAuth(relation: "receiver")
         @guard
 
     documentSignature(id: ID@eq): DocumentSignature!
@@ -301,5 +299,6 @@ input documentSignatureSentsInput {
     statuses: String
     read: Boolean
     unread: Boolean
+    withSender: Boolean
+    withReceiver: Boolean
 }
-
