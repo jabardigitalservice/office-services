@@ -285,7 +285,7 @@ type DocumentSignatureSent {
     next: String
     sender: People!
     receiver: People!
-    readStatus: readStatus @belongsTo(relation: "documentSignatureSentRead")
+    read: Boolean @belongsTo(relation: "documentSignatureSentRead")
     documentSignature: DocumentSignature @belongsTo
 }
 
@@ -295,10 +295,6 @@ type DocumentSignature {
     url: String
     validation: Validation @field(resolver: "App\\GraphQL\\Types\\DocumentSignatureType@validate")
     documentSignatureSents: [DocumentSignatureSent]
-}
-
-type readStatus {
-    read: Boolean @rename(attribute: "read")
 }
 
 input documentSignatureSentsInput {
