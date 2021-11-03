@@ -18,4 +18,14 @@ class MasterDisposition extends Model
     protected $keyType = 'string';
 
     protected $primaryKey = 'DisposisiId';
+
+    public function groupPosition()
+    {
+        return $this->belongsTo(GroupPosition::class, 'gjabatanId', 'gjabatanId');
+    }
+
+    public function byGroupPosition()
+    {
+        return $this->belongsToMany(People::class, 'role', 'gjabatanId', 'RoleId', 'gjabatanId', 'PrimaryRoleId');
+    }
 }

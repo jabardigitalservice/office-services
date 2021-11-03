@@ -1,5 +1,5 @@
 type GroupPosition {
     id: ID! @rename(attribute: "gjabatanId")
     name: String! @rename(attribute: "gjabatanName")
-    purpose: String! @rename(attribute: "gtujuanNaskah")
+    purpose: String @rename(attribute: "gtujuanNaskah")
 }
