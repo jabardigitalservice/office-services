@@ -33,7 +33,7 @@ trait SendNotificationTrait
 
     public function setupDocumentSignatureSentNotification($request)
     {
-        $documentSignatureSent = DocumentSignatureSent::whereIn('id', $request['data']['documentSignatureSentId']);
+        $documentSignatureSent = DocumentSignatureSent::where('id', $request['data']['documentSignatureSentId']);
         if ($request['data']['target'] == DocumentSignatureSentNotificationTypeEnum::SENDER()) {
             $documentSignatureSent->with('senderPersonalAccessTokens');
         }
@@ -43,7 +43,6 @@ trait SendNotificationTrait
         }
 
         $documentSignatureSent->get();
-
         if (!$documentSignatureSent) {
             return response()->json(['message' => 'Data empty'], Response::HTTP_INTERNAL_SERVER_ERROR);
         }

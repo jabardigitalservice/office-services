@@ -56,7 +56,7 @@ class DocumentSignatureRejectMutator
                 'body' => 'Ada naskah yang tidak berhasil ditandatangani. Silahkan klik disini untuk mengecek alasannya.',
             ],
             'data' => [
-                'documentSignatureSentId' => [$data['id']],
+                'documentSignatureSentId' => $data['id'],
                 'target' => DocumentSignatureSentNotificationTypeEnum::SENDER()
             ]
         ];

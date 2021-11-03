@@ -245,7 +245,7 @@ class DocumentSignatureMutator
                 'body' => 'Dokumen ' . $data->documentSignature->nama_file . ' telah berhasil di tandatangi oleh ' . $data->receiver->PeopleName,
             ],
             'data' => [
-                'documentSignatureSentId' => [$data['id']],
+                'documentSignatureSentId' => $data['id'],
                 'target' => DocumentSignatureSentNotificationTypeEnum::SENDER()
             ]
         ];
