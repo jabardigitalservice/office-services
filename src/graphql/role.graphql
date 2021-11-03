@@ -1,0 +1,12 @@
+type Role {
+    id: ID! @rename(attribute: "RoleId")
+    name: String! @rename(attribute: "RoleName")
+    desc: String! @rename(attribute: "RoleDesc")
+    rolecode: Rolecode @belongsTo
+    groupPosition: GroupPosition @belongsTo
+    groupRole: GroupRole @belongsTo
+}
+
+#import roleCode.graphql
+#import groupPosition.graphql
+#import groupRole.graphql

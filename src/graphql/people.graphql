@@ -1,0 +1,24 @@
+type People {
+    id: ID! @rename(attribute: "PeopleId")
+    name: String @rename(attribute: "PeopleName")
+    email: String @rename(attribute: "Email")
+    username: String @rename(attribute: "PeopleUsername")
+    employeeNumber: String @rename(attribute: "NIP")
+    classRank: String @rename(attribute: "Golongan")
+    role: Role @belongsTo
+    groupId: Int @rename(attribute: "GroupId")
+    position: String @rename(attribute: "PeoplePosition")
+    avatar: SiapPeople @belongsTo(relation: "siapPeople")
+}
+
+input PeopleFilterInput {
+    proposedTo: ProposedTypes
+}
+
+enum ProposedTypes {
+    FORWARD
+    DISPOSITION
+}
+
+#import role.graphql
+#import siapPeople.graphql

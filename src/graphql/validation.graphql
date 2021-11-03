@@ -1,0 +1,6 @@
+type Validation {
+    isValid: Boolean
+    signatures: [People]
+}
+
+#import people.graphql

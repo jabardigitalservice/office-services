@@ -1,0 +1,23 @@
+type Inbox {
+    id: ID! @rename(attribute: "NId")
+    archiveUnitId: Int @rename(attribute: "CreatedBy")
+    source: String @rename(attribute: "Pengirim")
+    letterNumber: String @rename(attribute: "Nomor")
+    letterDate: String @rename(attribute: "Tgl")
+    date: DateTime @rename(attribute: "NTglReg")
+    fromName: String @rename(attribute: "Namapengirim")
+    fromOrg: String @rename(attribute: "Instansipengirim")
+    about: String @rename(attribute: "Hal")
+    type: DocumentType @belongsTo
+    urgency: DocumentUrgency @belongsTo
+    createdBy: People @belongsTo
+    documentBaseUrl: String @rename(attribute: "document_base_url")
+    documentPath: String @rename(attribute: "NFileDir")
+    documentFile: InboxFile @belongsTo
+}
+
+#import people.graphql
+#import documentType.graphql
+#import documentUrgency.graphql
+#import inboxDisposition.graphql
+#import inboxFile.graphql
