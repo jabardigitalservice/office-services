@@ -1,0 +1,7 @@
+type MasterDisposition {
+    id: ID! @rename(attribute: "DisposisiId")
+    name: String! @rename(attribute: "DisposisiName")
+    groupPosition: GroupPosition!
+}
+
+#import groupPosition.graphql
