@@ -42,10 +42,12 @@ class InboxReceiver extends Model
 
     public function history($query, $NId)
     {
-        return $query->where('NId', $NId)->where(function($query) {
-            $query->orwhere('RoleId_To', 'like', auth()->user()->PrimaryRoleId . '%');
-            $query->orWhere('RoleId_From', 'like', auth()->user()->PrimaryRoleId . '%');
-        })->groupBy('GIR_Id');
+        return $query->where('NId', $NId)
+                    ->where(function($query) use ($NId) {
+                        $query->where('NId', $NId);
+                        $query->orwhere('RoleId_To', 'like', auth()->user()->PrimaryRoleId . '%');
+                        $query->orWhere('RoleId_From', 'like', auth()->user()->PrimaryRoleId . '%');
+                    })->groupBy('GIR_Id');
     }
 
     public function sender()

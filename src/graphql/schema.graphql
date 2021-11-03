@@ -54,6 +54,11 @@ type Query {
         @paginate(type: CONNECTION)
         @guard
 
+    dispositionTypeList: [MasterDisposition!]!
+        @whereAuth(relation: "byGroupPosition")
+        @paginate(type: CONNECTION)
+        @guard
+
     # You can use this @field code for experiment query leveling -> @field(resolver: "DocumentSignatureQuery@list")
     documentSignatureSents(
         search: String @builder(method: "App\\Models\\DocumentSignatureSent@search")
@@ -97,3 +102,4 @@ type Mutation {
 #import people.graphql
 #import documentSignatureSent.graphql
 #import documentSignature.graphql
+#import masterDisposition.graphql
