@@ -31,6 +31,7 @@ class InboxMutator
         $action = Arr::get($args, 'input.action') ?? PeopleProposedTypeEnum::FORWARD();
         $stringReceiversIds = Arr::get($args, 'input.receiversIds');
         $time = Carbon::now();
+        $dispositionType = str_replace(", ", "|", Arr::get($args, 'input.dispositionType'));
 
         $inboxData = [
             'from' => auth()->user(),
@@ -40,6 +41,7 @@ class InboxMutator
             'receiversIds' => explode(", ", $stringReceiversIds),
             'time' => $time,
             'groupId' => auth()->user()->PeopleId . $time,
+            'dispositionType' => $dispositionType,
         ];
 
         $inboxReceivers = [];
@@ -191,6 +193,7 @@ class InboxMutator
             'NId' 		=> $inboxData['inboxId'],
             'GIR_Id' 	=> $inboxData['groupId'],
             'Sifat'     => $inboxData['urgency'],
+            'Disposisi' => $inboxData['dispositionType'],
             'RoleId' 	=> $inboxData['from']->PrimaryRoleId,
         ];
 

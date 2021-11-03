@@ -16,7 +16,7 @@ type InboxReceiver {
     sender: People @belongsTo
     purpose: [InboxReceiver]
     receiver: People @belongsTo
-    inboxDisposition: [InboxDisposition]
+    inboxDisposition: InboxDisposition @belongsTo
     isEndForward: Boolean @field(resolver: "App\\GraphQL\\Types\\InboxReceiverType@isEndForward")
 }
 
@@ -36,6 +36,7 @@ input ForwardInput {
     message: String
     action: ProposedTypes
     urgency: DispositionUrgency
+    dispositionType: String
 }
 
 #import inbox.graphql
