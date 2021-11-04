@@ -27,7 +27,8 @@ class InboxFile extends Model
     public function find($query, $id)
     {
         $query->where('Id_dokumen', $id)
-            ->orWhere('NId', $id);
+            ->orWhere('NId', $id)
+            ->where('Id_dokumen', '<>', '');
 
         return $query;
     }
