@@ -42,7 +42,12 @@ class People extends Authenticatable
 
         $query->where('PeopleId', '<>', $peopleId);
         if ($proposedTo == PeopleProposedTypeEnum::FORWARD()) {
-            $query->where('GroupId', '<>', 8); //The people target is not a 'TU' role
+            $query->whereNotIn('GroupId', [
+                PeopleGroupTypeEnum::TU(),
+                PeopleGroupTypeEnum::SETDA_RECIPIENT(),
+                PeopleGroupTypeEnum::SETDA_CONTROLLER(),
+                PeopleGroupTypeEnum::SETDA_DIRECTOR(),
+            ]);
 
             switch ($roleIdUnit) {
                 case ArchiverIdUnitTypeEnum::SETDA()->value:
