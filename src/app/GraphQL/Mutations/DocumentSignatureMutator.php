@@ -90,8 +90,6 @@ class DocumentSignatureMutator
         } else {
             //Save new file & update status
             $data = $this->saveNewFile($response, $data);
-            //Send notification
-            $this->sendNotification($data);
             //Save log
             $this->createPassphraseSessionLog($response);
         }
@@ -225,7 +223,11 @@ class DocumentSignatureMutator
         $nextDocumentSent = DocumentSignatureSent::where('id', $data->id)
                                                 ->where('urutan', $data->urutan + 1);
         if ($nextDocumentSent->first()) {
+            $nextDocumentSentId = $nextDocumentSent->id;
             $nextDocumentSent->update(['next', 1]);
+
+            //Send notification to next people
+            $this->sendNotification($data, $nextDocumentSentId);
         }
 
         return $updateDocumentSent;
@@ -237,16 +239,16 @@ class DocumentSignatureMutator
      * @param  object $data
      * @return void
      */
-    protected function sendNotification($data)
+    protected function sendNotification($data, $nextDocumentSentId)
     {
         $messageAttribute = [
             'notification' => [
                 'title' => 'TTE Naskah',
-                'body' => 'Dokumen ' . $data->documentSignature->nama_file . ' telah berhasil di tandatangi oleh ' . $data->receiver->PeopleName,
+                'body' => 'Ada naskah masuk dari ' . $data->sender->PeopleName . ' yang harus segera di tandatangani. Silakan cek disini.'
             ],
             'data' => [
-                'documentSignatureSentId' => [$data['id']],
-                'target' => DocumentSignatureSentNotificationTypeEnum::SENDER()
+                'documentSignatureSentId' => $nextDocumentSentId,
+                'target' => DocumentSignatureSentNotificationTypeEnum::RECEIVER()
             ]
         ];
 
