@@ -3,7 +3,6 @@
 namespace App\Models;
 
 use App\Enums\PeopleGroupTypeEnum;
-use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Hoyvoy\CrossDatabase\Eloquent\Model;
 
@@ -76,6 +75,11 @@ class InboxReceiver extends Model
     public function personalAccessTokens()
     {
         return $this->hasMany(PersonalAccessToken::class, 'tokenable_id', 'To_Id');
+    }
+
+    public function inboxDisposition()
+    {
+        return $this->belongsTo(InboxDisposition::class, 'GIR_Id', 'GIR_Id');
     }
 
     public function filter($query, $filter)

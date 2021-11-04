@@ -18,12 +18,13 @@ class InboxDisposition extends Model
 
     protected $keyType = 'string';
 
-    protected $primaryKey = 'NId';
+    protected $primaryKey = 'GIR_Id';
 
     protected $fillable = [
         'NId',
         'GIR_Id',
         'Sifat',
+        'Disposisi',
         'RoleId',
     ];
 
@@ -39,7 +40,7 @@ class InboxDisposition extends Model
         // 19 means the datetime characters numbers
         $peopleId = substr($value, 0, -19);
         $dateString = substr($value, -19);
-        $date = Carbon::parse($dateString)->addHours(7)->format('dmyhis');
+        $date = parseDateTimeFormat($dateString, 'dmyhis');
 
         $this->attributes['GIR_Id'] = $peopleId . $date;
     }
