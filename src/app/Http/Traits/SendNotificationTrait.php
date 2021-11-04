@@ -19,7 +19,7 @@ trait SendNotificationTrait
                                     ->with('personalAccessTokens')
                                     ->get();
         if (!$inboxReceiver) {
-            return response()->json(['message' => 'Data empty'], Response::HTTP_INTERNAL_SERVER_ERROR);
+            return false;
         }
 
         foreach ($inboxReceiver as $message) {
@@ -31,7 +31,33 @@ trait SendNotificationTrait
         return true;
     }
 
+    /**
+     * setupDocumentSignatureSentNotification
+     *
+     * @param  object $request
+     * @return boolean
+     */
     public function setupDocumentSignatureSentNotification($request)
+    {
+        list($data, $token) = $this->setDocumentSignatureSentTarget($request);
+
+        if (!$data) {
+            return false;
+        }
+
+        $messageAttribute = $this->setNotificationAttribute($token, $request['notification'], $data->id, FcmNotificationActionTypeEnum::DOC_SIGNATURE_DETAIL());
+        $send = $this->sendNotification($messageAttribute);
+
+        return true;
+    }
+
+    /**
+     * setDocumentSignatureSentTarget
+     *
+     * @param  object $request
+     * @return array
+     */
+    public function setDocumentSignatureSentTarget($request)
     {
         $documentSignatureSent = DocumentSignatureSent::where('id', $request['data']['documentSignatureSentId']);
         if ($request['data']['target'] == DocumentSignatureSentNotificationTypeEnum::SENDER()) {
@@ -42,25 +68,21 @@ trait SendNotificationTrait
             $documentSignatureSent->with('receiverPersonalAccessTokens');
         }
 
-        $documentSignatureSent->get();
-        if (!$documentSignatureSent) {
-            return response()->json(['message' => 'Data empty'], Response::HTTP_INTERNAL_SERVER_ERROR);
+        $data = $documentSignatureSent->first();
+
+        if (!$data) {
+            return [false, false];
         }
 
-        foreach ($documentSignatureSent as $message) {
-            if ($request['data']['target'] == DocumentSignatureSentNotificationTypeEnum::SENDER()) {
-                $token = $message->senderPersonalAccessTokens->pluck('fcm_token');
-            }
-
-            if ($request['data']['target'] == DocumentSignatureSentNotificationTypeEnum::RECEIVER()) {
-                $token = $message->receiverPersonalAccessTokens->pluck('fcm_token');
-            }
-
-            $messageAttribute = $this->setNotificationAttribute($token, $request['notification'], $message->id, FcmNotificationActionTypeEnum::DOC_SIGNATURE_DETAIL());
-            $this->sendNotification($messageAttribute);
+        if ($request['data']['target'] == DocumentSignatureSentNotificationTypeEnum::SENDER()) {
+            $token = $data->senderPersonalAccessTokens->pluck('fcm_token');
         }
 
-        return true;
+        if ($request['data']['target'] == DocumentSignatureSentNotificationTypeEnum::RECEIVER()) {
+            $token = $data->receiverPersonalAccessTokens->pluck('fcm_token');
+        }
+
+        return [$data, $token];
     }
 
     /**
@@ -90,7 +112,7 @@ trait SendNotificationTrait
      * sendNotification
      *
      * @param  mixed $request
-     * @return void
+     * @return object
      */
     public function sendNotification($request)
     {
@@ -107,6 +129,6 @@ trait SendNotificationTrait
             'Content-Type' => 'application/json',
         ])->post('https://fcm.googleapis.com/fcm/send', $data);
 
-        return json_decode($response);
+        return json_decode($response->body());
     }
 }
