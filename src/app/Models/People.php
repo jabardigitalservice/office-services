@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\ArchiverIdUnitTypeEnum;
 use App\Enums\PeopleGroupTypeEnum;
 use App\Enums\PeopleProposedTypeEnum;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -44,7 +45,7 @@ class People extends Authenticatable
             $query->where('GroupId', '<>', 8); //The people target is not a 'TU' role
 
             switch ($roleIdUnit) {
-                case 6:
+                case ArchiverIdUnitTypeEnum::SETDA()->value:
                     // A special condition when the archiver (unit kearsipan) is 'unit kearsipan setda (uk.setda)'
                     // uk.setda role id is uk.1.1.1.1.1 (roleIdUnit=6)
                     $query->whereIn('PrimaryRoleId', function ($roleQuery){
@@ -59,7 +60,7 @@ class People extends Authenticatable
                     });
                     break;
 
-                case 3:
+                case ArchiverIdUnitTypeEnum::DEPT()->value:
                     // Department archivers (unit kearsipan dinas) always have the roleIdUnit=3
                     // e.g.: uk.1.15 as uk.deptA; uk.1.37 as uk.uk.deptB
                     // These are the role id patterns for 'kadis' and 'sekdis' of a department (dinas)
