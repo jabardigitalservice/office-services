@@ -53,7 +53,7 @@ class DocumentSignatureRejectMutator
         $messageAttribute = [
             'notification' => [
                 'title' => 'TTE Naskah',
-                'body' => 'Ada naskah yang tidak berhasil ditandatangani. Silahkan klik disini untuk mengecek alasannya.',
+                'body' => 'Ada naskah yang tidak berhasil ditandatangani. Silakan klik disini untuk mengecek alasannya.',
             ],
             'data' => [
                 'documentSignatureSentId' => $data['id'],

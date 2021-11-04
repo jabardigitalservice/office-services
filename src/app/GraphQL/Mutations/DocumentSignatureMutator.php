@@ -244,7 +244,7 @@ class DocumentSignatureMutator
         $messageAttribute = [
             'notification' => [
                 'title' => 'TTE Naskah',
-                'body' => 'Ada naskah masuk dari ' . $data->sender->PeopleName . ' yang harus segera di tandatangani. Silahkan cek disini.'
+                'body' => 'Ada naskah masuk dari ' . $data->sender->PeopleName . ' yang harus segera di tandatangani. Silakan cek disini.'
             ],
             'data' => [
                 'documentSignatureSentId' => $nextDocumentSentId,
