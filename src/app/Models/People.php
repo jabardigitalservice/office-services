@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\ArchiverIdUnitTypeEnum;
 use App\Enums\PeopleGroupTypeEnum;
 use App\Enums\PeopleProposedTypeEnum;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -37,26 +38,39 @@ class People extends Authenticatable
         $proposedTo = $filter["proposedTo"] ?? null;
         $peopleId = auth()->user()->PeopleId;
         $roleId = auth()->user()->PrimaryRoleId;
+        $roleIdUnit = count(explode(".", $roleId));
 
         $query->where('PeopleId', '<>', $peopleId);
         if ($proposedTo == PeopleProposedTypeEnum::FORWARD()) {
-            // A special condition when the archiver (unit kearsipan) is 'unit kearsipan setda (uk.setda)'
-            // uk.setda role id is uk.1.1.1.1.1
             $query->where('GroupId', '<>', 8); //The people target is not a 'TU' role
-            if ($roleId == 'uk.1.1.1.1.1') {
-                $query->whereIn('PrimaryRoleId', function ($roleQuery){
-                    $roleQuery->select('RoleId')
-                        ->from('role')
-                        // The forward targets have various role ids
-                        // with min. length id is 4, for example uk.1 as the government
-                        // and max. length id is 18, for instance uk.1.1.1.1.1.1.1.2 as the bureau chief
-                        ->whereRaw('LENGTH(PrimaryRoleId) >= 4 AND LENGTH(PrimaryRoleId) <= 18')
-                        // This fixed role code means the forward targets in the same institution with the uk.setda
-                        ->where('RoleCode', 3);
-                });
-            } else {
-                // The role id pattern for 'kadis' and 'sekdis' of a department (dinas)
-                $query->whereIn('PrimaryRoleId', [$roleId . '.1', $roleId . '.1.1']);
+
+            switch ($roleIdUnit) {
+                case ArchiverIdUnitTypeEnum::SETDA()->value:
+                    // A special condition when the archiver (unit kearsipan) is 'unit kearsipan setda (uk.setda)'
+                    // uk.setda role id is uk.1.1.1.1.1 (roleIdUnit=6)
+                    $query->whereIn('PrimaryRoleId', function ($roleQuery){
+                        $roleQuery->select('RoleId')
+                            ->from('role')
+                            // The forward targets have various role ids
+                            // with min. length id is 4, for example uk.1 as the government
+                            // and max. length id is 18, for instance uk.1.1.1.1.1.1.1.2 as the bureau chief
+                            ->whereRaw('LENGTH(PrimaryRoleId) >= 4 AND LENGTH(PrimaryRoleId) <= 18')
+                            // This fixed role code means the forward targets in the same institution with the uk.setda
+                            ->where('RoleCode', 3);
+                    });
+                    break;
+
+                case ArchiverIdUnitTypeEnum::DEPT()->value:
+                    // Department archivers (unit kearsipan dinas) always have the roleIdUnit=3
+                    // e.g.: uk.1.15 as uk.deptA; uk.1.37 as uk.uk.deptB
+                    // These are the role id patterns for 'kadis' and 'sekdis' of a department (dinas)
+                    $query->whereIn('PrimaryRoleId', [$roleId . '.1', $roleId . '.1.1']);
+                    break;
+
+                default:
+                    // For another archivers, the people targets are their direct superior roles
+                    $query->where('PrimaryRoleId', auth()->user()->RoleAtasan);
+                    break;
             }
         } elseif ($proposedTo == PeopleProposedTypeEnum::DISPOSITION()) {
             // The disposition targets are the people who has the 'RoleAtasan' as the user's roleId.
