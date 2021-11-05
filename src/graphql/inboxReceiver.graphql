@@ -28,6 +28,7 @@ input FilterInput {
     forwarded: String
     folder: String
     receiverTypes: String
+    scope: ScopeType
 }
 
 input ForwardInput {
@@ -37,6 +38,11 @@ input ForwardInput {
     action: ProposedTypes
     urgency: DispositionUrgency
     dispositionType: String
+}
+
+enum ScopeType {
+    REGIONAL @enum(value: "REGIONAL")
+    INTERNAL @enum(value: "INTERNAL")
 }
 
 #import inbox.graphql
