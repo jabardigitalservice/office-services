@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\InboxReceiverScopeType;
 use App\Enums\PeopleGroupTypeEnum;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Hoyvoy\CrossDatabase\Eloquent\Model;
@@ -91,6 +92,7 @@ class InboxReceiver extends Model
         $forwarded = $filter["forwarded"] ?? null;
         $folder = $filter["folder"] ?? null;
         $receiverTypes = $filter["receiverTypes"] ?? null;
+        $scope = $filter["scope"] ?? null;
 
         if ($statuses) {
             $arrayStatuses = explode(", ", $statuses);
@@ -152,7 +154,33 @@ class InboxReceiver extends Model
             $query->whereIn('ReceiverAs', $arrayReceiverTypes);
         }
 
+        if ($scope) {
+            $departmentId = $this->generateDeptId(auth()->user()->PrimaryRoleId);
+            $comparison = '';
+            switch ($scope) {
+                case InboxReceiverScopeType::REGIONAL():
+                    $comparison = 'NOT LIKE';
+                    break;
+
+                case InboxReceiverScopeType::INTERNAL():
+                    $comparison = 'LIKE';
+                    break;
+            }
+            $query->where('RoleId_From', $comparison, $departmentId . '%');
+        }
+
         return $query;
+    }
+
+    private function generateDeptId($roleId) {
+        // If the user is not uk.setda
+        if ($roleId != 'uk.1.1.1.1.1') {
+            $arrayRoleId = explode(".", $roleId);
+            $arrayDepartmentId = array_slice($arrayRoleId, 0, 3);
+            $departmentId = join(".", $arrayDepartmentId);
+            return $departmentId;
+        }
+        return $roleId;
     }
 
     public function search($query, $search)
