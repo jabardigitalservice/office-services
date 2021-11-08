@@ -227,19 +227,19 @@ class DocumentSignatureMutator
             $nextDocumentSent->update(['next', 1]);
 
             //Send notification to next people
-            $this->sendNotification($data, $nextDocumentSentId);
+            $this->doSendNotification($data, $nextDocumentSentId);
         }
 
         return $updateDocumentSent;
     }
 
     /**
-     * sendNotification
+     * doSendNotification
      *
      * @param  object $data
      * @return void
      */
-    protected function sendNotification($data, $nextDocumentSentId)
+    protected function doSendNotification($data, $nextDocumentSentId)
     {
         $messageAttribute = [
             'notification' => [

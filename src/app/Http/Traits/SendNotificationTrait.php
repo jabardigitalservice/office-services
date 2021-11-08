@@ -34,7 +34,7 @@ trait SendNotificationTrait
     /**
      * setupDocumentSignatureSentNotification
      *
-     * @param  object $request
+     * @param  mixed $request
      * @return boolean
      */
     public function setupDocumentSignatureSentNotification($request)

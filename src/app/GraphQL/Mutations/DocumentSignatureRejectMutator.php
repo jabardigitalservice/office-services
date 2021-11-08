@@ -39,16 +39,18 @@ class DocumentSignatureRejectMutator
             );
         }
 
+        $this->doSendNotification($documentSignatureSentId);
+
         return $documentSignatureSent;
     }
 
     /**
-     * sendNotification
+     * doSendNotification
      *
      * @param  object $data
      * @return void
      */
-    protected function sendNotification($data)
+    protected function doSendNotification($documentSignatureSentId)
     {
         $messageAttribute = [
             'notification' => [
@@ -56,7 +58,7 @@ class DocumentSignatureRejectMutator
                 'body' => 'Ada naskah yang tidak berhasil ditandatangani. Silakan klik disini untuk mengecek alasannya.',
             ],
             'data' => [
-                'documentSignatureSentId' => $data['id'],
+                'documentSignatureSentId' => $documentSignatureSentId,
                 'target' => DocumentSignatureSentNotificationTypeEnum::SENDER()
             ]
         ];
