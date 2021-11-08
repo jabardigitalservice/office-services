@@ -86,13 +86,14 @@ class DocumentSignatureForwardMutator
         $ids = array();
 
         foreach ($arrayReceivers as $key => $receiver) {
+            $key++;
             $documentSignatureForward = DocumentSignatureForward::create([
                 'ttd_id' => $documentSignatureId,
                 'catatan' => $note,
                 'tgl' => Carbon::now(),
                 'PeopleID' => $sender,
                 'PeopleIDTujuan' => $receiver,
-                'urutan' => $key++,
+                'urutan' => $key,
                 'status' => SignatureStatusTypeEnum::WAITING()->value,
             ]);
 
