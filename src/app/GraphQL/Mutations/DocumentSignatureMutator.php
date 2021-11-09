@@ -176,7 +176,7 @@ class DocumentSignatureMutator
     protected function saveNewFile($pdf, $data)
     {
         //save to storage path for temporary file
-        $newFileName = time() .'_signed.pdf';
+        $newFileName = $data->documentSignature->nama_file . '_' . parseDateTimeFormat(Carbon::now(), 'dmY')  . '_signed.pdf';
         Storage::disk('local')->put($newFileName, $pdf->body());
 
         $fileSignatured = fopen(Storage::path($newFileName), 'r');
