@@ -7,6 +7,7 @@ use Spatie\Enum\Enum;
 /**
  * @method static self STRUCTURAL()
  * @method static self SECRETARY()
+ * @method static self UK()
  * @method static self STAFF()
  * @method static self TU()
  * @method static self SETDA_RECIPIENT()
@@ -21,6 +22,7 @@ class PeopleGroupTypeEnum extends Enum
         return [
             'STRUCTURAL' => 3,
             'SECRETARY' => 4,
+            'UK' => 6,
             'STAFF' => 7,
             'TU' => 8,
             'SETDA_RECIPIENT' => 10,

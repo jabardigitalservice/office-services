@@ -16,4 +16,11 @@ input DocumentSignaturRejectInput {
     note: String
 }
 
+input DocumentSignatureForwardInput {
+    documentSignatureId: String!
+    sender: String!
+    receivers: String!
+    note: String
+}
+
 #import validation.graphql

@@ -94,6 +94,9 @@ type Mutation {
 
     documentSignatureReject(input: DocumentSignaturRejectInput): DocumentSignatureSent
         @field(resolver: "DocumentSignatureRejectMutator@reject")
+
+    documentSignatureForward(input: DocumentSignatureForwardInput): [DocumentSignatureForwards!]
+        @field(resolver: "DocumentSignatureForwardMutator@forward")
 }
 
 #import auth.graphql
@@ -102,4 +105,5 @@ type Mutation {
 #import people.graphql
 #import documentSignatureSent.graphql
 #import documentSignature.graphql
+#import documentSignatureForward.graphql
 #import masterDisposition.graphql

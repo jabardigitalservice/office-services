@@ -1,4 +1,5 @@
-type DocumentSignatureSent {
+
+type DocumentSignatureForwards {
     id: ID!
     signatureId: String! @rename(attribute: "ttd_id")
     peopleId: String! @rename(attribute: "PeopleID")
@@ -7,21 +8,10 @@ type DocumentSignatureSent {
     note: String @rename(attribute: "catatan")
     status: String
     sort: String @rename(attribute: "urutan")
-    signatureDate: String @rename(attribute: "tgl_ttd")
     next: String
     sender: People!
     receiver: People!
-    read: Boolean @belongsTo(relation: "documentSignatureSentRead")
-    isLastSigned: Boolean @field(resolver: "App\\GraphQL\\Types\\DocumentSignatureSentType@isLastSigned")
     documentSignature: DocumentSignature @belongsTo
-}
-
-input documentSignatureSentsInput {
-    statuses: String
-    read: Boolean
-    unread: Boolean
-    withSender: Boolean
-    withReceiver: Boolean
 }
 
 #import people.graphql
