@@ -54,7 +54,7 @@ class DocumentSignatureRejectMutator
     {
         $messageAttribute = [
             'notification' => [
-                'title' => 'TTE Naskah',
+                'title' => 'Penolakan TTE Naskah',
                 'body' => 'Ada naskah yang tidak berhasil ditandatangani. Silakan klik disini untuk mengecek alasannya.',
             ],
             'data' => [
