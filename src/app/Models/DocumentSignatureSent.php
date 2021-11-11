@@ -109,11 +109,13 @@ class DocumentSignatureSent extends Model
 
     public function search($query, $search)
     {
-        $query->whereIn('ttd_id', function ($inboxQuery) use ($search) {
-            $inboxQuery->select('id')
-            ->from('m_ttd')
-            ->where('nama_file', 'LIKE', '%' . $search . '%');
-        });
+        if ($search) {
+            $query->whereIn('ttd_id', function ($inboxQuery) use ($search) {
+                $inboxQuery->select('id')
+                ->from('m_ttd')
+                ->where('nama_file', 'LIKE', '%' . $search . '%');
+            });
+        }
 
         return $query;
     }
