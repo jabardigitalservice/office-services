@@ -109,7 +109,7 @@ class DocumentSignatureSent extends Model
 
     public function search($query, $search)
     {
-        if ($search || $search != '') {
+        if ($search) {
             $query->whereIn('ttd_id', function ($inboxQuery) use ($search) {
                 $inboxQuery->select('id')
                 ->from('m_ttd')
