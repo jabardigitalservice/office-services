@@ -61,11 +61,11 @@ class DocumentSignatureSent extends Model
 
     public function filter($query, $filter)
     {
-        $statuses = $filter["statuses"] ?? null;
-        $read = $filter["read"] ?? null;
-        $unread = $filter["unread"] ?? null;
-        $withSender = $filter["withSender"] ?? null;
-        $withReceiver = $filter["withReceiver"] ?? null;
+        $statuses = $filter['statuses'] ?? null;
+        $read = $filter['read'] ?? null;
+        $unread = $filter['unread'] ?? null;
+        $withSender = $filter['withSender'] ?? null;
+        $withReceiver = $filter['withReceiver'] ?? null;
 
         if ($statuses  || $statuses == '0') {
             $arrayStatuses = explode(", ", $statuses);
@@ -122,8 +122,8 @@ class DocumentSignatureSent extends Model
 
     public function filterTimeline($query, $filter)
     {
-        $documentSignatureId = $filter["documentSignatureId"] ?? null;
-        $sort = $filter["sort"] ?? null;
+        $documentSignatureId = $filter['documentSignatureId'] ?? null;
+        $sort = $filter['sort'] ?? null;
 
         $query->where('ttd_id', $documentSignatureId)
             ->where('urutan', '<', $sort)
