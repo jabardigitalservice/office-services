@@ -154,12 +154,12 @@ class InboxMutator
         $dateString = substr($inboxData['groupId'], -19);
         $date = parseDateTimeFormat($dateString, 'dmyhis');
 
-        // Default message for forward action
-        $title = $inboxData['from']->role->rolecode->rolecode_sort;
-        $body = $inbox->Hal . ' | ' . $inbox->type->JenisName . ' | ' . $inbox->urgency->UrgensiName;
-        $actionMessage = FcmNotificationActionTypeEnum::INBOX_DETAIL();
-
-        if ($action == PeopleProposedTypeEnum::DISPOSITION()) {
+        if ($action == PeopleProposedTypeEnum::FORWARD()) {
+            $createdBy = Inbox::where('NId', $inboxData['inboxId'])->first()->createdBy;
+            $title = $createdBy->role->rolecode->rolecode_sort;
+            $body = $inbox->Hal . ' | ' . $inbox->type->JenisName . ' | ' . $inbox->urgency->UrgensiName;
+            $actionMessage = FcmNotificationActionTypeEnum::INBOX_DETAIL();
+        } else if ($action == PeopleProposedTypeEnum::DISPOSITION()) {
             $sender = auth()->user()->PeopleName;
             $title = 'Disposisi Naskah';
             $body = 'Wah ada Disposisi nih terkait dengan ' . $inbox->Hal . ' dari ' . $sender . '. Yuk cek sekarang juga!' . ' | ' . $inbox->urgency->UrgensiName;
