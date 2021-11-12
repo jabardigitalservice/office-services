@@ -77,6 +77,13 @@ type Query {
     documentSignature(id: ID@eq): DocumentSignature!
         @find
         @guard
+
+    documentSignatureSentTimeline(
+        filter: documentSignatureSentTimelineInput @builder(method: "App\\Models\\DocumentSignatureSent@filterTimeline")
+    ): [DocumentSignatureSent!]!
+        @all
+        @orderBy(column: "urutan", direction: DESC)
+        @guard
 }
 
 type Mutation {
