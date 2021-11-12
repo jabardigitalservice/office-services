@@ -24,5 +24,10 @@ input documentSignatureSentsInput {
     withReceiver: Boolean
 }
 
+input documentSignatureSentTimelineInput {
+    documentSignatureId: String!
+    sort: String!
+}
+
 #import people.graphql
 #import documentSignature.graphql

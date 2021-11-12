@@ -120,6 +120,18 @@ class DocumentSignatureSent extends Model
         return $query;
     }
 
+    public function filterTimeline($query, $filter)
+    {
+        $documentSignatureId = $filter["documentSignatureId"] ?? null;
+        $sort = $filter["sort"] ?? null;
+
+        $query->where('ttd_id', $documentSignatureId)
+            ->where('urutan', '<', $sort)
+            ->where('status', SignatureStatusTypeEnum::SUCCESS()->value);
+
+        return $query;
+    }
+
     public function getUrutanParentAttribute()
     {
         return $this->urutan - 1;
