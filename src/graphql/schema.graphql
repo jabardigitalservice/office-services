@@ -81,6 +81,7 @@ type Query {
     documentSignatureSentTimeline(
         filter: documentSignatureSentTimelineInput @builder(method: "App\\Models\\DocumentSignatureSent@filterTimeline")
     ): [DocumentSignatureSent!]!
+        @all
         @orderBy(column: "urutan", direction: DESC)
         @guard
 }
