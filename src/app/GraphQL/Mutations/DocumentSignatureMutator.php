@@ -176,7 +176,7 @@ class DocumentSignatureMutator
     protected function saveNewFile($pdf, $data)
     {
         //save to storage path for temporary file
-        $newFileName = $data->documentSignature->nama_file . '_' . parseDateTimeFormat(Carbon::now(), 'dmY')  . '_signed.pdf';
+        $newFileName = str_replace(' ', '_', $data->documentSignature->nama_file) . '_' . parseDateTimeFormat(Carbon::now(), 'dmY')  . '_signed.pdf';
         Storage::disk('local')->put($newFileName, $pdf->body());
 
         $fileSignatured = fopen(Storage::path($newFileName), 'r');
@@ -227,7 +227,7 @@ class DocumentSignatureMutator
             $nextDocumentSent->update(['next', 1]);
 
             //Send notification to next people
-            $this->doSendNotification($data, $nextDocumentSentId);
+            $this->doSendNotification($data->sender->PeopleName, $nextDocumentSentId);
         }
 
         return $updateDocumentSent;
@@ -239,12 +239,12 @@ class DocumentSignatureMutator
      * @param  object $data
      * @return void
      */
-    protected function doSendNotification($data, $nextDocumentSentId)
+    protected function doSendNotification($name, $nextDocumentSentId)
     {
         $messageAttribute = [
             'notification' => [
                 'title' => 'TTE Naskah',
-                'body' => 'Ada naskah masuk dari ' . $data->sender->PeopleName . ' yang harus segera di tandatangani. Silakan cek disini.'
+                'body' => 'Ada naskah masuk dari ' . $name . ' yang harus segera di tandatangani. Silakan cek disini.'
             ],
             'data' => [
                 'documentSignatureSentId' => $nextDocumentSentId,
