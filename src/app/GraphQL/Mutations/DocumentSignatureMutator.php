@@ -220,14 +220,16 @@ class DocumentSignatureMutator
         ])->first();
 
         //check if any next siganture require
-        $nextDocumentSent = DocumentSignatureSent::where('id', $data->id)
-                                                ->where('urutan', $data->urutan + 1);
-        if ($nextDocumentSent->first()) {
-            $nextDocumentSentId = $nextDocumentSent->id;
-            $nextDocumentSent->update(['next', 1]);
+        $nextDocumentSent = DocumentSignatureSent::where('ttd_id', $data->ttd_id)
+                                                ->where('urutan', $data->urutan + 1)
+                                                ->first();
+        if ($nextDocumentSent) {
+            DocumentSignatureSent::where('id', $nextDocumentSent->id)->update([
+                'next' => 1
+            ]);
 
             //Send notification to next people
-            $this->doSendNotification($data->sender->PeopleName, $nextDocumentSentId);
+            $this->doSendNotification($data->sender->PeopleName, $nextDocumentSent->id);
         }
 
         return $updateDocumentSent;
