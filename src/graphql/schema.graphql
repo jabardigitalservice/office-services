@@ -84,6 +84,12 @@ type Query {
         @all
         @orderBy(column: "urutan", direction: DESC)
         @guard
+
+    documentSignatureSentHistory(
+        documentSignatureId: ID @eq
+    ): DocumentSignatureSentHistory
+        @field(resolver: "DocumentSignatureHistoryQuery@history")
+        @guard
 }
 
 type Mutation {
@@ -102,7 +108,7 @@ type Mutation {
     documentSignatureReject(input: DocumentSignaturRejectInput): DocumentSignatureSent
         @field(resolver: "DocumentSignatureRejectMutator@reject")
 
-    documentSignatureForward(input: DocumentSignatureForwardInput): [DocumentSignatureForwards!]
+    documentSignatureForward(input: DocumentSignatureForwardInput): [DocumentSignatureForward!]
         @field(resolver: "DocumentSignatureForwardMutator@forward")
 }
 

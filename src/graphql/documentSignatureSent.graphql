@@ -16,6 +16,11 @@ type DocumentSignatureSent {
     documentSignature: DocumentSignature @belongsTo
 }
 
+type DocumentSignatureSentHistory {
+    documentSignatureSent: [DocumentSignatureSent]
+    documentSignatureForward: [DocumentSignatureForward]
+}
+
 input documentSignatureSentsInput {
     statuses: String
     read: Boolean
@@ -31,3 +36,4 @@ input documentSignatureSentTimelineInput {
 
 #import people.graphql
 #import documentSignature.graphql
+#import documentSignatureForward.graphql

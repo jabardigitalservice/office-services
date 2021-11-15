@@ -1,5 +1,5 @@
 
-type DocumentSignatureForwards {
+type DocumentSignatureForward {
     id: ID!
     signatureId: String! @rename(attribute: "ttd_id")
     peopleId: String! @rename(attribute: "PeopleID")
