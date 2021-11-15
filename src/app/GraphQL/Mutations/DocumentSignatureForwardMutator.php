@@ -38,8 +38,7 @@ class DocumentSignatureForwardMutator
         }
 
         $data = DocumentSignatureSent::where('ttd_id', $documentSignatureId)
-                                    ->where('PeopleID', $sender)
-                                    ->orderBy('urutan', 'desc')
+                                    ->where('PeopleIDTujuan', $sender)
                                     ->first();
 
         $this->doSendNotification($data->id, $data->receiver->PeopleName);
