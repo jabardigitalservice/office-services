@@ -17,8 +17,8 @@ type DocumentSignatureSent {
 }
 
 type DocumentSignatureSentHistory {
-    documentSignatureSent: [DocumentSignatureSent]
     documentSignatureForward: [DocumentSignatureForward]
+    documentSignatureSent: [DocumentSignatureSent]
 }
 
 input documentSignatureSentsInput {

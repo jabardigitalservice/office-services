@@ -40,8 +40,8 @@ class DocumentSignatureHistoryQuery
                                     ->get();
 
         $data = collect([
-            'documentSignatureSent' => $documentSignatureSent,
             'documentSignatureForward' => $documentSignatureForward,
+            'documentSignatureSent' => $documentSignatureSent,
         ]);
 
         return $data;
