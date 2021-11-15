@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Enums\SignatureStatusTypeEnum;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Hoyvoy\CrossDatabase\Eloquent\Model;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
 
 class DocumentSignatureSent extends Model
@@ -66,42 +67,47 @@ class DocumentSignatureSent extends Model
         $unread = $filter['unread'] ?? null;
         $withSender = $filter['withSender'] ?? null;
         $withReceiver = $filter['withReceiver'] ?? null;
+        $readId = [];
 
-        if ($statuses  || $statuses == '0') {
-            $arrayStatuses = explode(", ", $statuses);
-            $query->whereIn('status', $arrayStatuses);
+        $withReceiverId = [];
+        if ($withReceiver) {
+            $withReceiverId = DB::connection('sikdweb')->table('m_ttd_kirim')
+            ->select('id')
+            ->where('PeopleIDTujuan', auth()->user()->PeopleId)
+            ->pluck('id');
         }
 
+        //get data by sender if data has success/reject status value
+        $withSenderId = [];
+        if ($withSender) {
+            $withSenderId = DB::connection('sikdweb')->table('m_ttd_kirim')
+            ->select('id')
+            ->where('PeopleID', auth()->user()->PeopleId)
+            ->where('status', '!=', SignatureStatusTypeEnum::WAITING()->value)
+            ->pluck('id');
+        }
+
+        $documentSignatureSentIds = Arr::collapse([$withReceiverId, $withSenderId]);
+
         if ($read || $unread) {
-            $readedId = DB::connection('mysql')->table('document_signature_sent_reads')
+            $readId = DB::connection('mysql')->table('document_signature_sent_reads')
             ->select('document_signature_sent_id')
             ->pluck('document_signature_sent_id');
         }
 
         if ($read && !$unread) {
-            $query->whereIn('id', $readedId);
+            $documentSignatureSentIds = array_intersect($documentSignatureSentIds, $readId->toArray());
         }
+
+        $query->whereIn('id', $documentSignatureSentIds);
 
         if (!$read && $unread) {
-            $query->whereNotIn('id', $readedId);
+            $query->whereNotIn('id', $readId);
         }
 
-        //get data by sender if data has success/reject status value
-        if ($withSender) {
-            $query->orWhereIn('id', function ($senderQuery) {
-                $senderQuery->select('id')
-                ->from('m_ttd_kirim')
-                ->where('PeopleID', auth()->user()->PeopleId)
-                ->where('status', '!=', SignatureStatusTypeEnum::WAITING()->value);
-            });
-        }
-
-        if ($withReceiver) {
-            $query->orWhereIn('id', function ($senderQuery) {
-                $senderQuery->select('id')
-                ->from('m_ttd_kirim')
-                ->where('PeopleIDTujuan', auth()->user()->PeopleId);
-            });
+        if ($statuses  || $statuses == '0') {
+            $arrayStatuses = explode(", ", $statuses);
+            $query->whereIn('status', $arrayStatuses);
         }
 
         return $query;
