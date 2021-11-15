@@ -67,7 +67,7 @@ class DocumentSignatureSent extends Model
         $unread = $filter['unread'] ?? null;
         $withSender = $filter['withSender'] ?? null;
         $withReceiver = $filter['withReceiver'] ?? null;
-        $readedId = null;
+        $readId = [];
 
         $withReceiverId = [];
         if ($withReceiver) {
@@ -90,19 +90,19 @@ class DocumentSignatureSent extends Model
         $documentSignatureSentIds = Arr::collapse([$withReceiverId, $withSenderId]);
 
         if ($read || $unread) {
-            $readedId = DB::connection('mysql')->table('document_signature_sent_reads')
+            $readId = DB::connection('mysql')->table('document_signature_sent_reads')
             ->select('document_signature_sent_id')
             ->pluck('document_signature_sent_id');
         }
 
         if ($read && !$unread) {
-            $documentSignatureSentIds = array_intersect($documentSignatureSentIds, $readedId->toArray());
+            $documentSignatureSentIds = array_intersect($documentSignatureSentIds, $readId->toArray());
         }
 
         $query->whereIn('id', $documentSignatureSentIds);
 
         if (!$read && $unread) {
-            $query->whereNotIn('id', $readedId);
+            $query->whereNotIn('id', $readId);
         }
 
         if ($statuses  || $statuses == '0') {
