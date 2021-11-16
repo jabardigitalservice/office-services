@@ -1,5 +1,6 @@
 # Office Service (SIKD) 
 
+<a href="https://codeclimate.com/github/jabardigitalservice/office-services/maintainability"><img src="https://api.codeclimate.com/v1/badges/888efd380ccef5a509cd/maintainability" /></a>
 ## Overview
 This service is used by [Office Mobile (Flutter)](https://github.com/jabardigitalservice/office-mobile).
 
