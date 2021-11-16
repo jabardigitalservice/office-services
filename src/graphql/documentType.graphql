@@ -1,0 +1,5 @@
+type DocumentType {
+    id: String @rename(attribute: "JenisId")
+    name: String @rename(attribute: "JenisName")
+    content: String @rename(attribute: "Isi")
+}

@@ -6,6 +6,8 @@ use Spatie\Enum\Enum;
 
 /**
  * @method static self INBOX_DETAIL()
+ * @method static self DISPOSITION_DETAIL()
+ * @method static self DOC_SIGNATURE_DETAIL()
  */
 
 final class FcmNotificationActionTypeEnum extends Enum

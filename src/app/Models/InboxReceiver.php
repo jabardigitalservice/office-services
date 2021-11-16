@@ -2,8 +2,8 @@
 
 namespace App\Models;
 
+use App\Enums\InboxReceiverScopeType;
 use App\Enums\PeopleGroupTypeEnum;
-use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Hoyvoy\CrossDatabase\Eloquent\Model;
 
@@ -42,10 +42,12 @@ class InboxReceiver extends Model
 
     public function history($query, $NId)
     {
-        return $query->where('NId', $NId)->where(function($query) {
-            $query->orwhere('RoleId_To', 'like', auth()->user()->PrimaryRoleId . '%');
-            $query->orWhere('RoleId_From', 'like', auth()->user()->PrimaryRoleId . '%');
-        })->groupBy('GIR_Id');
+        return $query->where('NId', $NId)
+                    ->where(function($query) use ($NId) {
+                        $query->where('NId', $NId);
+                        $query->orwhere('RoleId_To', 'like', auth()->user()->PrimaryRoleId . '%');
+                        $query->orWhere('RoleId_From', 'like', auth()->user()->PrimaryRoleId . '%');
+                    })->groupBy('GIR_Id');
     }
 
     public function sender()
@@ -76,6 +78,11 @@ class InboxReceiver extends Model
         return $this->hasMany(PersonalAccessToken::class, 'tokenable_id', 'To_Id');
     }
 
+    public function inboxDisposition()
+    {
+        return $this->belongsTo(InboxDisposition::class, 'GIR_Id', 'GIR_Id');
+    }
+
     public function filter($query, $filter)
     {
         $sources = $filter["sources"] ?? null;
@@ -85,6 +92,7 @@ class InboxReceiver extends Model
         $forwarded = $filter["forwarded"] ?? null;
         $folder = $filter["folder"] ?? null;
         $receiverTypes = $filter["receiverTypes"] ?? null;
+        $scope = $filter["scope"] ?? null;
 
         if ($statuses) {
             $arrayStatuses = explode(", ", $statuses);
@@ -146,7 +154,33 @@ class InboxReceiver extends Model
             $query->whereIn('ReceiverAs', $arrayReceiverTypes);
         }
 
+        if ($scope) {
+            $departmentId = $this->generateDeptId(auth()->user()->PrimaryRoleId);
+            $comparison = '';
+            switch ($scope) {
+                case InboxReceiverScopeType::REGIONAL():
+                    $comparison = 'NOT LIKE';
+                    break;
+
+                case InboxReceiverScopeType::INTERNAL():
+                    $comparison = 'LIKE';
+                    break;
+            }
+            $query->where('RoleId_From', $comparison, $departmentId . '%');
+        }
+
         return $query;
+    }
+
+    private function generateDeptId($roleId) {
+        // If the user is not uk.setda
+        if ($roleId != 'uk.1.1.1.1.1') {
+            $arrayRoleId = explode(".", $roleId);
+            $arrayDepartmentId = array_slice($arrayRoleId, 0, 3);
+            $departmentId = join(".", $arrayDepartmentId);
+            return $departmentId;
+        }
+        return $roleId;
     }
 
     public function search($query, $search)

@@ -1,0 +1,18 @@
+
+type DocumentSignatureForward {
+    id: ID!
+    signatureId: String! @rename(attribute: "ttd_id")
+    peopleId: String! @rename(attribute: "PeopleID")
+    to: String! @rename(attribute: "PeopleIDTujuan")
+    date: String! @rename(attribute: "tgl")
+    note: String @rename(attribute: "catatan")
+    status: String
+    sort: String @rename(attribute: "urutan")
+    next: String
+    sender: People!
+    receiver: People!
+    documentSignature: DocumentSignature @belongsTo
+}
+
+#import people.graphql
+#import documentSignature.graphql

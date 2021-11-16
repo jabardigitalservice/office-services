@@ -2,6 +2,7 @@
 
 namespace App\GraphQL\Mutations;
 
+use App\Enums\FcmNotificationActionTypeEnum;
 use App\Enums\PeopleProposedTypeEnum;
 use App\Http\Traits\SendNotificationTrait;
 use App\Models\Inbox;
@@ -30,6 +31,7 @@ class InboxMutator
         $action = Arr::get($args, 'input.action') ?? PeopleProposedTypeEnum::FORWARD();
         $stringReceiversIds = Arr::get($args, 'input.receiversIds');
         $time = Carbon::now();
+        $dispositionType = str_replace(", ", "|", Arr::get($args, 'input.dispositionType'));
 
         $inboxData = [
             'from' => auth()->user(),
@@ -39,6 +41,7 @@ class InboxMutator
             'receiversIds' => explode(", ", $stringReceiversIds),
             'time' => $time,
             'groupId' => auth()->user()->PeopleId . $time,
+            'dispositionType' => $dispositionType,
         ];
 
         $inboxReceivers = [];
@@ -151,14 +154,16 @@ class InboxMutator
         $dateString = substr($inboxData['groupId'], -19);
         $date = parseDateTimeFormat($dateString, 'dmyhis');
 
-        // Default message for forward action
-        $title = $inboxData['from']->role->rolecode->rolecode_sort;
-        $body = $inbox->Hal . ' | ' . $inbox->type->JenisName . ' | ' . $inbox->urgency->UrgensiName;
-
-        if ($action == PeopleProposedTypeEnum::DISPOSITION()) {
+        if ($action == PeopleProposedTypeEnum::FORWARD()) {
+            $createdBy = Inbox::where('NId', $inboxData['inboxId'])->first()->createdBy;
+            $title = $createdBy->role->rolecode->rolecode_sort;
+            $body = $inbox->Hal . ' | ' . $inbox->type->JenisName . ' | ' . $inbox->urgency->UrgensiName;
+            $actionMessage = FcmNotificationActionTypeEnum::INBOX_DETAIL();
+        } else if ($action == PeopleProposedTypeEnum::DISPOSITION()) {
             $sender = auth()->user()->PeopleName;
             $title = 'Disposisi Naskah';
             $body = 'Wah ada Disposisi nih terkait dengan ' . $inbox->Hal . ' dari ' . $sender . '. Yuk cek sekarang juga!' . ' | ' . $inbox->urgency->UrgensiName;
+            $actionMessage = FcmNotificationActionTypeEnum::DISPOSITION_DETAIL();
         }
 
         $messageAttribute = [
@@ -170,6 +175,7 @@ class InboxMutator
                 'inboxId' => $inboxData['inboxId'],
                 'groupId' => $peopleId . $date,
                 'peopleIds' => $inboxData['receiversIds'],
+                'action' => $actionMessage,
             ]
         ];
 
@@ -187,6 +193,7 @@ class InboxMutator
             'NId' 		=> $inboxData['inboxId'],
             'GIR_Id' 	=> $inboxData['groupId'],
             'Sifat'     => $inboxData['urgency'],
+            'Disposisi' => $inboxData['dispositionType'],
             'RoleId' 	=> $inboxData['from']->PrimaryRoleId,
         ];
 

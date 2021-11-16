@@ -2,7 +2,9 @@
 
 namespace App\GraphQL\Mutations;
 
+use App\Enums\DocumentSignatureSentNotificationTypeEnum;
 use App\Enums\SignatureStatusTypeEnum;
+use App\Http\Traits\SendNotificationTrait;
 use App\Exceptions\CustomException;
 use App\Models\DocumentSignature;
 use App\Models\DocumentSignatureSent;
@@ -14,6 +16,8 @@ use Illuminate\Support\Facades\Storage;
 
 class DocumentSignatureMutator
 {
+    use SendNotificationTrait;
+
     /**
      * @param $rootValue
      * @param $args
@@ -41,7 +45,7 @@ class DocumentSignatureMutator
 
         $checkUser = json_decode($this->checkUserSignature($setupConfig));
         if ($checkUser->status_code != 1111) {
-            throw new CustomException('User not found', 'User not found at BSRE Service');
+            throw new CustomException('Invalid user', 'Invalid credential user, please check your passphrase again');
         }
 
         $signature = $this->doSignature($setupConfig, $documentSignatureSent, $passphrase);
@@ -59,7 +63,8 @@ class DocumentSignatureMutator
     protected function doSignature($setupConfig, $data, $passphrase)
     {
         $url = $setupConfig['url'] . '/api/sign/pdf';
-        $linkQR = config('sikd.url') . 'administrator/tandatangan/verifikasi/' . $data->documentSignature->ttd_id;
+        //flagging for easy define by mobile
+        $linkQR = 'document_direct_upload-' . $data->ttd_id;
 
         $response = Http::withHeaders([
             'Authorization' => 'Basic ' . $setupConfig['auth'],
@@ -80,12 +85,16 @@ class DocumentSignatureMutator
             'height'=>80
         ]);
 
-        //Save new file & update status
-        $newFile = $this->saveNewFile($response, $data);
-        //Save log
-        $this->createPassphraseSessionLog($response);
+        if ($response->status() != 200) {
+            throw new CustomException('Document failed', 'Signature failed, check your file again');
+        } else {
+            //Save new file & update status
+            $data = $this->saveNewFile($response, $data);
+            //Save log
+            $this->createPassphraseSessionLog($response);
+        }
 
-        return $newFile;
+        return $data;
     }
 
     /**
@@ -153,9 +162,6 @@ class DocumentSignatureMutator
         }
 
         $passphraseSession->save();
-        if ($response->status() != 200) {
-            throw new CustomException('Signature failed', 'Signature failed, check your passpharse or file');
-        }
 
         return $passphraseSession;
     }
@@ -170,26 +176,25 @@ class DocumentSignatureMutator
     protected function saveNewFile($pdf, $data)
     {
         //save to storage path for temporary file
-        $newFileName = time() .'_signed.pdf';
+        $newFileName = str_replace(' ', '_', $data->documentSignature->nama_file) . '_' . parseDateTimeFormat(Carbon::now(), 'dmY')  . '_signed.pdf';
         Storage::disk('local')->put($newFileName, $pdf->body());
 
-        $url = config('sikd.webhook_url') . 'file_signatured';
         $fileSignatured = fopen(Storage::path($newFileName), 'r');
         $response = Http::withHeaders([
             'Secret' => config('sikd.webhook_secret'),
         ])->attach(
             'file', $fileSignatured, $newFileName
-        )->post($url);
+        )->post(config('sikd.webhook_url'));
 
         if ($response->status() != 200) {
             throw new CustomException('Webhook failed', json_decode($response));
+        } else {
+            $data = $this->updateDocumentSentStatus($data, $newFileName);
         }
 
         Storage::disk('local')->delete($newFileName);
 
-        $updateDocumentSent = $this->updateDocumentSentStatus($data, $newFileName);
-
-        return $updateDocumentSent;
+        return $data;
     }
 
     /**
@@ -215,12 +220,40 @@ class DocumentSignatureMutator
         ])->first();
 
         //check if any next siganture require
-        $nextDocumentSent = DocumentSignatureSent::where('id', $data->id)
-                                                ->where('urutan', $data->urutan + 1);
-        if ($nextDocumentSent->first()) {
-            $nextDocumentSent->update(['next', 1]);
+        $nextDocumentSent = DocumentSignatureSent::where('ttd_id', $data->ttd_id)
+                                                ->where('urutan', $data->urutan + 1)
+                                                ->first();
+        if ($nextDocumentSent) {
+            DocumentSignatureSent::where('id', $nextDocumentSent->id)->update([
+                'next' => 1
+            ]);
+
+            //Send notification to next people
+            $this->doSendNotification($data->sender->PeopleName, $nextDocumentSent->id);
         }
 
         return $updateDocumentSent;
+    }
+
+    /**
+     * doSendNotification
+     *
+     * @param  object $data
+     * @return void
+     */
+    protected function doSendNotification($name, $nextDocumentSentId)
+    {
+        $messageAttribute = [
+            'notification' => [
+                'title' => 'TTE Naskah',
+                'body' => 'Ada naskah masuk dari ' . $name . ' yang harus segera di tandatangani. Silakan cek disini.'
+            ],
+            'data' => [
+                'documentSignatureSentId' => $nextDocumentSentId,
+                'target' => DocumentSignatureSentNotificationTypeEnum::RECEIVER()
+            ]
+        ];
+
+        $this->setupDocumentSignatureSentNotification($messageAttribute);
     }
 }

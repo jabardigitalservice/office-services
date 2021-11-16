@@ -1,0 +1,3 @@
+type SiapPeople {
+    url: String @rename(attribute: "peg_foto_url")
+}

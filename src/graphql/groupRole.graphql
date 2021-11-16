@@ -1,0 +1,4 @@
+type GroupRole {
+    id: ID! @rename(attribute: "GRoleId")
+    name: String! @rename(attribute: "GRoleName")
+}
