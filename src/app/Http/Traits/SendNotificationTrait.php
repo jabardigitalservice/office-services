@@ -127,7 +127,7 @@ trait SendNotificationTrait
         $response = Http::withHeaders([
             'Authorization' => 'key=' . $SERVER_API_KEY,
             'Content-Type' => 'application/json',
-        ])->post('https://fcm.googleapis.com/fcm/send', $data);
+        ])->post(config('fcm.url'), $data);
 
         return json_decode($response->body());
     }
