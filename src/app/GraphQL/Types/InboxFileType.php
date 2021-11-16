@@ -3,6 +3,7 @@
 namespace App\GraphQL\Types;
 
 use App\Models\People;
+use Illuminate\Support\Facades\Http;
 use Nuwave\Lighthouse\Support\Contracts\GraphQLContext;
 
 class InboxFileType
@@ -17,16 +18,19 @@ class InboxFileType
     public function validate($rootValue, array $args, GraphQLContext $context)
     {
         $fileName = $rootValue->FileName_fake;
-        $signatures = $this->getSignatures($fileName);
 
-        $isValid = false;
+        $signatures = $this->getSignatures($fileName);
+        if (property_exists($signatures, 'error') || $signatures->jumlah_signature == 0){
+            return [
+                'isValid' => false,
+                'signatures' => null
+            ];
+        };
+
         $signers = $this->getSigners($signatures);
-        if (count($signers) != 0) {
-            $isValid = true;
-        }
 
         $validation = [
-            'isValid' => $isValid,
+            'isValid' => true,
             'signatures' => $signers
         ];
 
@@ -41,25 +45,16 @@ class InboxFileType
     protected function getSignatures($fileName)
     {
         $filePath   = config('sikd.base_path_file_letter') . $fileName;
-        $file       = new \CurlFile($filePath, 'application/pdf', $fileName);
+        $file       = fopen($filePath, 'r');
 
-        $headers = [
-            'Accept: */*',
-            'Content-Type: multipart/form-data',
-            'Authorization: Basic ' . config('sikd.signature_auth')
-        ];
+        $response = Http::withHeaders([
+            'Accept' => '*/*',
+            'Authorization' => 'Basic ' . config('sikd.signature_auth'),
+        ])->attach(
+            'signed_file', $file, $fileName
+        )->post(config('sikd.signature_verify_url'));
 
-        $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, config('sikd.signature_verify_url'));
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-        curl_setopt($ch, CURLOPT_POST, 1);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, ['signed_file' => $file]);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-
-        $result = curl_exec($ch);
-        curl_close($ch);
-
-        return json_decode($result);
+        return json_decode($response);
     }
 
     /**
