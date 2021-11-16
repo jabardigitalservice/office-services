@@ -13,6 +13,7 @@ type DocumentSignatureSent {
     receiver: People!
     read: Boolean @belongsTo(relation: "documentSignatureSentRead")
     isLastSigned: Boolean @field(resolver: "App\\GraphQL\\Types\\DocumentSignatureSentType@isLastSigned")
+    parent: DocumentSignatureSent @field(resolver: "App\\GraphQL\\Types\\DocumentSignatureSentType@parent")
     documentSignature: DocumentSignature @belongsTo
 }
 
