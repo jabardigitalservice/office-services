@@ -20,7 +20,6 @@ class DocumentSignatureSentType
         $isLastSigned = DocumentSignatureSent::where('ttd_id', $rootValue->ttd_id)
             ->where('PeopleID', $rootValue->PeopleID)
             ->where('urutan', $rootValue->urutan + 1)
-            ->where('status', 1)
             ->first();
 
         if ($isLastSigned) {
@@ -28,5 +27,27 @@ class DocumentSignatureSentType
         }
 
         return true;
+    }
+
+    /**
+     * @param $rootValue
+     * @param array                                                    $args
+     * @param \Nuwave\Lighthouse\Support\Contracts\GraphQLContext|null $context
+     *
+     * @return array
+     */
+    public function parent($rootValue, array $args, GraphQLContext $context)
+    {
+        $parent = DocumentSignatureSent::where('ttd_id', $rootValue->ttd_id)
+            ->where('PeopleID', $rootValue->PeopleID)
+            ->where('urutan', $rootValue->urutan - 1)
+            ->where('status', 1)
+            ->first();
+
+        if ($parent) {
+            return $parent;
+        }
+
+        return null;
     }
 }
