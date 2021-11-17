@@ -16,6 +16,12 @@ type Inbox {
     documentFile: InboxFile @belongsTo
 }
 
+type UnreadCount {
+    toal: Int!
+    regional: Int!
+    internal: Int!
+}
+
 #import people.graphql
 #import documentType.graphql
 #import documentUrgency.graphql
