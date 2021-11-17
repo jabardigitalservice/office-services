@@ -44,6 +44,10 @@ type Query {
         @paginate(type: CONNECTION)
         @guard
 
+    inboxUnreadCount: UnreadCount!
+        @field(resolver: "InboxQuery@unreadCount")
+        @guard
+
     me: People @auth
 
     peopleList(
