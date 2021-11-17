@@ -95,7 +95,9 @@ type Query {
         @field(resolver: "DocumentSignatureHistoryQuery@history")
         @guard
 
-    drafts: [Draft!]!
+    drafts(
+        search: String @builder(method: "App\\Models\\Draft@search")
+    ): [Draft!]!
         @whereAuth(relation: "reviewer")
         @orderBy(column: "TglReg", direction: DESC)
         @paginate(type: CONNECTION)

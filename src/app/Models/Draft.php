@@ -36,4 +36,10 @@ class Draft extends Model
     {
         return $this->belongsTo(People::class, 'Approve_People', 'PeopleId');
     }
+
+    public function search($query, $search)
+    {
+        $query->where('Hal', 'LIKE', '%' . $search . '%');
+        return $query;
+    }
 }
