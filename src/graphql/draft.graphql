@@ -1,0 +1,20 @@
+type Draft {
+    id: ID! @rename(attribute: "NId_Temp")
+    date: DateTime @rename(attribute: "TglReg")
+    receiverAs: String @rename(attribute: "ReceiverAs")
+    number: Int @rename(attribute: "Number")
+    letterNumber: String @rename(attribute: "nosurat")
+    about: String @rename(attribute: "Hal")
+    moreAbout: String @rename(attribute: "Hal_pengantar")
+    location: String @rename(attribute: "lokasi")
+    address: String @rename(attribute: "Alamat")
+    folder: String @rename(attribute: "Ket")
+    type: DocumentType @belongsTo
+    urgency: DocumentUrgency @belongsTo
+    createdBy: People @belongsTo
+    reviewer: People @belongsTo
+}
+
+#import people.graphql
+#import documentType.graphql
+#import documentUrgency.graphql

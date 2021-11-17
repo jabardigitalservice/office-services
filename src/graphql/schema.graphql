@@ -94,6 +94,12 @@ type Query {
     ): DocumentSignatureSentHistory
         @field(resolver: "DocumentSignatureHistoryQuery@history")
         @guard
+
+    drafts: [Draft!]!
+        @whereAuth(relation: "reviewer")
+        @orderBy(column: "TglReg", direction: DESC)
+        @paginate(type: CONNECTION)
+        @guard
 }
 
 type Mutation {
@@ -124,3 +130,4 @@ type Mutation {
 #import documentSignature.graphql
 #import documentSignatureForward.graphql
 #import masterDisposition.graphql
+#import draft.graphql
