@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\DraftProcessTypeEnum;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -40,6 +41,17 @@ class Draft extends Model
     public function search($query, $search)
     {
         $query->where('Hal', 'LIKE', '%' . $search . '%');
+        return $query;
+    }
+
+    public function filter($query, $filter)
+    {
+        $process = $filter['process'] ?? null;
+        if ($process && $process == DraftProcessTypeEnum::REVIEW()) {
+            $query->where('Number', 0)
+                ->where('nosurat', null);
+        }
+
         return $query;
     }
 }

@@ -97,6 +97,7 @@ type Query {
 
     drafts(
         search: String @builder(method: "App\\Models\\Draft@search")
+        filter: DraftFilterInput @builder(method: "App\\Models\\Draft@filter")
     ): [Draft!]!
         @whereAuth(relation: "reviewer")
         @orderBy(column: "TglReg", direction: DESC)

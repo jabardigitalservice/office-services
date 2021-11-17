@@ -15,6 +15,10 @@ type Draft {
     reviewer: People @belongsTo
 }
 
+input DraftFilterInput {
+    process: String
+}
+
 #import people.graphql
 #import documentType.graphql
 #import documentUrgency.graphql
