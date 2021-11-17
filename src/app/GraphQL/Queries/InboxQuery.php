@@ -67,8 +67,6 @@ class InboxQuery
         $regionalCount = $this->unreadCountQuery(InboxReceiverScopeType::REGIONAL(), $context);
         $internalCount = $this->unreadCountQuery(InboxReceiverScopeType::INTERNAL(), $context);
 
-        dd($context);
-
         $count = [
             'regional' => $regionalCount,
             'internal' => $internalCount
