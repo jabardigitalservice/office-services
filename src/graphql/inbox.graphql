@@ -17,7 +17,6 @@ type Inbox {
 }
 
 type UnreadCount {
-    toal: Int!
     regional: Int!
     internal: Int!
 }
