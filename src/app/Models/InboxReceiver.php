@@ -83,6 +83,11 @@ class InboxReceiver extends Model
         return $this->belongsTo(InboxDisposition::class, 'GIR_Id', 'GIR_Id');
     }
 
+    public function draftDetail()
+    {
+        return $this->belongsTo(Draft::class, 'NId', 'NId_Temp');
+    }
+
     public function filter($query, $filter)
     {
         $sources = $filter["sources"] ?? null;
