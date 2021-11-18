@@ -18,6 +18,7 @@ type InboxReceiver {
     receiver: People @belongsTo
     inboxDisposition: InboxDisposition @belongsTo
     isEndForward: Boolean @field(resolver: "App\\GraphQL\\Types\\InboxReceiverType@isEndForward")
+    draftDetail: Draft @belongsTo
 }
 
 input FilterInput {
@@ -48,3 +49,4 @@ enum ScopeType {
 #import inbox.graphql
 #import people.graphql
 #import inboxDisposition.graphql
+#import draft.graphql
