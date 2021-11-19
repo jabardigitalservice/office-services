@@ -11,6 +11,10 @@ type InboxReceiverCorrection {
     isActioned: Int @rename(attribute: "Status")
     correctionId: String @rename(attribute: "id_koreksi")
     draftDetail: Draft @belongsTo
+    sender: People @belongsTo
+    receiver: People @belongsTo
 }
 
 #import draft.graphql
+#import people.graphql
+
