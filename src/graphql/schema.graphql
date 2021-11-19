@@ -94,6 +94,11 @@ type Query {
     ): DocumentSignatureSentHistory
         @field(resolver: "DocumentSignatureHistoryQuery@history")
         @guard
+
+    drafts: [InboxReceiverCorrection!]!
+        @whereAuth(relation: "receiver")
+        @paginate(type: CONNECTION)
+        @guard
 }
 
 type Mutation {
@@ -124,4 +129,4 @@ type Mutation {
 #import documentSignature.graphql
 #import documentSignatureForward.graphql
 #import masterDisposition.graphql
-#import draft.graphql
+#import inboxReceiverCorrection.graphql
