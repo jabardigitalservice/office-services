@@ -33,4 +33,15 @@ class InboxReceiverCorrection extends Model
     {
         return $this->belongsTo(People::class, 'To_Id', 'PeopleId');
     }
+
+    public function search($query, $search)
+    {
+        $query->whereIn('NId', function ($inboxQuery) use ($search) {
+            $inboxQuery->select('NId_Temp')
+                ->from('konsep_naskah')
+                ->where('Hal', 'LIKE', '%' . $search . '%');
+        });
+
+        return $query;
+    }
 }

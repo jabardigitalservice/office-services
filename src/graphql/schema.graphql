@@ -95,7 +95,9 @@ type Query {
         @field(resolver: "DocumentSignatureHistoryQuery@history")
         @guard
 
-    drafts: [InboxReceiverCorrection!]!
+    drafts(
+        search: String @builder(method: "App\\Models\\InboxReceiverCorrection@search")
+    ): [InboxReceiverCorrection!]!
         @whereAuth(relation: "receiver")
         @paginate(type: CONNECTION)
         @guard
