@@ -96,9 +96,11 @@ type Query {
         @guard
 
     drafts(
+        grouping: Boolean @builder(method: "App\\Models\\InboxReceiverCorrection@grouping")
         search: String @builder(method: "App\\Models\\InboxReceiverCorrection@search")
     ): [InboxReceiverCorrection!]!
         @whereAuth(relation: "receiver")
+        @orderBy(column: "ReceiveDate", direction: DESC)
         @paginate(type: CONNECTION)
         @guard
 }

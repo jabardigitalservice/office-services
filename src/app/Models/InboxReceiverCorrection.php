@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
 
 class InboxReceiverCorrection extends Model
 {
@@ -42,6 +43,14 @@ class InboxReceiverCorrection extends Model
                 ->where('Hal', 'LIKE', '%' . $search . '%');
         });
 
+        return $query;
+    }
+
+    public function grouping($query, $grouping)
+    {
+        if ($grouping) {
+            $query->groupBy('NId')->orderBy('ReceiveDate', 'DESC');
+        }
         return $query;
     }
 }
