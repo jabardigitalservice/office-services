@@ -49,7 +49,7 @@ class InboxReceiverCorrection extends Model
     public function grouping($query, $grouping)
     {
         if ($grouping) {
-            $query->groupBy('NId')->orderBy('ReceiveDate', 'DESC');
+            $query->distinct('NId');
         }
         return $query;
     }
