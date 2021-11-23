@@ -33,6 +33,13 @@ input documentSignatureSentsInput {
 input documentSignatureSentTimelineInput {
     documentSignatureId: String!
     sort: String!
+    status: StatusType
+}
+
+enum StatusType {
+    SUCCESS @enum(value: "1")
+    FAILED @enum(value: "4")
+    PENDING @enum(value: "0")
 }
 
 #import people.graphql

@@ -130,10 +130,14 @@ class DocumentSignatureSent extends Model
     {
         $documentSignatureId = $filter['documentSignatureId'] ?? null;
         $sort = $filter['sort'] ?? null;
+        $status = $filter['status'] ?? null;
 
         $query->where('ttd_id', $documentSignatureId)
-            ->where('urutan', '<', $sort)
-            ->where('status', SignatureStatusTypeEnum::SUCCESS()->value);
+            ->where('urutan', '<', $sort);
+
+        if ($status || $status == "0") {
+            $query->where('status', $status);
+        }
 
         return $query;
     }
