@@ -22,8 +22,6 @@ class DraftQuery
         $inboxReceiverCorrection = InboxReceiverCorrection::where('NId', $args['draftId'])
                                                         ->where('GIR_Id', $args['groupId'])
                                                         ->first();
-        $inboxReceiverCorrection->StatusReceive = 'read';
-        $inboxReceiverCorrection->save();
 
         if (!$inboxReceiverCorrection) {
             throw new CustomException(
@@ -31,6 +29,9 @@ class DraftQuery
                 'Draft with this NId not found'
             );
         }
+
+        $inboxReceiverCorrection->StatusReceive = 'read';
+        $inboxReceiverCorrection->save();
 
         return $inboxReceiverCorrection;
     }

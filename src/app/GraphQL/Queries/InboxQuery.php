@@ -21,8 +21,6 @@ class InboxQuery
     public function detail($rootValue, array $args, GraphQLContext $context)
     {
         $inboxReceiver = InboxReceiver::find($args['id']);
-        $inboxReceiver->StatusReceive = 'read';
-        $inboxReceiver->save();
 
         if (!$inboxReceiver) {
             throw new CustomException(
@@ -30,6 +28,9 @@ class InboxQuery
                 'Inbox with this NId not found'
             );
         }
+
+        $inboxReceiver->StatusReceive = 'read';
+        $inboxReceiver->save();
 
         return $inboxReceiver;
     }
