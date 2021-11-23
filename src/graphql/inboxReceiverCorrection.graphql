@@ -15,6 +15,15 @@ type InboxReceiverCorrection {
     receiver: People @belongsTo
 }
 
+enum TimelineType {
+    VERIFICATION @enum(value: "koreksi")
+}
+
+input DraftTimelineInput {
+    draftId: String!
+    type: TimelineType
+}
+
 #import draft.graphql
 #import people.graphql
 
