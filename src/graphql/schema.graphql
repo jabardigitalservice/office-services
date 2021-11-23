@@ -103,6 +103,13 @@ type Query {
         @orderBy(column: "ReceiveDate", direction: DESC)
         @paginate(type: CONNECTION)
         @guard
+
+    draft(
+        draftId: String!
+        groupId: String!
+    ): InboxReceiverCorrection
+        @field(resolver: "DraftQuery@detail")
+        @guard
 }
 
 type Mutation {

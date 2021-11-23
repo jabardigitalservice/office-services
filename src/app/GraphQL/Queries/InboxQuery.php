@@ -20,7 +20,9 @@ class InboxQuery
      */
     public function detail($rootValue, array $args, GraphQLContext $context)
     {
-        $inboxReceiver = InboxReceiver::where('id', $args['id'])->first();
+        $inboxReceiver = tap(InboxReceiver::where('id', $args['id']))
+                                        ->update(['StatusReceive' => 'read'])
+                                        ->first();
 
         if (!$inboxReceiver) {
             throw new CustomException(
@@ -29,28 +31,7 @@ class InboxQuery
             );
         }
 
-        //Check the inbox is readed or not
-        $this->markAsRead($inboxReceiver, $context);
-
         return $inboxReceiver;
-    }
-
-    /**
-     * markAsRead
-     *
-     * @param Object $inboxReceiver
-     * @param Object $context
-     *
-     * @return boolean
-     */
-    public function markAsRead($inboxReceiver, $context)
-    {
-        if ($inboxReceiver->StatusReceive != 'read') {
-            InboxReceiver::where('id', $inboxReceiver->id)
-                        ->update(['StatusReceive' => 'read']);
-        }
-
-        return true;
     }
 
     /**
