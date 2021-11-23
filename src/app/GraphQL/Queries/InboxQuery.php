@@ -20,9 +20,9 @@ class InboxQuery
      */
     public function detail($rootValue, array $args, GraphQLContext $context)
     {
-        $inboxReceiver = tap(InboxReceiver::where('id', $args['id']))
-                                        ->update(['StatusReceive' => 'read'])
-                                        ->first();
+        $inboxReceiver = InboxReceiver::find($args['id']);
+        $inboxReceiver->StatusReceive = 'read';
+        $inboxReceiver->save();
 
         if (!$inboxReceiver) {
             throw new CustomException(

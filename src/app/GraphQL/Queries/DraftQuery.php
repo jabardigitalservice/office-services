@@ -19,10 +19,11 @@ class DraftQuery
      */
     public function detail($rootValue, array $args, GraphQLContext $context)
     {
-        $inboxReceiverCorrection = tap(InboxReceiverCorrection::where('NId', $args['draftId'])
-                                                        ->where('GIR_Id', $args['groupId']))
-                                                        ->update(['StatusReceive' => 'read'])
+        $inboxReceiverCorrection = InboxReceiverCorrection::where('NId', $args['draftId'])
+                                                        ->where('GIR_Id', $args['groupId'])
                                                         ->first();
+        $inboxReceiverCorrection->StatusReceive = 'read';
+        $inboxReceiverCorrection->save();
 
         if (!$inboxReceiverCorrection) {
             throw new CustomException(
