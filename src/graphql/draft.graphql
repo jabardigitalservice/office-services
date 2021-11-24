@@ -4,6 +4,7 @@ type Draft {
     receiverAs: String @rename(attribute: "ReceiverAs")
     number: Int @rename(attribute: "Number")
     letterNumber: String @rename(attribute: "nosurat")
+    draftStatus: String @rename(attribute: "Konsep")
     about: String @rename(attribute: "Hal")
     moreAbout: String @rename(attribute: "Hal_pengantar")
     location: String @rename(attribute: "lokasi")
@@ -13,10 +14,6 @@ type Draft {
     urgency: DocumentUrgency @belongsTo
     createdBy: People @belongsTo
     reviewer: People @belongsTo
-}
-
-input DraftFilterInput {
-    process: String
 }
 
 #import people.graphql
