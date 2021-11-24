@@ -16,7 +16,7 @@ type InboxReceiverCorrection {
 }
 
 enum TimelineType {
-    VERIFICATION @enum(value: "koreksi")
+    CORRECTION @enum(value: "koreksi")
 }
 
 input DraftTimelineInput {
