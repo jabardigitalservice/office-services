@@ -97,6 +97,7 @@ type Query {
 
     drafts(
         filter: DraftFilterInput @builder(method: "App\\Models\\InboxReceiverCorrection@filter")
+        objective: DraftObjectiveType @builder(method: "App\\Models\\InboxReceiverCorrection@objective")
         grouping: Boolean @builder(method: "App\\Models\\InboxReceiverCorrection@grouping")
         search: String @builder(method: "App\\Models\\InboxReceiverCorrection@search")
     ): [InboxReceiverCorrection!]!

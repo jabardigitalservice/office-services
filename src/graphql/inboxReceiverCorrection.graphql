@@ -31,6 +31,12 @@ input DraftFilterInput {
     receiverTypes: String
 }
 
+enum DraftObjectiveType {
+    IN
+    OUT
+    REVISE
+}
+
 #import draft.graphql
 #import people.graphql
 

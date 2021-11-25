@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\CustomReceiverTypeEnum;
+use App\Enums\DraftObjectiveTypeEnum;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -50,6 +51,26 @@ class InboxReceiverCorrection extends Model
     {
         if ($grouping) {
             $query->distinct('NId');
+        }
+        return $query;
+    }
+
+    public function objective($query, $objective)
+    {
+        $userId = auth()->user()->PeopleId;
+        switch ($objective) {
+            case DraftObjectiveTypeEnum::IN():
+                $query->where('From_Id', '!=', $userId);
+                break;
+
+            case DraftObjectiveTypeEnum::OUT():
+                $query->where('To_Id', '!=', $userId);
+                break;
+
+            case DraftObjectiveTypeEnum::REVISE():
+                $query->where('From_Id', $userId)
+                    ->where('To_Id', $userId);
+                break;
         }
         return $query;
     }
