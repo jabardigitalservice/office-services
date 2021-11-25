@@ -167,25 +167,12 @@ class InboxReceiverCorrection extends Model
     protected function getReceiverAsData($arrayReceiverTypes)
     {
         $receiverAs = [];
-        foreach ($arrayReceiverTypes as $receiverTypes) {
-            switch ($receiverTypes) {
-                case CustomReceiverTypeEnum::CORRECTION():
-                    array_push($receiverAs, 'koreksi');
-                    break;
-
-                case CustomReceiverTypeEnum::NUMBERING():
-                    array_push($receiverAs, 'Meminta Nomber Surat');
-                    break;
-
-                case CustomReceiverTypeEnum::SIGN_REQUEST():
-                case CustomReceiverTypeEnum::SIGNED():
-                    array_push($receiverAs, 'meneruskan');
-                    break;
-
-                default:
-                    $this->getReceiverAsReviewData($receiverAs);
-                    break;
-            }
+        foreach ($arrayReceiverTypes as $receiverType) {
+            if ($receiverType == CustomReceiverTypeEnum::CORRECTION()) array_push($receiverAs, 'koreksi');
+            if ($receiverType == CustomReceiverTypeEnum::NUMBERING()) array_push($receiverAs, 'Meminta Nomber Surat');
+            if ($receiverType == CustomReceiverTypeEnum::SIGN_REQUEST()) array_push($receiverAs, 'meneruskan');
+            if ($receiverType == CustomReceiverTypeEnum::SIGNED()) array_push($receiverAs, 'meneruskan');
+            if ($receiverType == CustomReceiverTypeEnum::REVIEW()) $this->getReceiverAsReviewData($receiverAs);
         }
         return $receiverAs;
     }
