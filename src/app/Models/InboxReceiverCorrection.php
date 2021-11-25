@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\CustomReceiverTypeEnum;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -116,7 +117,7 @@ class InboxReceiverCorrection extends Model
     protected function receiverQuery($query, $receiverTypes)
     {
         $arrayReceiverTypes = explode(", ", $receiverTypes);
-        $receiverAs = $this->getReceiverData($arrayReceiverTypes);
+        $receiverAs = $this->getReceiverAsData($arrayReceiverTypes);
 
         $query->whereIn('ReceiverAs', $receiverAs)
             ->whereIn('NId', function ($draftQuery) {
@@ -125,14 +126,14 @@ class InboxReceiverCorrection extends Model
             });
 
         if (count($arrayReceiverTypes) == 1) {
-            if (in_array('signed', $arrayReceiverTypes)) {
+            if (in_array(CustomReceiverTypeEnum::SIGNED(), $arrayReceiverTypes)) {
                 $query->whereIn('NId', function ($draftQuery) {
                     $draftQuery->select('NId_Temp')
                     ->from('konsep_naskah')
                     ->where('Konsep', '=', '0')
                     ->where('nosurat', '!=', null);
                 });
-            } elseif (in_array('sign request', $arrayReceiverTypes)) {
+            } elseif (in_array(CustomReceiverTypeEnum::SIGN_REQUEST(), $arrayReceiverTypes)) {
                 $query->whereIn('NId', function ($draftQuery) {
                     $draftQuery->select('NId_Temp')
                     ->from('konsep_naskah')
@@ -142,21 +143,21 @@ class InboxReceiverCorrection extends Model
         }
     }
 
-    protected function getReceiverData($arrayReceiverTypes)
+    protected function getReceiverAsData($arrayReceiverTypes)
     {
         $receiverAs = [];
         foreach ($arrayReceiverTypes as $receiverTypes) {
             switch ($receiverTypes) {
-                case 'correction':
-                    array_push($receiverAs, 'koreksi', );
+                case CustomReceiverTypeEnum::CORRECTION():
+                    array_push($receiverAs, 'koreksi');
                     break;
 
-                case 'numbering':
+                case CustomReceiverTypeEnum::NUMBERING():
                     array_push($receiverAs, 'Meminta Nomber Surat');
                     break;
 
-                case 'sign request':
-                case 'signed':
+                case CustomReceiverTypeEnum::SIGN_REQUEST():
+                case CustomReceiverTypeEnum::SIGNED():
                     array_push($receiverAs, 'meneruskan');
                     break;
 
