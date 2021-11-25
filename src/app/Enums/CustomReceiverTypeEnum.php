@@ -14,5 +14,14 @@ use Spatie\Enum\Enum;
 
 final class CustomReceiverTypeEnum extends Enum
 {
-
+    protected static function values(): array
+    {
+        return [
+            'CORRECTION' => 'CORRECTION',
+            'NUMBERING' => 'NUMBERING',
+            'SIGN_REQUEST' => 'SIGN_REQUEST',
+            'SIGNED' => 'SIGNED',
+            'REVIEW' => 'REVIEW',
+        ];
+    }
 }
