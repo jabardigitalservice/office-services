@@ -183,22 +183,27 @@ class InboxReceiverCorrection extends Model
                     break;
 
                 default:
-                    array_push($receiverAs,
-                        'to_draft_keluar',
-                        'to_draft_notadinas',
-                        'to_draft_edaran',
-                        'to_draft_sprint',
-                        'to_draft_instruksi_gub',
-                        'to_draft_sket',
-                        'to_draft_super_tugas',
-                        'to_draft_pengumuman',
-                        'to_draft_surat_izin',
-                        'to_draft_rekomendasi',
-                        'to_koreksi'
-                    );
+                    $this->getReceiverAsReviewData($receiverAs);
                     break;
             }
         }
         return $receiverAs;
+    }
+
+    protected function getReceiverAsReviewData($receiverAs)
+    {
+        array_push($receiverAs,
+            'to_draft_keluar',
+            'to_draft_notadinas',
+            'to_draft_edaran',
+            'to_draft_sprint',
+            'to_draft_instruksi_gub',
+            'to_draft_sket',
+            'to_draft_super_tugas',
+            'to_draft_pengumuman',
+            'to_draft_surat_izin',
+            'to_draft_rekomendasi',
+            'to_koreksi'
+        );
     }
 }
