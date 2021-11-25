@@ -168,18 +168,21 @@ class InboxReceiverCorrection extends Model
     {
         $receiverAs = [];
         foreach ($arrayReceiverTypes as $receiverType) {
-            if ($receiverType == CustomReceiverTypeEnum::CORRECTION()) array_push($receiverAs, 'koreksi');
-            if ($receiverType == CustomReceiverTypeEnum::NUMBERING()) array_push($receiverAs, 'Meminta Nomber Surat');
-            if ($receiverType == CustomReceiverTypeEnum::SIGN_REQUEST()) array_push($receiverAs, 'meneruskan');
-            if ($receiverType == CustomReceiverTypeEnum::SIGNED()) array_push($receiverAs, 'meneruskan');
-            if ($receiverType == CustomReceiverTypeEnum::REVIEW()) $this->getReceiverAsReviewData($receiverAs);
+            $receiverType = match ($receiverType) {
+                CustomReceiverTypeEnum::CORRECTION()->value    => ['koreksi'],
+                CustomReceiverTypeEnum::NUMBERING()->value     => ['Meminta Nomber Surat'],
+                CustomReceiverTypeEnum::SIGN_REQUEST()->value,
+                CustomReceiverTypeEnum::SIGNED()->value        => ['meneruskan'],
+                default => $this->getReceiverAsReviewData($receiverAs)
+            };
+            $receiverAs = array_merge($receiverAs, $receiverType);
         }
         return $receiverAs;
     }
 
     protected function getReceiverAsReviewData($receiverAs)
     {
-        array_push($receiverAs,
+        return [
             'to_draft_keluar',
             'to_draft_notadinas',
             'to_draft_edaran',
@@ -191,6 +194,6 @@ class InboxReceiverCorrection extends Model
             'to_draft_surat_izin',
             'to_draft_rekomendasi',
             'to_koreksi'
-        );
+        ];
     }
 }
