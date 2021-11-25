@@ -6,6 +6,7 @@ use App\Enums\CustomReceiverTypeEnum;
 use App\Enums\DraftObjectiveTypeEnum;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Arr;
 
 class InboxReceiverCorrection extends Model
 {
@@ -87,7 +88,7 @@ class InboxReceiverCorrection extends Model
         }
 
         if ($types) {
-            $this->typeQuery($query, $urgencies);
+            $this->typeQuery($query, $types);
         }
 
         if ($urgencies) {
@@ -109,28 +110,32 @@ class InboxReceiverCorrection extends Model
 
     protected function typeQuery($query, $types)
     {
-        $arrayTypes = explode(", ", $types);
-        $query->whereIn('NId', function ($draftQuery) use ($arrayTypes) {
-            $draftQuery->select('NId_Temp')
-                ->from('konsep_naskah')
-                ->whereIn('JenisId', function ($docQuery) use ($arrayTypes) {
-                    $docQuery->select('JenisId')
-                        ->from('master_jnaskah')
-                        ->whereIn('JenisId', $arrayTypes);
-            });
-        });
+        $tables = array(
+            0 => array('name'  => 'konsep_naskah', 'column'=> 'JenisId'),
+            1 => array('name'  => 'master_jnaskah', 'column'=> 'JenisId')
+        );
+        $this->threeLvlQuery($query, $types, $tables);
     }
 
     protected function urgencyQuery($query, $urgencies)
     {
-        $arrayUrgencies = explode(", ", $urgencies);
-        $query->whereIn('NId', function ($draftQuery) use ($arrayUrgencies) {
+        $tables = array(
+            0 => array('name'  => 'konsep_naskah', 'column'=> 'UrgensiId'),
+            1 => array('name'  => 'master_urgensi', 'column'=> 'UrgensiName')
+        );
+        $this->threeLvlQuery($query, $urgencies, $tables);
+    }
+
+    protected function threeLvlQuery($query, $requestFilter, $tables)
+    {
+        $arrayTypes = explode(", ", $requestFilter);
+        $query->whereIn('NId', function ($draftQuery) use ($arrayTypes, $tables) {
             $draftQuery->select('NId_Temp')
-                ->from('konsep_naskah')
-                ->whereIn('UrgensiId', function ($urgencyQuery) use ($arrayUrgencies) {
-                    $urgencyQuery->select('UrgensiId')
-                        ->from('master_urgensi')
-                        ->whereIn('UrgensiName', $arrayUrgencies);
+                ->from(Arr::get($tables, '0.name'))
+                ->whereIn(Arr::get($tables, '0.column'), function ($docQuery) use ($arrayTypes, $tables) {
+                    $docQuery->select(Arr::get($tables, '0.column'))
+                        ->from(Arr::get($tables, '1.name'))
+                        ->whereIn(Arr::get($tables, '1.column'), $arrayTypes);
             });
         });
     }
