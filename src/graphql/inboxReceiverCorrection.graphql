@@ -24,6 +24,13 @@ input DraftTimelineInput {
     type: TimelineType
 }
 
+input DraftFilterInput {
+    types: String
+    urgencies: String
+    statuses: String
+    receiverTypes: String
+}
+
 #import draft.graphql
 #import people.graphql
 
