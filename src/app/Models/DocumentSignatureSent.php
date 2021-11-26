@@ -135,8 +135,13 @@ class DocumentSignatureSent extends Model
         $query->where('ttd_id', $documentSignatureId)
             ->where('urutan', '<', $sort);
 
-        if ($status || $status == "0") {
-            $query->where('status', $status);
+        if ($status) {
+            if ($status == SignatureStatusTypeEnum::SIGNED()) {
+                $query->where('status', SignatureStatusTypeEnum::SUCCESS()->value);
+            }
+            if ($status == SignatureStatusTypeEnum::UNSIGNED()) {
+                $query->whereIn('status', [SignatureStatusTypeEnum::WAITING()->value, SignatureStatusTypeEnum::REJECT()->value]);
+            }
         }
 
         return $query;
