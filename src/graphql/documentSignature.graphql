@@ -3,6 +3,7 @@ type DocumentSignature {
     name: String @rename(attribute: "nama_file")
     url: String
     validation: Validation @field(resolver: "App\\GraphQL\\Types\\DocumentSignatureType@validate")
+    inboxFile: InboxFile @belongsTo
     documentSignatureSents: [DocumentSignatureSent]
 }
 
