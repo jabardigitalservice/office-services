@@ -3,6 +3,7 @@
 namespace App\GraphQL\Queries;
 
 use App\Enums\InboxReceiverScopeType;
+use App\Enums\PeopleGroupTypeEnum;
 use App\Exceptions\CustomException;
 use App\Models\InboxReceiver;
 use Nuwave\Lighthouse\Support\Contracts\GraphQLContext;
@@ -79,12 +80,18 @@ class InboxQuery
                 break;
         }
 
-        return InboxReceiver::where('RoleId_To', $user->PrimaryRoleId)
+        $query = InboxReceiver::where('RoleId_To', $user->PrimaryRoleId)
             ->where('StatusReceive', 'unread')
             ->whereHas('sender', function($senderQuery) use ($deptCode, $operator) {
                 $senderQuery->whereHas('role', function($roleQuery) use ($deptCode, $operator) {
                     $roleQuery->where('RoleCode', $operator, $deptCode);
                 });
-            })->count();
+            });
+
+        if ((String) $user->PeopleId != PeopleGroupTypeEnum::TU()) {
+            $query->where('To_Id', $user->PeopleId);
+        }
+
+        return $query->count();
     }
 }
