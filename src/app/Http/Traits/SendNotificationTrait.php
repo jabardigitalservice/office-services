@@ -112,7 +112,7 @@ trait SendNotificationTrait
             'data' => [
                 'id' => $id,
                 'action' => $action,
-                'receiverAs' => $request['data']['receiverAs'] ?? null,
+                'receiverAs' => $request['data']['receiverAs'] ?? null
             ]
         ];
 
