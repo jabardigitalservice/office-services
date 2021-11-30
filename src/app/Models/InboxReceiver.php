@@ -224,7 +224,7 @@ class InboxReceiver extends Model
 
     public function setReceiveDateAttribute($value)
     {
-        $this->attributes['ReceiveDate'] = $value->addHours(7);
+        $this->attributes['ReceiveDate'] = $value->copy()->addHours(7);
     }
 
     public function getReceiverAsLabelAttribute()
