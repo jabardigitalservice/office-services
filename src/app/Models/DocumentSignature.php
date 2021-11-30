@@ -35,4 +35,9 @@ class DocumentSignature extends Model
     {
         return $this->hasMany(DocumentSignatureSent::class, 'ttd_id', 'id');
     }
+
+    public function inboxFile()
+    {
+        return $this->belongsTo(InboxFile::class, 'file', 'FileName_real');
+    }
 }

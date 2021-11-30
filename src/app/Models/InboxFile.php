@@ -24,6 +24,11 @@ class InboxFile extends Model
         return $this->belongsTo(Inbox::class, 'NId', 'NId');
     }
 
+    public function inboxReceiver()
+    {
+        return $this->belongsTo(InboxReceiver::class, 'GIR_Id', 'GIR_Id');
+    }
+
     public function find($query, $id)
     {
         $query->where('Id_dokumen', $id)
