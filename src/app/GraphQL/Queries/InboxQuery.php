@@ -47,7 +47,13 @@ class InboxQuery
      */
     public function unreadCount($rootValue, array $args, GraphQLContext $context)
     {
-        $regionalCount = $this->unreadCountQuery(InboxReceiverScopeType::REGIONAL(), $context);
+        if (strpos($context->user->PeoplePosition, 'KEPALA DINAS') !== false ||
+            strpos($context->user->PeoplePosition, 'SEKRETARIS DINAS') !== false) {
+            $regionalCount = $this->unreadCountDeptQuery($context);
+        } else {
+            $regionalCount = $this->unreadCountQuery(InboxReceiverScopeType::REGIONAL(), $context);
+        }
+
         $internalCount = $this->unreadCountQuery(InboxReceiverScopeType::INTERNAL(), $context);
 
         $count = [
@@ -87,6 +93,25 @@ class InboxQuery
                     $roleQuery->where('RoleCode', $operator, $deptCode);
                 });
             });
+
+        if ((String) $user->PeopleId != PeopleGroupTypeEnum::TU()) {
+            $query->where('To_Id', $user->PeopleId);
+        }
+
+        return $query->count();
+    }
+
+     /**
+     * @param \Nuwave\Lighthouse\Support\Contracts\GraphQLContext|null $context
+     *
+     * @return Integer
+     */
+    private function unreadCountDeptQuery($context)
+    {
+        $user = $context->user;
+        $query = InboxReceiver::where('RoleId_To', $user->PrimaryRoleId)
+            ->where('StatusReceive', 'unread')
+            ->where('ReceiverAs', 'to_forward');
 
         if ((String) $user->PeopleId != PeopleGroupTypeEnum::TU()) {
             $query->where('To_Id', $user->PeopleId);
