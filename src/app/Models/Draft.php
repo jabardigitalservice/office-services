@@ -17,6 +17,11 @@ class Draft extends Model
 
     protected $primaryKey = 'NId_Temp';
 
+    public function sender()
+    {
+        return $this->belongsTo(People::class, 'CreateBy', 'PeopleId');
+    }
+
     public function type()
     {
         return $this->belongsTo(DocumentType::class, 'JenisId', 'JenisId');
@@ -35,5 +40,25 @@ class Draft extends Model
     public function reviewer()
     {
         return $this->belongsTo(People::class, 'Approve_People', 'PeopleId');
+    }
+
+    public function draftType()
+    {
+        return $this->belongsTo(MasterDraftType::class, 'JenisId', 'JenisId');
+    }
+
+    public function classified()
+    {
+        return $this->belongsTo(MasterClassified::class, 'SifatId', 'SifatId');
+    }
+
+    public function measureUnit()
+    {
+        return $this->belongsTo(MasterMeasureUnit::class, 'MeasureUnitId', 'MeasureUnitId');
+    }
+
+    public function classification()
+    {
+        return $this->belongsTo(Classification::class, 'ClId', 'ClId');
     }
 }

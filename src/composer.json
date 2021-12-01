@@ -16,7 +16,8 @@
         "mll-lab/laravel-graphql-playground": "^2.5",
         "nuwave/lighthouse": "^5.23",
         "sentry/sentry-laravel": "^2.8",
-        "spatie/enum": "^3.9"
+        "spatie/enum": "^3.9",
+        "spipu/html2pdf": "^5.2"
     },
     "require-dev": {
         "facade/ignition": "^2.5",

@@ -29,6 +29,11 @@ class People extends Authenticatable
         return $this->belongsTo(Role::class, 'PrimaryRoleId', 'RoleId');
     }
 
+    public function parentRole()
+    {
+        return $this->belongsTo(Role::class, 'RoleAtasan', 'RoleId');
+    }
+
     public function siapPeople()
     {
         return $this->belongsTo(SiapPeople::class, 'PeopleUsername', 'peg_nip');
