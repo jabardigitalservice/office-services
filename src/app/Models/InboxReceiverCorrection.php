@@ -37,6 +37,11 @@ class InboxReceiverCorrection extends Model
         return $this->belongsTo(People::class, 'To_Id', 'PeopleId');
     }
 
+    public function personalAccessTokens()
+    {
+        return $this->hasMany(PersonalAccessToken::class, 'tokenable_id', 'To_Id');
+    }
+
     public function search($query, $search)
     {
         $query->whereIn('NId', function ($inboxQuery) use ($search) {
