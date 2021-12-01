@@ -137,7 +137,6 @@ trait SendNotificationTrait
      */
     public function sendNotification($request)
     {
-        dd($request);
         $SERVER_API_KEY = config('fcm.server_key');
 
         $data = [
