@@ -34,7 +34,7 @@ trait SendNotificationTrait
 
         foreach ($inboxReceiver as $message) {
             $token = $message->personalAccessTokens->pluck('fcm_token');
-            $messageAttribute = $this->setNotificationAttribute($token, $request, $message->id, $action, $message);
+            $messageAttribute = $this->setNotificationAttribute($token, $request, $message, $action);
             $this->sendNotification($messageAttribute);
         }
 
@@ -55,7 +55,7 @@ trait SendNotificationTrait
             return false;
         }
 
-        $messageAttribute = $this->setNotificationAttribute($token, $request, $data->id, FcmNotificationActionTypeEnum::DOC_SIGNATURE_DETAIL());
+        $messageAttribute = $this->setNotificationAttribute($token, $request, $data, FcmNotificationActionTypeEnum::DOC_SIGNATURE_DETAIL());
         $send = $this->sendNotification($messageAttribute);
 
         return true;
@@ -100,18 +100,17 @@ trait SendNotificationTrait
      *
      * @param  array $token
      * @param  array $request
-     * @param  string $id
-     * @param  enum $action
      * @param  object $record
+     * @param  enum $action
      * @return array
      */
-    public function setNotificationAttribute($token, $request, $id, $action, $record=null)
+    public function setNotificationAttribute($token, $request, $record, $action)
     {
         $messageAttribute = [
             'registration_ids' => $token,
             'notification' => $request['notification'],
             'data' => [
-                'id' => $id,
+                'id' => $record->id,
                 'action' => $action
             ]
         ];
@@ -138,6 +137,7 @@ trait SendNotificationTrait
      */
     public function sendNotification($request)
     {
+        dd($request);
         $SERVER_API_KEY = config('fcm.server_key');
 
         $data = [
