@@ -34,7 +34,7 @@ trait SendNotificationTrait
 
         foreach ($inboxReceiver as $message) {
             $token = $message->personalAccessTokens->pluck('fcm_token');
-            $messageAttribute = $this->setNotificationAttribute($token, $request, $message->id, $action);
+            $messageAttribute = $this->setNotificationAttribute($token, $request, $message->id, $action, $message);
             $this->sendNotification($messageAttribute);
         }
 
@@ -102,19 +102,30 @@ trait SendNotificationTrait
      * @param  array $request
      * @param  string $id
      * @param  enum $action
+     * @param  object $record
      * @return array
      */
-    public function setNotificationAttribute($token, $request, $id, $action)
+    public function setNotificationAttribute($token, $request, $id, $action, $record=null)
     {
         $messageAttribute = [
             'registration_ids' => $token,
             'notification' => $request['notification'],
             'data' => [
                 'id' => $id,
-                'action' => $action,
-                'receiverAs' => $request['data']['receiverAs'] ?? null
+                'action' => $action
             ]
         ];
+
+        if ($action == FcmNotificationActionTypeEnum::DRAFT_DETAIL() ||
+            $action == FcmNotificationActionTypeEnum::DRAFT_REVIEW()) {
+            $messageAttribute['data'] = [
+                'draftId' => $record->NId,
+                'groupId' => $record->GIR_Id,
+                'receiverAs' => $record->ReceiverAs,
+                'letterNumber' => $record->draftDetail->nosurat,
+                'draftStatus' => $record->draftDetail->Konsep,
+            ];
+        }
 
         return $messageAttribute;
     }
