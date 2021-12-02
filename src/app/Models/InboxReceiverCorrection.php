@@ -66,7 +66,8 @@ class InboxReceiverCorrection extends Model
         $userId = auth()->user()->PeopleId;
         switch ($objective) {
             case DraftObjectiveTypeEnum::IN():
-                $query->where('From_Id', '!=', $userId);
+                $query->where('From_Id', '!=', $userId)
+                    ->where('ReceiverAs', '!=', 'to_koreksi');
                 break;
 
             case DraftObjectiveTypeEnum::OUT():
@@ -202,8 +203,7 @@ class InboxReceiverCorrection extends Model
             'to_draft_super_tugas',
             'to_draft_pengumuman',
             'to_draft_surat_izin',
-            'to_draft_rekomendasi',
-            'to_koreksi'
+            'to_draft_rekomendasi'
         ];
     }
 }
