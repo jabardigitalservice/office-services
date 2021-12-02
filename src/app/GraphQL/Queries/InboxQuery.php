@@ -94,7 +94,7 @@ class InboxQuery
                 });
             });
 
-        if ((String) $user->PeopleId != PeopleGroupTypeEnum::TU()) {
+        if ((String) $user->GroupId != PeopleGroupTypeEnum::TU()) {
             $query->where('To_Id', $user->PeopleId);
         }
 
@@ -113,7 +113,7 @@ class InboxQuery
             ->where('StatusReceive', 'unread')
             ->where('ReceiverAs', 'to_forward');
 
-        if ((String) $user->PeopleId != PeopleGroupTypeEnum::TU()) {
+        if ((String) $user->GroupId != PeopleGroupTypeEnum::TU()) {
             $query->where('To_Id', $user->PeopleId);
         }
 
