@@ -202,8 +202,7 @@ class InboxReceiverCorrection extends Model
             'to_draft_super_tugas',
             'to_draft_pengumuman',
             'to_draft_surat_izin',
-            'to_draft_rekomendasi',
-            'to_koreksi'
+            'to_draft_rekomendasi'
         ];
     }
 }
