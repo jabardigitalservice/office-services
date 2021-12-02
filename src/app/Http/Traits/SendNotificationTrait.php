@@ -123,6 +123,7 @@ trait SendNotificationTrait
                 'receiverAs' => $record->ReceiverAs,
                 'letterNumber' => $record->draftDetail->nosurat,
                 'draftStatus' => $record->draftDetail->Konsep,
+                'action' => $action
             ];
         }
 
