@@ -47,8 +47,14 @@ class InboxQuery
      */
     public function unreadCount($rootValue, array $args, GraphQLContext $context)
     {
-        if (strpos($context->user->PeoplePosition, 'KEPALA DINAS') !== false ||
-            strpos($context->user->PeoplePosition, 'SEKRETARIS DINAS') !== false) {
+        $userPosition = $context->user->PeoplePosition;
+        $positionGroups = array_merge(
+            config('constants.peoplePositionGroups.2'),
+            config('constants.peoplePositionGroups.9')
+        );
+
+        $found = $this->isFoundUserPosition($userPosition, $positionGroups);
+        if ($found) {
             $regionalCount = $this->unreadCountDeptQuery($context);
         } else {
             $regionalCount = $this->unreadCountQuery(InboxReceiverScopeType::REGIONAL(), $context);
@@ -118,5 +124,24 @@ class InboxQuery
         }
 
         return $query->count();
+    }
+
+     /**
+     * @param Array $positionList
+     * @param String $position
+     *
+     * @return Boolean
+     */
+    private function isFoundUserPosition($userPosition, $positionList)
+    {
+        $found = false;
+        foreach ($positionList as $position) {
+            if (strpos($userPosition, $position) !== false) {
+                $found = true;
+                break;
+            }
+        }
+
+        return $found;
     }
 }
