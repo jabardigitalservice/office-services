@@ -47,7 +47,19 @@ class InboxQuery
      */
     public function unreadCount($rootValue, array $args, GraphQLContext $context)
     {
-        $regionalCount = $this->unreadCountQuery(InboxReceiverScopeType::REGIONAL(), $context);
+        $userPosition = $context->user->PeoplePosition;
+        $positionGroups = array_merge(
+            config('constants.peoplePositionGroups.2'),
+            config('constants.peoplePositionGroups.9')
+        );
+
+        $found = $this->isFoundUserPosition($userPosition, $positionGroups);
+        if ($found) {
+            $regionalCount = $this->unreadCountDeptQuery($context);
+        } else {
+            $regionalCount = $this->unreadCountQuery(InboxReceiverScopeType::REGIONAL(), $context);
+        }
+
         $internalCount = $this->unreadCountQuery(InboxReceiverScopeType::INTERNAL(), $context);
 
         $count = [
@@ -88,10 +100,48 @@ class InboxQuery
                 });
             });
 
-        if ((String) $user->PeopleId != PeopleGroupTypeEnum::TU()) {
+        if ((String) $user->GroupId != PeopleGroupTypeEnum::TU()) {
             $query->where('To_Id', $user->PeopleId);
         }
 
         return $query->count();
+    }
+
+     /**
+     * @param \Nuwave\Lighthouse\Support\Contracts\GraphQLContext|null $context
+     *
+     * @return Integer
+     */
+    private function unreadCountDeptQuery($context)
+    {
+        $user = $context->user;
+        $query = InboxReceiver::where('RoleId_To', $user->PrimaryRoleId)
+            ->where('StatusReceive', 'unread')
+            ->where('ReceiverAs', 'to_forward');
+
+        if ((String) $user->GroupId != PeopleGroupTypeEnum::TU()) {
+            $query->where('To_Id', $user->PeopleId);
+        }
+
+        return $query->count();
+    }
+
+     /**
+     * @param Array $positionList
+     * @param String $position
+     *
+     * @return Boolean
+     */
+    private function isFoundUserPosition($userPosition, $positionList)
+    {
+        $found = false;
+        foreach ($positionList as $position) {
+            if (strpos($userPosition, $position) !== false) {
+                $found = true;
+                break;
+            }
+        }
+
+        return $found;
     }
 }
