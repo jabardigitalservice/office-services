@@ -55,7 +55,12 @@ trait SendNotificationTrait
             return false;
         }
 
-        $messageAttribute = $this->setNotificationAttribute($token, $request, $data, FcmNotificationActionTypeEnum::DOC_SIGNATURE_DETAIL());
+        $messageAttribute = $this->setNotificationAttribute(
+            $token,
+            $request,
+            $data,
+            FcmNotificationActionTypeEnum::DOC_SIGNATURE_DETAIL()
+        );
         $send = $this->sendNotification($messageAttribute);
 
         return true;
@@ -115,8 +120,10 @@ trait SendNotificationTrait
             ]
         ];
 
-        if ($action == FcmNotificationActionTypeEnum::DRAFT_DETAIL() ||
-            $action == FcmNotificationActionTypeEnum::DRAFT_REVIEW()) {
+        if (
+            $action == FcmNotificationActionTypeEnum::DRAFT_DETAIL() ||
+            $action == FcmNotificationActionTypeEnum::DRAFT_REVIEW()
+        ) {
             $messageAttribute['data'] = [
                 'draftId' => $record->NId,
                 'groupId' => $record->GIR_Id,

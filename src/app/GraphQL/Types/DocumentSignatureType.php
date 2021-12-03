@@ -45,7 +45,9 @@ class DocumentSignatureType
         $response = Http::withHeaders([
             'Authorization' => 'Basic ' . config('sikd.signature_auth'),
         ])->attach(
-            'signed_file', file_get_contents($data->url), $data->file
+            'signed_file',
+            file_get_contents($data->url),
+            $data->file
         )->post(config('sikd.signature_verify_url'));
 
         return json_decode($response->body());
@@ -58,7 +60,7 @@ class DocumentSignatureType
      */
     protected function getSigners($data)
     {
-        $people = People::whereIn('PeopleId', function($query) use ($data) {
+        $people = People::whereIn('PeopleId', function ($query) use ($data) {
             $query->select('PeopleIDTujuan')
                 ->from('m_ttd_kirim')
                 ->where('status', SignatureStatusTypeEnum::SUCCESS()->value)

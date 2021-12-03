@@ -140,7 +140,13 @@ class DocumentSignatureSent extends Model
                 $query->where('status', SignatureStatusTypeEnum::SUCCESS()->value);
             }
             if ($status == SignatureStatusTypeEnum::UNSIGNED()) {
-                $query->whereIn('status', [SignatureStatusTypeEnum::WAITING()->value, SignatureStatusTypeEnum::REJECT()->value]);
+                $query->whereIn(
+                    'status',
+                    [
+                        SignatureStatusTypeEnum::WAITING()->value,
+                        SignatureStatusTypeEnum::REJECT()->value
+                    ]
+                );
             }
         }
 
