@@ -61,10 +61,12 @@ class InboxQuery
         }
 
         $internalCount = $this->unreadCountQuery(InboxReceiverScopeType::INTERNAL(), $context);
+        $dispositionCount = $this->unreadCountQuery(InboxReceiverScopeType::DISPOSITION(), $context);
 
         $count = [
             'regional' => $regionalCount,
-            'internal' => $internalCount
+            'internal' => $internalCount,
+            'disposition' => $dispositionCount
         ];
 
         return $count;
@@ -81,16 +83,7 @@ class InboxQuery
         $user = $context->user;
         $deptCode = $user->role->RoleCode;
 
-        $operator = '';
-        switch ($scope) {
-            case InboxReceiverScopeType::REGIONAL():
-                $operator = '!=';
-                break;
-
-            case InboxReceiverScopeType::INTERNAL():
-                $operator = '=';
-                break;
-        }
+        $operator = $this->getRoleOperator($scope);
 
         $query = InboxReceiver::where('RoleId_To', $user->PrimaryRoleId)
             ->where('StatusReceive', 'unread')
@@ -102,6 +95,10 @@ class InboxQuery
 
         if ((String) $user->GroupId != PeopleGroupTypeEnum::TU()) {
             $query->where('To_Id', $user->PeopleId);
+        }
+
+        if ($scope == InboxReceiverScopeType::DISPOSITION()) {
+            $query->where('ReceiverAs', 'cc1');
         }
 
         return $query->count();
@@ -134,14 +131,30 @@ class InboxQuery
      */
     private function isFoundUserPosition($userPosition, $positionList)
     {
-        $found = false;
         foreach ($positionList as $position) {
             if (strpos($userPosition, $position) !== false) {
-                $found = true;
-                break;
+                return true;
             }
         }
 
-        return $found;
+        return false;
+    }
+
+     /**
+     * @param String $scope
+     *
+     * @return Strin
+     */
+    private function getRoleOperator($scope)
+    {
+        switch ($scope) {
+            case InboxReceiverScopeType::REGIONAL():
+                return '!=';
+
+            case InboxReceiverScopeType::INTERNAL():
+            case InboxReceiverScopeType::DISPOSITION():
+                return '=';
+        }
+
     }
 }
