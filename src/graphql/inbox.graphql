@@ -19,6 +19,7 @@ type Inbox {
 type UnreadCount {
     regional: Int!
     internal: Int!
+    disposition: Int!
 }
 
 #import people.graphql

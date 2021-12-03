@@ -101,19 +101,19 @@ class InboxMutator
         }
 
         $inboxReceiver = [
-            'NId' 			=> $inboxData['inboxId'],
-            'NKey' 			=> $nkey,
-            'GIR_Id' 		=> $inboxData['groupId'],
-            'From_Id' 		=> $inboxData['from']->PeopleId,
-            'RoleId_From' 	=> $inboxData['from']->PrimaryRoleId,
-            'To_Id' 		=> $receiverId,
-            'RoleId_To' 	=> $receiver->PrimaryRoleId,
-            'ReceiverAs' 	=> $label,
-            'Msg' 			=> $inboxData['message'],
+            'NId'           => $inboxData['inboxId'],
+            'NKey'          => $nkey,
+            'GIR_Id'        => $inboxData['groupId'],
+            'From_Id'       => $inboxData['from']->PeopleId,
+            'RoleId_From'   => $inboxData['from']->PrimaryRoleId,
+            'To_Id'         => $receiverId,
+            'RoleId_To'     => $receiver->PrimaryRoleId,
+            'ReceiverAs'    => $label,
+            'Msg'           => $inboxData['message'],
             'StatusReceive' => 'unread',
-            'ReceiveDate' 	=> $inboxData['time'],
-            'To_Id_Desc' 	=> $receiver->role->RoleDesc,
-            'Status' 	    => 0,
+            'ReceiveDate'   => $inboxData['time'],
+            'To_Id_Desc'    => $receiver->role->RoleDesc,
+            'Status'        => 0,
         ];
 
         return InboxReceiver::create($inboxReceiver);
@@ -159,7 +159,7 @@ class InboxMutator
             $title = $createdBy->role->rolecode->rolecode_sort;
             $body = $inbox->Hal . ' | ' . $inbox->type->JenisName . ' | ' . $inbox->urgency->UrgensiName;
             $actionMessage = FcmNotificationActionTypeEnum::INBOX_DETAIL();
-        } else if ($action == PeopleProposedTypeEnum::DISPOSITION()) {
+        } elseif ($action == PeopleProposedTypeEnum::DISPOSITION()) {
             $sender = auth()->user()->PeopleName;
             $title = 'Disposisi Naskah';
             $body = 'Wah ada Disposisi nih terkait dengan ' . $inbox->Hal . ' dari ' . $sender . '. Yuk cek sekarang juga!' . ' | ' . $inbox->urgency->UrgensiName;
@@ -190,11 +190,11 @@ class InboxMutator
     protected function createInboxDisposition($inboxData)
     {
         $inboxDisposition = [
-            'NId' 		=> $inboxData['inboxId'],
-            'GIR_Id' 	=> $inboxData['groupId'],
+            'NId'       => $inboxData['inboxId'],
+            'GIR_Id'    => $inboxData['groupId'],
             'Sifat'     => $inboxData['urgency'],
             'Disposisi' => $inboxData['dispositionType'],
-            'RoleId' 	=> $inboxData['from']->PrimaryRoleId,
+            'RoleId'    => $inboxData['from']->PrimaryRoleId,
         ];
 
         return InboxDisposition::create($inboxDisposition);

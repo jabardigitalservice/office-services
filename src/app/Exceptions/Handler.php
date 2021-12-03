@@ -61,14 +61,13 @@ class Handler extends ExceptionHandler
     {
         \Sentry\configureScope(function (\Sentry\State\Scope $scope) use ($user) {
             $scope->setUser([
-                    'people_id' => $user->PeopleId,
-                    'people_name' => $user->PeopleName,
-                    'people_position' => $user->PeoplePosition,
-                    'people_username' => $user->PeopleUsername,
-                    'people_email' => $user->Email,
-                    'people_primary_role_id' => $user->PrimaryRoleId,
-                ]
-            );
+                'people_id' => $user->PeopleId,
+                'people_name' => $user->PeopleName,
+                'people_position' => $user->PeoplePosition,
+                'people_username' => $user->PeopleUsername,
+                'people_email' => $user->Email,
+                'people_primary_role_id' => $user->PrimaryRoleId,
+            ]);
         });
     }
 

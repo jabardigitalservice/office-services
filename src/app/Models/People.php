@@ -60,14 +60,13 @@ class People extends Authenticatable
                     case ArchiverIdUnitTypeEnum::SETDA()->value:
                         // A special condition when the archiver (unit kearsipan) is 'unit kearsipan setda (uk.setda)'
                         // uk.setda role id is uk.1.1.1.1.1 (roleIdUnit=6)
-                        $query->whereIn('PrimaryRoleId', function ($roleQuery){
+                        $query->whereIn('PrimaryRoleId', function ($roleQuery) {
                             $roleQuery->select('RoleId')
                                 ->from('role')
                                 // The forward targets have various role ids
                                 // with min. length id is 4, for example uk.1 as the government
                                 // and max. length id is 18, for instance uk.1.1.1.1.1.1.1.2 as the bureau chief
                                 ->whereRaw('LENGTH(PrimaryRoleId) >= 4 AND LENGTH(PrimaryRoleId) <= 18')
-                                // This fixed role code means the forward targets in the same institution with the uk.setda
                                 ->where('RoleCode', 3);
                         });
                         break;
@@ -138,6 +137,6 @@ class People extends Authenticatable
             'abilities' => $abilities,
         ]);
 
-        return new NewAccessToken($token, $token->getKey().'|'.$plainTextToken);
+        return new NewAccessToken($token, $token->getKey() . '|' . $plainTextToken);
     }
 }

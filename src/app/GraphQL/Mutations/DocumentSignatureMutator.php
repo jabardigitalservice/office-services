@@ -78,19 +78,21 @@ class DocumentSignatureMutator
             'Authorization' => 'Basic ' . $setupConfig['auth'],
             'Cookie' => 'JSESSIONID=' . $setupConfig['cookies'],
         ])->attach(
-            'file', file_get_contents($data->documentSignature->url), $data->documentSignature->file
+            'file',
+            file_get_contents($data->documentSignature->url),
+            $data->documentSignature->file
         )->post($url, [
-            'nik' => $setupConfig['nik'],
-            'passphrase' => $passphrase,
-            'tampilan' => 'visible',
-            'page' => '1',
-            'image' => 'false',
-            'imageTTD' => '',
-            'linkQR'=>$linkQR,
-            'xAxis'=>10,
-            'yAxis'=>10,
-            'width'=>80,
-            'height'=>80
+            'nik'           => $setupConfig['nik'],
+            'passphrase'    => $passphrase,
+            'tampilan'      => 'visible',
+            'page'          => '1',
+            'image'         => 'false',
+            'imageTTD'      => '',
+            'linkQR'        => $linkQR,
+            'xAxis'         => 10,
+            'yAxis'         => 10,
+            'width'         => 80,
+            'height'        => 80
         ]);
 
         if ($response->status() != 200) {
@@ -145,9 +147,10 @@ class DocumentSignatureMutator
      * @param  mixed $url
      * @return void
      */
-    public function fileExist($url){
+    public function fileExist($url)
+    {
         $headers = get_headers($url);
-        return stripos($headers[0],"200 OK") ? true : false;
+        return stripos($headers[0], "200 OK") ? true : false;
     }
 
     /**
@@ -191,7 +194,9 @@ class DocumentSignatureMutator
         $response = Http::withHeaders([
             'Secret' => config('sikd.webhook_secret'),
         ])->attach(
-            'file', $fileSignatured, $newFileName
+            'file',
+            $fileSignatured,
+            $newFileName
         )->post(config('sikd.webhook_url'));
 
         if ($response->status() != 200) {

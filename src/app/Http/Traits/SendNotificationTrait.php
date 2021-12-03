@@ -34,7 +34,7 @@ trait SendNotificationTrait
 
         foreach ($inboxReceiver as $message) {
             $token = $message->personalAccessTokens->pluck('fcm_token');
-            $messageAttribute = $this->setNotificationAttribute($token, $request, $message->id, $action);
+            $messageAttribute = $this->setNotificationAttribute($token, $request, $message, $action);
             $this->sendNotification($messageAttribute);
         }
 
@@ -55,7 +55,12 @@ trait SendNotificationTrait
             return false;
         }
 
-        $messageAttribute = $this->setNotificationAttribute($token, $request, $data->id, FcmNotificationActionTypeEnum::DOC_SIGNATURE_DETAIL());
+        $messageAttribute = $this->setNotificationAttribute(
+            $token,
+            $request,
+            $data,
+            FcmNotificationActionTypeEnum::DOC_SIGNATURE_DETAIL()
+        );
         $send = $this->sendNotification($messageAttribute);
 
         return true;
@@ -100,21 +105,34 @@ trait SendNotificationTrait
      *
      * @param  array $token
      * @param  array $request
-     * @param  string $id
+     * @param  object $record
      * @param  enum $action
      * @return array
      */
-    public function setNotificationAttribute($token, $request, $id, $action)
+    public function setNotificationAttribute($token, $request, $record, $action)
     {
         $messageAttribute = [
             'registration_ids' => $token,
             'notification' => $request['notification'],
             'data' => [
-                'id' => $id,
-                'action' => $action,
-                'receiverAs' => $request['data']['receiverAs'] ?? null
+                'id' => $record->id,
+                'action' => $action
             ]
         ];
+
+        if (
+            $action == FcmNotificationActionTypeEnum::DRAFT_DETAIL() ||
+            $action == FcmNotificationActionTypeEnum::DRAFT_REVIEW()
+        ) {
+            $messageAttribute['data'] = [
+                'draftId' => $record->NId,
+                'groupId' => $record->GIR_Id,
+                'receiverAs' => $record->ReceiverAs,
+                'letterNumber' => $record->draftDetail->nosurat,
+                'draftStatus' => $record->draftDetail->Konsep,
+                'action' => $action
+            ];
+        }
 
         return $messageAttribute;
     }

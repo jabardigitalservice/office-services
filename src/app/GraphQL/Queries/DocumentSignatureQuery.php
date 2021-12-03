@@ -37,7 +37,7 @@ class DocumentSignatureQuery
         foreach ($data as $_data) {
             if ($_data->urutan > 1) {
                 $checkParent = DocumentSignatureSent::where('ttd_id', $_data->ttd_id)
-                                                    ->where('urutan', $_data->urutan-1)
+                                                    ->where('urutan', $_data->urutan - 1)
                                                     ->first();
                 if ($checkParent->status == 0) {
                     continue;
@@ -87,7 +87,7 @@ class DocumentSignatureQuery
     public function markAsRead($documentSignatureSent, $context)
     {
         if (!$documentSignatureSent->documentSignatureSentRead) {
-            $data = new DocumentSignatureSentRead;
+            $data = new DocumentSignatureSentRead();
             $data->document_signature_sent_id = $documentSignatureSent->id;
             $data->read = true;
             $data->save();

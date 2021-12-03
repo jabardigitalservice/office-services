@@ -20,7 +20,7 @@ class InboxFileType
         $fileName = $rootValue->FileName_fake;
 
         $signatures = $this->getSignatures($fileName);
-        if (property_exists($signatures, 'error') || $signatures->jumlah_signature == 0){
+        if (property_exists($signatures, 'error') || $signatures->jumlah_signature == 0) {
             return [
                 'isValid' => false,
                 'signatures' => null
@@ -51,7 +51,9 @@ class InboxFileType
             'Accept' => '*/*',
             'Authorization' => 'Basic ' . config('sikd.signature_auth'),
         ])->attach(
-            'signed_file', $file, $fileName
+            'signed_file',
+            $file,
+            $fileName
         )->post(config('sikd.signature_verify_url'));
 
         return json_decode($response);

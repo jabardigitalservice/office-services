@@ -37,6 +37,11 @@ class InboxReceiverCorrection extends Model
         return $this->belongsTo(People::class, 'To_Id', 'PeopleId');
     }
 
+    public function personalAccessTokens()
+    {
+        return $this->hasMany(PersonalAccessToken::class, 'tokenable_id', 'To_Id');
+    }
+
     public function search($query, $search)
     {
         $query->whereIn('NId', function ($inboxQuery) use ($search) {
@@ -61,7 +66,8 @@ class InboxReceiverCorrection extends Model
         $userId = auth()->user()->PeopleId;
         switch ($objective) {
             case DraftObjectiveTypeEnum::IN():
-                $query->where('From_Id', '!=', $userId);
+                $query->where('From_Id', '!=', $userId)
+                    ->where('ReceiverAs', '!=', 'to_koreksi');
                 break;
 
             case DraftObjectiveTypeEnum::OUT():
@@ -111,8 +117,8 @@ class InboxReceiverCorrection extends Model
     protected function typeQuery($query, $types)
     {
         $tables = array(
-            0 => array('name'  => 'konsep_naskah', 'column'=> 'JenisId'),
-            1 => array('name'  => 'master_jnaskah', 'column'=> 'JenisId')
+            0 => array('name'  => 'konsep_naskah', 'column' => 'JenisId'),
+            1 => array('name'  => 'master_jnaskah', 'column' => 'JenisId')
         );
         $this->threeLvlQuery($query, $types, $tables);
     }
@@ -120,8 +126,8 @@ class InboxReceiverCorrection extends Model
     protected function urgencyQuery($query, $urgencies)
     {
         $tables = array(
-            0 => array('name'  => 'konsep_naskah', 'column'=> 'UrgensiId'),
-            1 => array('name'  => 'master_urgensi', 'column'=> 'UrgensiName')
+            0 => array('name'  => 'konsep_naskah', 'column' => 'UrgensiId'),
+            1 => array('name'  => 'master_urgensi', 'column' => 'UrgensiName')
         );
         $this->threeLvlQuery($query, $urgencies, $tables);
     }
@@ -131,11 +137,11 @@ class InboxReceiverCorrection extends Model
         $arrayTypes = explode(", ", $requestFilter);
         $query->whereIn('NId', function ($draftQuery) use ($arrayTypes, $tables) {
             $draftQuery->select('NId_Temp')
-                ->from(Arr::get($tables, '0.name'))
-                ->whereIn(Arr::get($tables, '0.column'), function ($docQuery) use ($arrayTypes, $tables) {
-                    $docQuery->select(Arr::get($tables, '0.column'))
-                        ->from(Arr::get($tables, '1.name'))
-                        ->whereIn(Arr::get($tables, '1.column'), $arrayTypes);
+            ->from(Arr::get($tables, '0.name'))
+            ->whereIn(Arr::get($tables, '0.column'), function ($docQuery) use ($arrayTypes, $tables) {
+                $docQuery->select(Arr::get($tables, '0.column'))
+                    ->from(Arr::get($tables, '1.name'))
+                    ->whereIn(Arr::get($tables, '1.column'), $arrayTypes);
             });
         });
     }
@@ -197,8 +203,7 @@ class InboxReceiverCorrection extends Model
             'to_draft_super_tugas',
             'to_draft_pengumuman',
             'to_draft_surat_izin',
-            'to_draft_rekomendasi',
-            'to_koreksi'
+            'to_draft_rekomendasi'
         ];
     }
 }
