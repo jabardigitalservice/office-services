@@ -43,8 +43,8 @@ class InboxReceiver extends Model
     public function history($query, $NId)
     {
         return $query->where('NId', $NId)
-            ->where(function($query) {
-                $query->whereIn('GIR_Id', function($query) {
+            ->where(function ($query) {
+                $query->whereIn('GIR_Id', function ($query) {
                     $query->select('GIR_Id')
                         ->from('inbox_receiver')
                         ->where('RoleId_To', 'like', auth()->user()->PrimaryRoleId . '%');
@@ -175,7 +175,8 @@ class InboxReceiver extends Model
         return $query;
     }
 
-    private function generateDeptId($roleId) {
+    private function generateDeptId($roleId)
+    {
         // If the user is not uk.setda
         if ($roleId != 'uk.1.1.1.1.1') {
             $arrayRoleId = explode(".", $roleId);

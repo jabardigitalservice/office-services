@@ -87,13 +87,13 @@ class InboxQuery
 
         $query = InboxReceiver::where('RoleId_To', $user->PrimaryRoleId)
             ->where('StatusReceive', 'unread')
-            ->whereHas('sender', function($senderQuery) use ($deptCode, $operator) {
-                $senderQuery->whereHas('role', function($roleQuery) use ($deptCode, $operator) {
+            ->whereHas('sender', function ($senderQuery) use ($deptCode, $operator) {
+                $senderQuery->whereHas('role', function ($roleQuery) use ($deptCode, $operator) {
                     $roleQuery->where('RoleCode', $operator, $deptCode);
                 });
             });
 
-        if ((String) $user->GroupId != PeopleGroupTypeEnum::TU()) {
+        if ((string) $user->GroupId != PeopleGroupTypeEnum::TU()) {
             $query->where('To_Id', $user->PeopleId);
         }
 
@@ -116,7 +116,7 @@ class InboxQuery
             ->where('StatusReceive', 'unread')
             ->where('ReceiverAs', 'to_forward');
 
-        if ((String) $user->GroupId != PeopleGroupTypeEnum::TU()) {
+        if ((string) $user->GroupId != PeopleGroupTypeEnum::TU()) {
             $query->where('To_Id', $user->PeopleId);
         }
 
@@ -155,6 +155,5 @@ class InboxQuery
             case InboxReceiverScopeType::DISPOSITION():
                 return '=';
         }
-
     }
 }
