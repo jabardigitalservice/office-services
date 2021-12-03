@@ -61,10 +61,12 @@ class InboxQuery
         }
 
         $internalCount = $this->unreadCountQuery(InboxReceiverScopeType::INTERNAL(), $context);
+        $dispositionCount = $this->unreadCountQuery(InboxReceiverScopeType::DISPOSITION(), $context);
 
         $count = [
             'regional' => $regionalCount,
-            'internal' => $internalCount
+            'internal' => $internalCount,
+            'disposition' => $dispositionCount
         ];
 
         return $count;
@@ -88,6 +90,7 @@ class InboxQuery
                 break;
 
             case InboxReceiverScopeType::INTERNAL():
+            case InboxReceiverScopeType::DISPOSITION():
                 $operator = '=';
                 break;
         }
@@ -102,6 +105,10 @@ class InboxQuery
 
         if ((String) $user->GroupId != PeopleGroupTypeEnum::TU()) {
             $query->where('To_Id', $user->PeopleId);
+        }
+
+        if ($scope == InboxReceiverScopeType::DISPOSITION()) {
+            $query->where('ReceiverAs', 'cc1');
         }
 
         return $query->count();
