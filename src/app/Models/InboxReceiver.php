@@ -230,86 +230,29 @@ class InboxReceiver extends Model
 
     public function getReceiverAsLabelAttribute()
     {
-        switch ($this->ReceiverAs) {
-            case 'to':
-                return "Naskah Masuk";
-                break;
+        $label = match ($this->ReceiverAs) {
+            'to'                    => 'Naskah Masuk',
+            'to_undangan'           => 'Undangan',
+            'to_sprint'             => 'Perintah',
+            'to_notadinas'          => 'Nota Dinas',
+            'to_reply'              => 'Naskah Dinas',
+            'to_usul'               => 'Jawaban Nota Dinas',
+            'to_forward'            => 'Teruskan',
+            'cc1'                   => 'Disposisi',
+            'to_keluar'             => 'Surat Dinas Keluar',
+            'to_nadin'              => 'Naskah Dinas Lainnya',
+            'to_konsep'             => 'Konsep Naskah',
+            'to_memo'               => 'Memo',
+            'to_draft_notadinas'    => 'Konsep Nota Dinas',
+            'to_draft_sprint'       => 'Konsep Surat Perintah',
+            'to_draft_undangan'     => 'Konsep Undangan',
+            'to_draft_keluar'       => 'Konsep surat Dinas',
+            'to_draft_sket'         => 'Konsep surat Keterangan',
+            'to_draft_pengumuman'   => 'Konsep Pengumuman',
+            'to_draft_rekomendasi'  => 'Konsep Surat Rekomendasi',
+            default                 => 'Konsep Naskah Dinas Lainnya'
+        };
 
-            case 'to_undangan':
-                return "Undangan";
-                break;
-
-            case 'to_sprint':
-                return "Surat Perintah";
-                break;
-
-            case 'to_notadinas':
-                return "Nota Dinas";
-                break;
-
-            case 'to_reply':
-                return "Nota Dinas";
-                break;
-
-            case 'to_usul':
-                return "Jawaban Nota Dinas";
-                break;
-
-            case 'to_forward':
-                return "Teruskan";
-                break;
-
-            case 'cc1':
-                return "Disposisi";
-                break;
-
-            case 'to_keluar':
-                return "Surat Dinas Keluar";
-                break;
-
-            case 'to_nadin':
-                return "Naskah Dinas Lainnya";
-                break;
-
-            case 'to_konsep':
-                return "Konsep Naskah";
-                break;
-
-            case 'to_memo':
-                return "Memo";
-                break;
-
-            case 'to_draft_notadinas':
-                return "Konsep Nota Dinas";
-                break;
-
-            case 'to_draft_sprint':
-                return "Konsep Surat Perintah";
-                break;
-
-            case 'to_draft_undangan':
-                return "Konsep Undangan";
-                break;
-
-            case 'to_draft_keluar':
-                return "Konsep surat Dinas";
-                break;
-
-            case 'to_draft_sket':
-                return "Konsep surat Keterangan";
-                break;
-
-            case 'to_draft_pengumuman':
-                return "Konsep Pengumuman";
-                break;
-
-            case 'to_draft_rekomendasi':
-                return "Konsep Surat Rekomendasi";
-                break;
-
-            default:
-                return "Konsep Naskah Dinas Lainnya";
-                break;
-        }
+        return $label;
     }
 }
