@@ -51,8 +51,11 @@ class DraftQuery
         $draftId = Arr::get($args, 'filter.draftId');
         $type = Arr::get($args, 'filter.type');
 
+        $inboxReceiverCorrection = new InboxReceiverCorrection();
+        $receiverAsReviewData = $inboxReceiverCorrection->getReceiverAsReviewData();
+        $receiverAsReviewData = Arr::prepend($receiverAsReviewData, $type);
         $inboxReceiverCorrections = InboxReceiverCorrection::where('NId', $draftId)
-                                                            ->where('ReceiverAs', $type)
+                                                            ->whereIn('ReceiverAs', $receiverAsReviewData)
                                                             ->orderBy('ReceiveDate', 'desc')
                                                             ->get()
                                                             ->unique('To_Id');

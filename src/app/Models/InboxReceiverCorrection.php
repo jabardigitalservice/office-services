@@ -180,14 +180,14 @@ class InboxReceiverCorrection extends Model
                 CustomReceiverTypeEnum::NUMBERING()->value     => ['Meminta Nomber Surat'],
                 CustomReceiverTypeEnum::SIGN_REQUEST()->value,
                 CustomReceiverTypeEnum::SIGNED()->value        => ['meneruskan'],
-                default => $this->getReceiverAsReviewData($receiverAs)
+                default => $this->getReceiverAsReviewData()
             };
             $receiverAs = array_merge($receiverAs, $receiverType);
         }
         return $receiverAs;
     }
 
-    protected function getReceiverAsReviewData($receiverAs)
+    public function getReceiverAsReviewData()
     {
         return [
             'to_draft_keluar',
