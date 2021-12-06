@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\V1;
 
+use App\Exceptions\CustomException;
 use App\Http\Controllers\Controller;
 use App\Models\Draft;
 use App\Models\MasterDraftHeader;
@@ -20,21 +21,28 @@ class DocumentDraftPdfController extends Controller
      */
     public function __invoke(Request $request, $id)
     {
-        $draft  = Draft::where('NId_Temp', $id)->firstOrFail();
-        $header = MasterDraftHeader::where('GRoleId', $draft->sender->role->GRoleId)->first();
+        try {
+            $draft  = Draft::where('NId_Temp', $id)->firstOrFail();
+            $header = MasterDraftHeader::where('GRoleId', $draft->sender->role->GRoleId)->first();
 
-        $carbonCopy = [];
-        if ($draft->RoleId_Cc) {
-            $explodeCarbonCopy = explode(',', $draft->RoleId_Cc);
-            if (!empty($explodeCarbonCopy)) {
-                $carbonCopy = Role::whereIn('RoleId', $explodeCarbonCopy)->get();
-            } else {
-                $carbonCopy = Role::where('RoleId', $explodeCarbonCopy[0])->first();
+            $carbonCopy = [];
+            if ($draft->RoleId_Cc) {
+                $explodeCarbonCopy = explode(',', $draft->RoleId_Cc);
+                if (!empty($explodeCarbonCopy)) {
+                    $carbonCopy = Role::whereIn('RoleId', $explodeCarbonCopy)->get();
+                } else {
+                    $carbonCopy = Role::where('RoleId', $explodeCarbonCopy[0])->first();
+                }
             }
-        }
 
-        // return view('pdf.outboxkeluar', compact('draft', 'header', 'carbonCopy'));
-        $pdf = PDF::loadView('pdf.outboxkeluar', compact('draft', 'header', 'carbonCopy'));
-        return $pdf->stream();
+            // return view('pdf.outboxkeluar', compact('draft', 'header', 'carbonCopy'));
+            $pdf = PDF::loadView('pdf.outboxkeluar', compact('draft', 'header', 'carbonCopy'));
+            return $pdf->stream();
+        } catch (\Throwable $th) {
+            throw new CustomException(
+                'Invalid document',
+                $th->getMessage(),
+            );
+        }
     }
 }

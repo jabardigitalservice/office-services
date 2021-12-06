@@ -42,6 +42,11 @@ class Draft extends Model
         return $this->belongsTo(People::class, 'Approve_People', 'PeopleId');
     }
 
+    public function approver()
+    {
+        return $this->belongsTo(People::class, 'Approve_People3', 'PeopleId');
+    }
+
     public function draftType()
     {
         return $this->belongsTo(MasterDraftType::class, 'JenisId', 'JenisId');

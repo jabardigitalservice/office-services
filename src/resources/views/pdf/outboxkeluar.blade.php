@@ -77,6 +77,25 @@
                 line-height: 14px;
                 vertical-align: top;
             }
+
+            .header-attachment {
+                margin-top: 11px;
+                float: right;
+                width: 385px;
+                font-size: 11px;
+                line-height: 15px;
+                position: relative;
+                right: -10px;
+            }
+            .content-attachment table {
+                border-collapse: collapse;
+                width: auto;
+            }
+            .content-attachment td {
+                padding: 0;
+                margin: 0;
+                line-height: 16px
+            }
         </style>
     </head>
     <body>
@@ -115,7 +134,13 @@
                                 <tr>
                                     <td style="width: 69px">Nomor</td>
                                     <td style="width: 18px">:</td>
-                                    <td>.../{{ $draft->classification->ClCode; }}/{{ $draft->RoleCode; }}</td>
+                                    <td>
+                                        @if ($draft->nosurat != null)
+                                            {{ $draft->nosurat }}
+                                        @else
+                                            .../{{ $draft->classification->ClCode; }}/{{ $draft->RoleCode; }}
+                                        @endif
+                                    </td>
                                 </tr>
                                 <tr>
                                     <td style="width: 69px">Sifat</td>
@@ -151,7 +176,7 @@
                 <section id="body-content-section">
                     {!! $draft->Konten; !!}
                 </section>
-                <section id="signature-content-section">
+                <section class="signature-content-section">
                     <div style="float:right; width: 300px;">
                         <p style="text-align: center;">
                             @if ($draft->TtdText == 'PLT')
@@ -159,10 +184,10 @@
                             @elseif ($draft->TtdText == 'PLH')
                                 Plh. {!! $draft->reviewer->role->RoleName !!},
                             @elseif ($draft->TtdText2 == 'Atas_Nama')
-                                a.n.&nbsp;<{!! $draft->reviewer->role->RoleName !!},
+                                a.n.&nbsp;{!! $draft->reviewer->role->RoleName !!},
                                     <br>{!! $draft->reviewer->role->RoleName !!},
                             @elseif ($draft->TtdText2 == 'untuk_beliau')
-                                a.n.&nbsp;<{!! $draft->reviewer->role->RoleName !!},
+                                a.n.&nbsp;{!! $draft->reviewer->role->RoleName !!},
                                     <br>{!! $draft->sender->parentRole->RoleName !!},
                                     <br>u.b.<br>{!! $draft->reviewer->role->RoleName !!},
                             @else
@@ -194,7 +219,7 @@
                                                 <br><{!! $draft->reviewer->role->RoleName !!},
 
                                             @elseif ($draft->TtdText2 == 'untuk_beliau')
-                                                a.n.&nbsp;<{!! $draft->reviewer->role->RoleName !!},
+                                                a.n.&nbsp;{!! $draft->reviewer->role->RoleName !!},
                                                 <br>{!! $draft->sender->parentRole->RoleName !!},
                                                 <br>u.b.<br>{!! $draft->reviewer->role->RoleName !!},
 
@@ -276,22 +301,518 @@
             </div>
             @if ($draft->lampiran != null)
                 <div style="page-break-after: {{ $draft->lampiran2 != null ? "always" : "never" }};">
-                    Lampiran 1
+                    <div class="header-attachment">
+                        <table style="text-align: justify">
+                            <tbody>
+                                <tr>
+                                    <td style="width: 65px; vertical-align: top;">LAMPIRAN</td>
+                                    <td style="width: 31px; vertical-align: top;">:</td>
+                                    <td style="vertical-align: top;" colspan="3">
+                                        @if ($draft->type_naskah == 'XxJyPn38Yh.1')
+                                            SURAT
+                                        @elseif ($draft->type_naskah == 'XxJyPn38Yh.2')
+                                            SURAT UNDANGAN
+                                        @elseif ($draft->type_naskah == 'XxJyPn38Yh.3')
+                                            SURAT PANGGILAN
+                                        @endif
+                                        @if ($draft->TtdText == 'PLT')
+                                            Plt. {!! $draft->reviewer->role->RoleName !!},
+                                        @elseif ($draft->TtdText == 'PLH')
+                                            Plh. {!! $draft->reviewer->role->RoleName !!},
+                                        @elseif ($draft->TtdText2 == 'Atas_Nama')
+                                            {!! $draft->approver->role->RoleName !!},
+                                        @else
+                                            {!! $draft->reviewer->role->RoleName !!},
+                                        @endif
+                                        <table class="no-padding-table" style="text-align: justify">
+                                            <tr>
+                                                <td style="width: 80px; vertical-align: top;">NOMOR</td>
+                                                <td style="width: 15px; vertical-align: top;">:</td>
+                                                <td style="vertical-align: top;">
+                                                    @if ($draft->nosurat != null)
+                                                        {{ $draft->nosurat }}
+                                                    @else
+                                                        .../{{ $draft->classification->ClCode; }}/{{ $draft->RoleCode; }}
+                                                    @endif
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td style="width: 80px; vertical-align: top;">TANGGAL</td>
+                                                <td style="width: 15px; vertical-align: top;">:</td>
+                                                <td style="vertical-align: top;">Tanggal / Bulan / Tahun</td>
+                                            </tr>
+                                            <tr>
+                                                <td style="width: 80px; vertical-align: top;">PERIHAL</td>
+                                                <td style="width: 15px; vertical-align: top;">:</td>
+                                                <td style="vertical-align: top;"> <?= $draft->Hal; ?></td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="clearfix"></div>
+                    <div class="content-attachment">
+                        <p style="line-height: 15px; text-align: justify;">
+                            {!! $draft->lampiran !!}<br>
+                       </p>
+                    </div>
+                    <section class="signature-content-section">
+                        <div style="float:right; width: 300px;">
+                            <p style="text-align: center;">
+                                @if ($draft->TtdText == 'PLT')
+                                    Plt. {!! $draft->reviewer->role->RoleName !!},
+                                @elseif ($draft->TtdText == 'PLH')
+                                    Plh. {!! $draft->reviewer->role->RoleName !!},
+                                @elseif ($draft->TtdText2 == 'Atas_Nama')
+                                    a.n.&nbsp;{!! $draft->reviewer->role->RoleName !!},
+                                        <br>{!! $draft->reviewer->role->RoleName !!},
+                                @elseif ($draft->TtdText2 == 'untuk_beliau')
+                                    a.n.&nbsp;{!! $draft->reviewer->role->RoleName !!},
+                                        <br>{!! $draft->sender->parentRole->RoleName !!},
+                                        <br>u.b.<br>{!! $draft->reviewer->role->RoleName !!},
+                                @else
+                                    {!! $draft->reviewer->role->RoleName !!},
+                                @endif
+                            </p>
+
+                            <p style="text-align: center;">PEMERIKSA</p>
+                            <div style="border: 1px solid #000000; font-size: 10px; margin: 0px 6px 0px 20px;">
+                                <table class="no-padding-table">
+                                    <tr>
+                                        <td rowspan="4">
+                                            <img src="{!! config('sikd.url') !!}/uploads/kosong.jpg" width="48px" height="48px">
+                                        </td>
+                                        <td>Ditandatangani secara elekronik oleh:</td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <div style="margin-bottom: 20px">
+                                                @if ($draft->TtdText == 'PLT')
+                                                    Plt. {!! $draft->reviewer->role->RoleName !!},
+
+                                                @elseif ($draft->TtdText == 'PLH')
+                                                    Plh. {!! $draft->reviewer->role->RoleName !!},
+                                                    <br>{!! $draft->reviewer->role->RoleName !!},
+
+                                                @elseif ($draft->TtdText2 == 'Atas_Nama')
+                                                    a.n.&nbsp;{!! $draft->reviewer->role->RoleName !!},
+                                                    <br><{!! $draft->reviewer->role->RoleName !!},
+
+                                                @elseif ($draft->TtdText2 == 'untuk_beliau')
+                                                    a.n.&nbsp;{!! $draft->reviewer->role->RoleName !!},
+                                                    <br>{!! $draft->sender->parentRole->RoleName !!},
+                                                    <br>u.b.<br>{!! $draft->reviewer->role->RoleName !!},
+
+                                                @else
+                                                    {!! $draft->reviewer->role->RoleName !!},
+                                                @endif
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <?= $draft->Nama_ttd_konsep ?>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            {!! $draft->reviewer->Pangkat !!}
+                                        </td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="clearfix"></div>
+                    </section>
                 </div>
             @endif
             @if ($draft->lampiran2 != null)
                 <div style="page-break-after: {{ $draft->lampiran3 != null ? "always" : "never" }};">
-                    Lampiran 2
+                    <div class="header-attachment">
+                        <table style="text-align: justify">
+                            <tbody>
+                                <tr>
+                                    <td style="width: 65px; vertical-align: top;">LAMPIRAN II</td>
+                                    <td style="width: 31px; vertical-align: top;">:</td>
+                                    <td style="vertical-align: top;" colspan="3">
+                                        @if ($draft->type_naskah == 'XxJyPn38Yh.1')
+                                            SURAT
+                                        @elseif ($draft->type_naskah == 'XxJyPn38Yh.2')
+                                            SURAT UNDANGAN
+                                        @elseif ($draft->type_naskah == 'XxJyPn38Yh.3')
+                                            SURAT PANGGILAN
+                                        @endif
+                                        @if ($draft->TtdText == 'PLT')
+                                            Plt. {!! $draft->reviewer->role->RoleName !!},
+                                        @elseif ($draft->TtdText == 'PLH')
+                                            Plh. {!! $draft->reviewer->role->RoleName !!},
+                                        @elseif ($draft->TtdText2 == 'Atas_Nama')
+                                            {!! $draft->approver->role->RoleName !!},
+                                        @else
+                                            {!! $draft->reviewer->role->RoleName !!},
+                                        @endif
+                                        <table class="no-padding-table" style="text-align: justify">
+                                            <tr>
+                                                <td style="width: 80px; vertical-align: top;">NOMOR</td>
+                                                <td style="width: 15px; vertical-align: top;">:</td>
+                                                <td style="vertical-align: top;">
+                                                    @if ($draft->nosurat != null)
+                                                        {{ $draft->nosurat }}
+                                                    @else
+                                                        .../{{ $draft->classification->ClCode; }}/{{ $draft->RoleCode; }}
+                                                    @endif
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td style="width: 80px; vertical-align: top;">TANGGAL</td>
+                                                <td style="width: 15px; vertical-align: top;">:</td>
+                                                <td style="vertical-align: top;">Tanggal / Bulan / Tahun</td>
+                                            </tr>
+                                            <tr>
+                                                <td style="width: 80px; vertical-align: top;">PERIHAL</td>
+                                                <td style="width: 15px; vertical-align: top;">:</td>
+                                                <td style="vertical-align: top;"> <?= $draft->Hal; ?></td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="clearfix"></div>
+                    <div class="content-attachment">
+                        <p style="line-height: 15px; text-align: justify;">
+                            {!! $draft->lampiran2 !!}<br>
+                       </p>
+                    </div>
+                    <section class="signature-content-section">
+                        <div style="float:right; width: 300px;">
+                            <p style="text-align: center;">
+                                @if ($draft->TtdText == 'PLT')
+                                    Plt. {!! $draft->reviewer->role->RoleName !!},
+                                @elseif ($draft->TtdText == 'PLH')
+                                    Plh. {!! $draft->reviewer->role->RoleName !!},
+                                @elseif ($draft->TtdText2 == 'Atas_Nama')
+                                    a.n.&nbsp;{!! $draft->reviewer->role->RoleName !!},
+                                        <br>{!! $draft->reviewer->role->RoleName !!},
+                                @elseif ($draft->TtdText2 == 'untuk_beliau')
+                                    a.n.&nbsp;{!! $draft->reviewer->role->RoleName !!},
+                                        <br>{!! $draft->sender->parentRole->RoleName !!},
+                                        <br>u.b.<br>{!! $draft->reviewer->role->RoleName !!},
+                                @else
+                                    {!! $draft->reviewer->role->RoleName !!},
+                                @endif
+                            </p>
+
+                            <p style="text-align: center;">PEMERIKSA</p>
+                            <div style="border: 1px solid #000000; font-size: 10px; margin: 0px 6px 0px 20px;">
+                                <table class="no-padding-table">
+                                    <tr>
+                                        <td rowspan="4">
+                                            <img src="{!! config('sikd.url') !!}/uploads/kosong.jpg" width="48px" height="48px">
+                                        </td>
+                                        <td>Ditandatangani secara elekronik oleh:</td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <div style="margin-bottom: 20px">
+                                                @if ($draft->TtdText == 'PLT')
+                                                    Plt. {!! $draft->reviewer->role->RoleName !!},
+
+                                                @elseif ($draft->TtdText == 'PLH')
+                                                    Plh. {!! $draft->reviewer->role->RoleName !!},
+                                                    <br>{!! $draft->reviewer->role->RoleName !!},
+
+                                                @elseif ($draft->TtdText2 == 'Atas_Nama')
+                                                    a.n.&nbsp;{!! $draft->reviewer->role->RoleName !!},
+                                                    <br><{!! $draft->reviewer->role->RoleName !!},
+
+                                                @elseif ($draft->TtdText2 == 'untuk_beliau')
+                                                    a.n.&nbsp;{!! $draft->reviewer->role->RoleName !!},
+                                                    <br>{!! $draft->sender->parentRole->RoleName !!},
+                                                    <br>u.b.<br>{!! $draft->reviewer->role->RoleName !!},
+
+                                                @else
+                                                    {!! $draft->reviewer->role->RoleName !!},
+                                                @endif
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <?= $draft->Nama_ttd_konsep ?>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            {!! $draft->reviewer->Pangkat !!}
+                                        </td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="clearfix"></div>
+                    </section>
                 </div>
             @endif
             @if ($draft->lampiran3 != null)
                 <div style="page-break-after: {{ $draft->lampiran4 != null ? "always" : "never" }};">
-                    Lampiran 3
+                    <div class="header-attachment">
+                        <table style="text-align: justify">
+                            <tbody>
+                                <tr>
+                                    <td style="width: 65px; vertical-align: top;">LAMPIRAN III</td>
+                                    <td style="width: 31px; vertical-align: top;">:</td>
+                                    <td style="vertical-align: top;" colspan="3">
+                                        @if ($draft->type_naskah == 'XxJyPn38Yh.1')
+                                            SURAT
+                                        @elseif ($draft->type_naskah == 'XxJyPn38Yh.2')
+                                            SURAT UNDANGAN
+                                        @elseif ($draft->type_naskah == 'XxJyPn38Yh.3')
+                                            SURAT PANGGILAN
+                                        @endif
+                                        @if ($draft->TtdText == 'PLT')
+                                            Plt. {!! $draft->reviewer->role->RoleName !!},
+                                        @elseif ($draft->TtdText == 'PLH')
+                                            Plh. {!! $draft->reviewer->role->RoleName !!},
+                                        @elseif ($draft->TtdText2 == 'Atas_Nama')
+                                            {!! $draft->approver->role->RoleName !!},
+                                        @else
+                                            {!! $draft->reviewer->role->RoleName !!},
+                                        @endif
+                                        <table class="no-padding-table" style="text-align: justify">
+                                            <tr>
+                                                <td style="width: 80px; vertical-align: top;">NOMOR</td>
+                                                <td style="width: 15px; vertical-align: top;">:</td>
+                                                <td style="vertical-align: top;">
+                                                    @if ($draft->nosurat != null)
+                                                        {{ $draft->nosurat }}
+                                                    @else
+                                                        .../{{ $draft->classification->ClCode; }}/{{ $draft->RoleCode; }}
+                                                    @endif
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td style="width: 80px; vertical-align: top;">TANGGAL</td>
+                                                <td style="width: 15px; vertical-align: top;">:</td>
+                                                <td style="vertical-align: top;">Tanggal / Bulan / Tahun</td>
+                                            </tr>
+                                            <tr>
+                                                <td style="width: 80px; vertical-align: top;">PERIHAL</td>
+                                                <td style="width: 15px; vertical-align: top;">:</td>
+                                                <td style="vertical-align: top;"> <?= $draft->Hal; ?></td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="clearfix"></div>
+                    <div class="content-attachment">
+                        <p style="line-height: 15px; text-align: justify;">
+                            {!! $draft->lampiran3 !!}<br>
+                       </p>
+                    </div>
+                    <section class="signature-content-section">
+                        <div style="float:right; width: 300px;">
+                            <p style="text-align: center;">
+                                @if ($draft->TtdText == 'PLT')
+                                    Plt. {!! $draft->reviewer->role->RoleName !!},
+                                @elseif ($draft->TtdText == 'PLH')
+                                    Plh. {!! $draft->reviewer->role->RoleName !!},
+                                @elseif ($draft->TtdText2 == 'Atas_Nama')
+                                    a.n.&nbsp;{!! $draft->reviewer->role->RoleName !!},
+                                        <br>{!! $draft->reviewer->role->RoleName !!},
+                                @elseif ($draft->TtdText2 == 'untuk_beliau')
+                                    a.n.&nbsp;{!! $draft->reviewer->role->RoleName !!},
+                                        <br>{!! $draft->sender->parentRole->RoleName !!},
+                                        <br>u.b.<br>{!! $draft->reviewer->role->RoleName !!},
+                                @else
+                                    {!! $draft->reviewer->role->RoleName !!},
+                                @endif
+                            </p>
+
+                            <p style="text-align: center;">PEMERIKSA</p>
+                            <div style="border: 1px solid #000000; font-size: 10px; margin: 0px 6px 0px 20px;">
+                                <table class="no-padding-table">
+                                    <tr>
+                                        <td rowspan="4">
+                                            <img src="{!! config('sikd.url') !!}/uploads/kosong.jpg" width="48px" height="48px">
+                                        </td>
+                                        <td>Ditandatangani secara elekronik oleh:</td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <div style="margin-bottom: 20px">
+                                                @if ($draft->TtdText == 'PLT')
+                                                    Plt. {!! $draft->reviewer->role->RoleName !!},
+
+                                                @elseif ($draft->TtdText == 'PLH')
+                                                    Plh. {!! $draft->reviewer->role->RoleName !!},
+                                                    <br>{!! $draft->reviewer->role->RoleName !!},
+
+                                                @elseif ($draft->TtdText2 == 'Atas_Nama')
+                                                    a.n.&nbsp;{!! $draft->reviewer->role->RoleName !!},
+                                                    <br><{!! $draft->reviewer->role->RoleName !!},
+
+                                                @elseif ($draft->TtdText2 == 'untuk_beliau')
+                                                    a.n.&nbsp;{!! $draft->reviewer->role->RoleName !!},
+                                                    <br>{!! $draft->sender->parentRole->RoleName !!},
+                                                    <br>u.b.<br>{!! $draft->reviewer->role->RoleName !!},
+
+                                                @else
+                                                    {!! $draft->reviewer->role->RoleName !!},
+                                                @endif
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <?= $draft->Nama_ttd_konsep ?>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            {!! $draft->reviewer->Pangkat !!}
+                                        </td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="clearfix"></div>
+                    </section>
                 </div>
             @endif
             @if ($draft->lampiran4 != null)
                 <div style="page-break-after: never">
-                    Lampiran 4
+                    <div class="header-attachment">
+                        <table style="text-align: justify">
+                            <tbody>
+                                <tr>
+                                    <td style="width: 65px; vertical-align: top;">LAMPIRAN IV</td>
+                                    <td style="width: 31px; vertical-align: top;">:</td>
+                                    <td style="vertical-align: top;" colspan="3">
+                                        @if ($draft->type_naskah == 'XxJyPn38Yh.1')
+                                            SURAT
+                                        @elseif ($draft->type_naskah == 'XxJyPn38Yh.2')
+                                            SURAT UNDANGAN
+                                        @elseif ($draft->type_naskah == 'XxJyPn38Yh.3')
+                                            SURAT PANGGILAN
+                                        @endif
+                                        @if ($draft->TtdText == 'PLT')
+                                            Plt. {!! $draft->reviewer->role->RoleName !!},
+                                        @elseif ($draft->TtdText == 'PLH')
+                                            Plh. {!! $draft->reviewer->role->RoleName !!},
+                                        @elseif ($draft->TtdText2 == 'Atas_Nama')
+                                            {!! $draft->approver->role->RoleName !!},
+                                        @else
+                                            {!! $draft->reviewer->role->RoleName !!},
+                                        @endif
+                                        <table class="no-padding-table" style="text-align: justify">
+                                            <tr>
+                                                <td style="width: 80px; vertical-align: top;">NOMOR</td>
+                                                <td style="width: 15px; vertical-align: top;">:</td>
+                                                <td style="vertical-align: top;">
+                                                    @if ($draft->nosurat != null)
+                                                        {{ $draft->nosurat }}
+                                                    @else
+                                                        .../{{ $draft->classification->ClCode; }}/{{ $draft->RoleCode; }}
+                                                    @endif
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td style="width: 80px; vertical-align: top;">TANGGAL</td>
+                                                <td style="width: 15px; vertical-align: top;">:</td>
+                                                <td style="vertical-align: top;">Tanggal / Bulan / Tahun</td>
+                                            </tr>
+                                            <tr>
+                                                <td style="width: 80px; vertical-align: top;">PERIHAL</td>
+                                                <td style="width: 15px; vertical-align: top;">:</td>
+                                                <td style="vertical-align: top;"> <?= $draft->Hal; ?></td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="clearfix"></div>
+                    <div class="content-attachment">
+                        <p style="line-height: 15px; text-align: justify;">
+                            {!! $draft->lampiran4 !!}<br>
+                       </p>
+                    </div>
+                    <section class="signature-content-section">
+                        <div style="float:right; width: 300px;">
+                            <p style="text-align: center;">
+                                @if ($draft->TtdText == 'PLT')
+                                    Plt. {!! $draft->reviewer->role->RoleName !!},
+                                @elseif ($draft->TtdText == 'PLH')
+                                    Plh. {!! $draft->reviewer->role->RoleName !!},
+                                @elseif ($draft->TtdText2 == 'Atas_Nama')
+                                    a.n.&nbsp;{!! $draft->reviewer->role->RoleName !!},
+                                        <br>{!! $draft->reviewer->role->RoleName !!},
+                                @elseif ($draft->TtdText2 == 'untuk_beliau')
+                                    a.n.&nbsp;{!! $draft->reviewer->role->RoleName !!},
+                                        <br>{!! $draft->sender->parentRole->RoleName !!},
+                                        <br>u.b.<br>{!! $draft->reviewer->role->RoleName !!},
+                                @else
+                                    {!! $draft->reviewer->role->RoleName !!},
+                                @endif
+                            </p>
+
+                            <p style="text-align: center;">PEMERIKSA</p>
+                            <div style="border: 1px solid #000000; font-size: 10px; margin: 0px 6px 0px 20px;">
+                                <table class="no-padding-table">
+                                    <tr>
+                                        <td rowspan="4">
+                                            <img src="{!! config('sikd.url') !!}/uploads/kosong.jpg" width="48px" height="48px">
+                                        </td>
+                                        <td>Ditandatangani secara elekronik oleh:</td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <div style="margin-bottom: 20px">
+                                                @if ($draft->TtdText == 'PLT')
+                                                    Plt. {!! $draft->reviewer->role->RoleName !!},
+
+                                                @elseif ($draft->TtdText == 'PLH')
+                                                    Plh. {!! $draft->reviewer->role->RoleName !!},
+                                                    <br>{!! $draft->reviewer->role->RoleName !!},
+
+                                                @elseif ($draft->TtdText2 == 'Atas_Nama')
+                                                    a.n.&nbsp;{!! $draft->reviewer->role->RoleName !!},
+                                                    <br><{!! $draft->reviewer->role->RoleName !!},
+
+                                                @elseif ($draft->TtdText2 == 'untuk_beliau')
+                                                    a.n.&nbsp;{!! $draft->reviewer->role->RoleName !!},
+                                                    <br>{!! $draft->sender->parentRole->RoleName !!},
+                                                    <br>u.b.<br>{!! $draft->reviewer->role->RoleName !!},
+
+                                                @else
+                                                    {!! $draft->reviewer->role->RoleName !!},
+                                                @endif
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <?= $draft->Nama_ttd_konsep ?>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            {!! $draft->reviewer->Pangkat !!}
+                                        </td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="clearfix"></div>
+                    </section>
                 </div>
             @endif
         </main>
