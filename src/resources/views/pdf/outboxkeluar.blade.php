@@ -10,12 +10,12 @@
                 margin: 85px 85.5px 80px 123.1px;
             }
 
-            header {
+            section#header-section {
                 position: fixed;
                 top: -60px;
                 left: 0px;
                 right: 0px;
-                height: 50px;
+                height: 0px;
 
                 /** Extra personal styles **/
             }
@@ -69,6 +69,10 @@
                 line-height: 17px;
                 margin: 0px 0px 10px 69px;
             }
+
+            #body-content-section table {
+                height: auto !important;
+            }
             #body-content-section table td {
                 line-height: 14px;
                 vertical-align: top;
@@ -77,10 +81,6 @@
     </head>
     <body>
         <!-- Define header and footer blocks before your content -->
-        <header>
-            <img style="width: 100%" src="{!! config('sikd.base_path_file') . 'kop/' . $header->Header !!}">
-        </header>
-
         <footer>
             Dokumen ini telah ditandatangani secara elektronik menggunakan sertifikat elektronik yang diterbitkan oleh
             <br>
@@ -89,7 +89,15 @@
 
         <!-- Wrap the content of your PDF inside a main tag -->
         <main>
-            <div style="page-break-after: never;">
+            @if ($draft->lampiran != null || $draft->lampiran2 != null || $draft->lampiran3 != null || $draft->lampiran4 != null)
+                @php $firstPageBreak = 'always'; @endphp
+            @else
+                @php $firstPageBreak = 'never'; @endphp
+            @endif
+            <div style="page-break-after: {{ $firstPageBreak }};">
+                <section id="header-section">
+                    <img style="width: 100%" src="{!! config('sikd.base_path_file') . 'kop/' . $header->Header !!}">
+                </section>
                 <section id="header-content-section">
                     <div style="margin-top: 49px">
                         <div class="left-header">&nbsp;</div>
@@ -163,7 +171,7 @@
                         </p>
 
                         <p style="text-align: center;">PEMERIKSA</p>
-                        <div style="border: 1px solid #000000; font-size: 10px; margin: 0px 5px 0px 20px;">
+                        <div style="border: 1px solid #000000; font-size: 10px; margin: 0px 6px 0px 20px;">
                             <table class="no-padding-table">
                                 <tr>
                                     <td rowspan="4">
@@ -212,11 +220,13 @@
                     <div class="clearfix"></div>
                 </section>
                 <section id="carboncopy-content-section">
-                    <table width="100%" style="font-family: Arial; font-size: 12px; line-height: 15px;">
+                    <table width="100%" style="line-height: 15px;">
                         <tr>
                             <td width="10%" valign="top">
                                 @php $greeting = 'Yth.'; @endphp
-                                Tembusan : <br>
+                                @if ($carbonCopy)
+                                    Tembusan : <br>
+                                @endif
                                 @forelse ($carbonCopy as $index => $value)
                                     @php
                                         $index++;
@@ -233,7 +243,7 @@
                                             @php $endGreeting = '; dan'; @endphp
                                         @endif
                                     @else
-                                        @php $endGreeting = '.'; @endphp
+                                        @php $endGreeting = ''; @endphp
                                     @endif
 
                                     <table border="0" height="20" width="100">
@@ -264,9 +274,26 @@
                     </table>
                 </section>
             </div>
-            {{-- <div style="page-break-after: never;">
-                Content Page 2
-            </div> --}}
+            @if ($draft->lampiran != null)
+                <div style="page-break-after: {{ $draft->lampiran2 != null ? "always" : "never" }};">
+                    Lampiran 1
+                </div>
+            @endif
+            @if ($draft->lampiran2 != null)
+                <div style="page-break-after: {{ $draft->lampiran3 != null ? "always" : "never" }};">
+                    Lampiran 2
+                </div>
+            @endif
+            @if ($draft->lampiran3 != null)
+                <div style="page-break-after: {{ $draft->lampiran4 != null ? "always" : "never" }};">
+                    Lampiran 3
+                </div>
+            @endif
+            @if ($draft->lampiran4 != null)
+                <div style="page-break-after: never">
+                    Lampiran 4
+                </div>
+            @endif
         </main>
     </body>
 </html>
