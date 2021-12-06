@@ -18,10 +18,6 @@ class InboxReceiverCorrection extends Model
 
     public $timestamps = false;
 
-    protected $keyType = 'string';
-
-    protected $primaryKey = 'NId';
-
     public function draftDetail()
     {
         return $this->belongsTo(Draft::class, 'NId', 'NId_Temp');
