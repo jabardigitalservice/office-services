@@ -51,11 +51,19 @@ class DraftQuery
         $draftId = Arr::get($args, 'filter.draftId');
         $type = Arr::get($args, 'filter.type');
 
-        $inboxReceiverCorrections = InboxReceiverCorrection::where('NId', $draftId)
-                                                            ->where('ReceiverAs', $type)
+        $firstDraft = InboxReceiverCorrection::where('NId', $draftId)
+                                            ->where('ReceiverAs', 'LIKE', '%to_draft_%')
+                                            ->pluck('id');
+
+        $reviewDraft = InboxReceiverCorrection::where('NId', $draftId)
+                                            ->where('ReceiverAs', $type)
+                                            ->get()
+                                            ->unique('To_Id')
+                                            ->pluck('id');
+
+        $inboxReceiverCorrections = InboxReceiverCorrection::whereIn('id', $reviewDraft->merge($firstDraft))
                                                             ->orderBy('ReceiveDate', 'desc')
-                                                            ->get()
-                                                            ->unique('To_Id');
+                                                            ->get();
 
         return $inboxReceiverCorrections;
     }
