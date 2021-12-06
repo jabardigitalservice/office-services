@@ -5,7 +5,9 @@ namespace App\GraphQL\Queries;
 use App\Enums\InboxReceiverScopeType;
 use App\Enums\PeopleGroupTypeEnum;
 use App\Exceptions\CustomException;
+use App\Models\DocumentSignatureSent;
 use App\Models\InboxReceiver;
+use Illuminate\Support\Facades\DB;
 use Nuwave\Lighthouse\Support\Contracts\GraphQLContext;
 
 class InboxQuery
@@ -62,11 +64,13 @@ class InboxQuery
 
         $internalCount = $this->unreadCountQuery(InboxReceiverScopeType::INTERNAL(), $context);
         $dispositionCount = $this->unreadCountQuery(InboxReceiverScopeType::DISPOSITION(), $context);
+        $signatureCount = $this->unreadCountSignatureQuery($context);
 
         $count = [
-            'regional' => $regionalCount,
-            'internal' => $internalCount,
-            'disposition' => $dispositionCount
+            'regional'      => $regionalCount,
+            'internal'      => $internalCount,
+            'disposition'   => $dispositionCount,
+            'signature'     => $signatureCount
         ];
 
         return $count;
@@ -119,6 +123,22 @@ class InboxQuery
         if ((string) $user->GroupId != PeopleGroupTypeEnum::TU()) {
             $query->where('To_Id', $user->PeopleId);
         }
+
+        return $query->count();
+    }
+
+     /**
+     * @param \Nuwave\Lighthouse\Support\Contracts\GraphQLContext|null $context
+     *
+     * @return Integer
+     */
+    private function unreadCountSignatureQuery($context)
+    {
+        $user = $context->user;
+        $readIds = DB::connection('mysql')->table('document_signature_sent_reads')
+            ->pluck('document_signature_sent_id');
+        $query = DocumentSignatureSent::where('PeopleIDTujuan', $user->PeopleId)
+            ->whereNotIn('id', $readIds);
 
         return $query->count();
     }
