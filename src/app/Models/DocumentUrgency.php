@@ -11,7 +11,7 @@ class DocumentUrgency extends Model
 
     protected $connection = 'sikdweb';
 
-    protected $table = "master_urgensi";
+    protected $table = 'master_urgensi';
 
     protected $keyType = 'string';
 

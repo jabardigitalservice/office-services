@@ -11,16 +11,11 @@ class Draft extends Model
 
     protected $connection = 'sikdweb';
 
-    protected $table = "konsep_naskah";
+    protected $table = 'konsep_naskah';
 
     protected $keyType = 'string';
 
     protected $primaryKey = 'NId_Temp';
-
-    public function sender()
-    {
-        return $this->belongsTo(People::class, 'CreateBy', 'PeopleId');
-    }
 
     public function type()
     {

@@ -13,7 +13,7 @@ class GroupRole extends Model
 
     public $timestamps = false;
 
-    protected $table = "master_grole";
+    protected $table = 'master_grole';
 
     protected $keyType = 'string';
 

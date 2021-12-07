@@ -11,7 +11,7 @@ class MasterDraftType extends Model
 
     protected $connection = 'sikdweb';
 
-    protected $table = "master_jnaskah";
+    protected $table = 'master_jnaskah';
 
     public $timestamps = false;
 

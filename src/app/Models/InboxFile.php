@@ -11,7 +11,7 @@ class InboxFile extends Model
 
     protected $connection = 'sikdweb';
 
-    protected $table = "inbox_files";
+    protected $table = 'inbox_files';
 
     public $timestamps = false;
 

@@ -13,7 +13,7 @@ class Rolecode extends Model
 
     public $timestamps = false;
 
-    protected $table = "rolecode";
+    protected $table = 'rolecode';
 
     protected $keyType = 'string';
 

@@ -14,7 +14,7 @@ class InboxReceiverCorrection extends Model
 
     protected $connection = 'sikdweb';
 
-    protected $table = "inbox_receiver_koreksi";
+    protected $table = 'inbox_receiver_koreksi';
 
     public $timestamps = false;
 

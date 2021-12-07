@@ -13,7 +13,7 @@ class InboxReceiver extends Model
 
     protected $connection = 'sikdweb';
 
-    protected $table = "inbox_receiver";
+    protected $table = 'inbox_receiver';
 
     public $timestamps = false;
 

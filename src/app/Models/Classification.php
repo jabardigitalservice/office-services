@@ -11,7 +11,7 @@ class Classification extends Model
 
     protected $connection = 'sikdweb';
 
-    protected $table = "classification";
+    protected $table = 'classification';
 
     public $timestamps = false;
 

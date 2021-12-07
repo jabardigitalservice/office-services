@@ -11,7 +11,7 @@ class MasterDraftHeader extends Model
 
     protected $connection = 'sikdweb';
 
-    protected $table = "master_kopnaskah";
+    protected $table = 'master_kopnaskah';
 
     public $timestamps = false;
 

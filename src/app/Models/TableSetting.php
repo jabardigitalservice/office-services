@@ -13,7 +13,7 @@ class TableSetting extends Model
 
     public $timestamps = false;
 
-    protected $table = "tb_setting";
+    protected $table = 'tb_setting';
 
     protected $keyType = 'string';
 

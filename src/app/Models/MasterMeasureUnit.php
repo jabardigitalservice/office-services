@@ -11,7 +11,7 @@ class MasterMeasureUnit extends Model
 
     protected $connection = 'sikdweb';
 
-    protected $table = "master_satuanunit";
+    protected $table = 'master_satuanunit';
 
     public $timestamps = false;
 

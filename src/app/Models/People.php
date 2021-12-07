@@ -20,7 +20,7 @@ class People extends Authenticatable
 
     public $timestamps = false;
 
-    protected $table = "people";
+    protected $table = 'people';
 
     protected $primaryKey = 'PeopleId';
 

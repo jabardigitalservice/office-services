@@ -11,7 +11,7 @@ class MasterClassified extends Model
 
     protected $connection = 'sikdweb';
 
-    protected $table = "master_sifat";
+    protected $table = 'master_sifat';
 
     public $timestamps = false;
 

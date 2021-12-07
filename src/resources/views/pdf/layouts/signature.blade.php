@@ -10,7 +10,7 @@
                     <br>{!! $draft->reviewer->role->RoleName !!},
             @elseif ($draft->TtdText2 == 'untuk_beliau')
                 a.n.&nbsp;{!! $draft->reviewer->role->RoleName !!},
-                    <br>{!! $draft->sender->parentRole->RoleName !!},
+                    <br>{!! $draft->createdBy->parentRole->RoleName !!},
                     <br>u.b.<br>{!! $draft->reviewer->role->RoleName !!},
             @else
                 {!! $draft->reviewer->role->RoleName !!},
@@ -42,7 +42,7 @@
 
                             @elseif ($draft->TtdText2 == 'untuk_beliau')
                                 a.n.&nbsp;{!! $draft->reviewer->role->RoleName !!},
-                                <br>{!! $draft->sender->parentRole->RoleName !!},
+                                <br>{!! $draft->createdBy->parentRole->RoleName !!},
                                 <br>u.b.<br>{!! $draft->reviewer->role->RoleName !!},
 
                             @else

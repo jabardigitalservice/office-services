@@ -23,7 +23,7 @@ class DocumentDraftPdfController extends Controller
     {
         try {
             $draft  = Draft::where('NId_Temp', $id)->firstOrFail();
-            $header = MasterDraftHeader::where('GRoleId', $draft->sender->role->GRoleId)->first();
+            $header = MasterDraftHeader::where('GRoleId', $draft->createdBy->role->GRoleId)->first();
 
             $carbonCopy = [];
             if ($draft->RoleId_Cc) {
@@ -35,7 +35,6 @@ class DocumentDraftPdfController extends Controller
                 }
             }
 
-            // return view('pdf.outboxkeluar', compact('draft', 'header', 'carbonCopy'));
             $pdf = PDF::loadView('pdf.outboxkeluar', compact('draft', 'header', 'carbonCopy'));
             return $pdf->stream();
         } catch (\Throwable $th) {

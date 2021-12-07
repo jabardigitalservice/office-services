@@ -13,7 +13,7 @@ class Role extends Model
 
     public $timestamps = false;
 
-    protected $table = "role";
+    protected $table = 'role';
 
     protected $keyType = 'string';
 
