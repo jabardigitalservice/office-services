@@ -119,9 +119,18 @@ class InboxQuery
     private function unreadCountDeptQuery($context)
     {
         $user = $context->user;
+        $deptCode = $user->role->RoleCode;
         $query = InboxReceiver::where('RoleId_To', $user->PrimaryRoleId)
             ->where('StatusReceive', 'unread')
-            ->where('ReceiverAs', 'to_forward');
+            ->where('ReceiverAs', 'to_forward')
+            ->whereHas('sender', function ($senderQuery) use ($deptCode) {
+                $senderQuery->whereHas('role', function ($roleQuery) use ($deptCode) {
+                    $roleQuery->where('RoleCode', '=', $deptCode);
+                });
+            })
+            ->whereHas('inboxDetail', function ($detailQuery) {
+                $detailQuery->where('Pengirim', '=', 'eksternal');
+            });
 
         if ((string) $user->GroupId != PeopleGroupTypeEnum::TU()) {
             $query->where('To_Id', $user->PeopleId);
