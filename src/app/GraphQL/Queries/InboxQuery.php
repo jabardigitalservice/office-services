@@ -7,6 +7,7 @@ use App\Enums\PeopleGroupTypeEnum;
 use App\Exceptions\CustomException;
 use App\Models\DocumentSignatureSent;
 use App\Models\InboxReceiver;
+use App\Models\InboxReceiverCorrection;
 use Illuminate\Support\Facades\DB;
 use Nuwave\Lighthouse\Support\Contracts\GraphQLContext;
 
@@ -65,12 +66,14 @@ class InboxQuery
         $internalCount = $this->unreadCountQuery(InboxReceiverScopeType::INTERNAL(), $context);
         $dispositionCount = $this->unreadCountQuery(InboxReceiverScopeType::DISPOSITION(), $context);
         $signatureCount = $this->unreadCountSignatureQuery($context);
+        $draftCount = $this->draftUnreadCountQuery($context);
 
         $count = [
             'regional'      => $regionalCount,
             'internal'      => $internalCount,
             'disposition'   => $dispositionCount,
-            'signature'     => $signatureCount
+            'signature'     => $signatureCount,
+            'draft'         => $draftCount
         ];
 
         return $count;
@@ -139,6 +142,22 @@ class InboxQuery
             ->pluck('document_signature_sent_id');
         $query = DocumentSignatureSent::where('PeopleIDTujuan', $user->PeopleId)
             ->whereNotIn('id', $readIds);
+
+        return $query->count();
+    }
+
+    /**
+     * @param String scope
+     * @param \Nuwave\Lighthouse\Support\Contracts\GraphQLContext|null $context
+     *
+     * @return Integer
+     */
+    private function draftUnreadCountQuery(GraphQLContext $context)
+    {
+        $userId = $context->user->PeopleId;
+        $query = InboxReceiverCorrection::where('To_Id', $userId)
+            ->where('From_Id', '!=', $userId)
+            ->where('StatusReceive', 'unread');
 
         return $query->count();
     }
