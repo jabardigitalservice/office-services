@@ -157,7 +157,11 @@ class InboxQuery
         $userId = $context->user->PeopleId;
         $query = InboxReceiverCorrection::where('To_Id', $userId)
             ->where('From_Id', '!=', $userId)
-            ->where('StatusReceive', 'unread');
+            ->where('StatusReceive', 'unread')
+            ->whereIn('NId', function ($draftQuery) {
+                $draftQuery->select('NId_Temp')
+                    ->from('konsep_naskah');
+            });
 
         return $query->count();
     }
