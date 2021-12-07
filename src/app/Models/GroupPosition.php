@@ -13,7 +13,7 @@ class GroupPosition extends Model
 
     public $timestamps = false;
 
-    protected $table = "master_gjabatan";
+    protected $table = 'master_gjabatan';
 
     protected $keyType = 'string';
 

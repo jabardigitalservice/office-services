@@ -11,7 +11,7 @@ class Inbox extends Model
 
     protected $connection = 'sikdweb';
 
-    protected $table = "inbox";
+    protected $table = 'inbox';
 
     protected $keyType = 'string';
 

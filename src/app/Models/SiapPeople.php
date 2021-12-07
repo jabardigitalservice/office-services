@@ -11,7 +11,7 @@ class SiapPeople extends Model
 
     protected $connection = 'sikdweb';
 
-    protected $table = "siap_pegawai";
+    protected $table = 'siap_pegawai';
 
     protected $keyType = 'string';
 

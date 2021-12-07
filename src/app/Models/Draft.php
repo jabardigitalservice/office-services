@@ -11,7 +11,7 @@ class Draft extends Model
 
     protected $connection = 'sikdweb';
 
-    protected $table = "konsep_naskah";
+    protected $table = 'konsep_naskah';
 
     protected $keyType = 'string';
 
@@ -35,5 +35,30 @@ class Draft extends Model
     public function reviewer()
     {
         return $this->belongsTo(People::class, 'Approve_People', 'PeopleId');
+    }
+
+    public function approver()
+    {
+        return $this->belongsTo(People::class, 'Approve_People3', 'PeopleId');
+    }
+
+    public function draftType()
+    {
+        return $this->belongsTo(MasterDraftType::class, 'JenisId', 'JenisId');
+    }
+
+    public function classified()
+    {
+        return $this->belongsTo(MasterClassified::class, 'SifatId', 'SifatId');
+    }
+
+    public function measureUnit()
+    {
+        return $this->belongsTo(MasterMeasureUnit::class, 'MeasureUnitId', 'MeasureUnitId');
+    }
+
+    public function classification()
+    {
+        return $this->belongsTo(Classification::class, 'ClId', 'ClId');
     }
 }

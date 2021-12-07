@@ -12,7 +12,7 @@ class InboxDisposition extends Model
 
     protected $connection = 'sikdweb';
 
-    protected $table = "inbox_disposisi";
+    protected $table = 'inbox_disposisi';
 
     public $timestamps = false;
 
