@@ -5,6 +5,7 @@ namespace App\GraphQL\Mutations;
 use App\Enums\DocumentSignatureSentNotificationTypeEnum;
 use App\Enums\SignatureStatusTypeEnum;
 use App\Http\Traits\SendNotificationTrait;
+use App\Http\Traits\SignatureTrait;
 use App\Exceptions\CustomException;
 use App\Models\DocumentSignature;
 use App\Models\DocumentSignatureSent;
@@ -17,6 +18,7 @@ use Illuminate\Support\Facades\Storage;
 class DocumentSignatureMutator
 {
     use SendNotificationTrait;
+    use SignatureTrait;
 
     /**
      * @param $rootValue
@@ -105,40 +107,6 @@ class DocumentSignatureMutator
         }
 
         return $data;
-    }
-
-    /**
-     * checkUserSignature
-     *
-     * @param  array $setupConfig
-     * @return string
-     */
-    protected function checkUserSignature($setupConfig)
-    {
-        $checkUrl = $setupConfig['url'] . '/api/user/status/' . $setupConfig['nik'];
-        $response = Http::withHeaders([
-            'Authorization' => 'Basic ' . $setupConfig['auth'],
-            'Cookie' => 'JSESSIONID=' . $setupConfig['cookies'],
-        ])->get($checkUrl);
-
-        return $response->body();
-    }
-
-    /**
-     * setupConfigSignature
-     *
-     * @return array
-     */
-    protected function setupConfigSignature()
-    {
-        $setup = [
-            'nik' => (config('sikd.enable_sign_with_nik')) ? auth()->user()->NIK : config('sikd.signature_nik'),
-            'url' => config('sikd.signature_url'),
-            'auth' => config('sikd.signature_auth'),
-            'cookies' => config('sikd.signature_cookies'),
-        ];
-
-        return $setup;
     }
 
     /**

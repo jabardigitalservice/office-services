@@ -16,13 +16,18 @@
                 {!! $draft->reviewer->role->RoleName !!},
             @endif
         </p>
-
-        <p style="text-align: center;">PEMERIKSA</p>
+        @if (!$generateQrCode)
+            <p style="text-align: center;">PEMERIKSA</p>
+        @endif
         <div style="border: 1px solid #000000; font-size: 10px; margin: 0px 6px 0px 20px;">
             <table class="no-padding-table">
                 <tr>
-                    <td rowspan="4">
-                        <img src="{!! config('sikd.url') !!}/uploads/kosong.jpg" width="48px" height="48px">
+                    <td rowspan="4" style="vertical-align: middle; text-align:center">
+                        @if ($generateQrCode)
+                            <img src="{{ public_path('/images/logo-jabar.jpg') }}" width="55px">
+                        @else
+                            <img src="{{ public_path('/images/logo-empty.jpg') }}" width="48px">
+                        @endif
                     </td>
                     <td>Ditandatangani secara elekronik oleh:</td>
                 </tr>

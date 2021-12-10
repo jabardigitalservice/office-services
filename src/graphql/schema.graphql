@@ -133,6 +133,9 @@ type Mutation {
     documentSignature(input: DocumentSignatureInput): DocumentSignatureSent
         @field(resolver: "DocumentSignatureMutator@signature")
 
+    draftSignature(input: DraftSignatureInput): Draft
+        @field(resolver: "DraftSignatureMutator@signature")
+
     documentSignatureReject(input: DocumentSignaturRejectInput): DocumentSignatureSent
         @field(resolver: "DocumentSignatureRejectMutator@reject")
 

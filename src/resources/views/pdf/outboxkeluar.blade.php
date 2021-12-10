@@ -8,12 +8,12 @@
     @endif
     <div style="page-break-after: {{ $firstPageBreak }};">
         <section id="header-section">
-            <img style="width: 100%" src="{!! config('sikd.base_path_file') . 'kop/' . $header->Header !!}">
+            <img style="width: 100%" src="{{ config('sikd.base_path_file') . 'kop/' . $header->Header }}">
         </section>
         <section id="header-content-section">
             <div style="margin-top: 49px">
                 <div class="left-header">&nbsp;</div>
-                <div class="right-header"><p style="margin-bottom: 0;">Tempat / Tanggal / Bulan / Tahun </p></div>
+                <div class="right-header"><p style="margin-bottom: 0;">{{ $draft->lokasi }}</p></div>
                 <div class="clearfix"></div>
             </div>
             <div>
