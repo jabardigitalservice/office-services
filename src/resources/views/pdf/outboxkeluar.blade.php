@@ -13,7 +13,7 @@
         <section id="header-content-section">
             <div style="margin-top: 49px">
                 <div class="left-header">&nbsp;</div>
-                <div class="right-header"><p style="margin-bottom: 0;">{{ $draft->lokasi }}</p></div>
+                <div class="right-header"><p style="margin-bottom: 0;">{{ $draft->lokasi }}, {{ parseSetLocaleDate($draft->TglReg, 'id', 'd F Y'); }}</p></div>
                 <div class="clearfix"></div>
             </div>
             <div>

@@ -5,12 +5,10 @@ namespace App\Http\Traits;
 use App\Models\Draft;
 use App\Models\MasterDraftHeader;
 use App\Models\Role;
-use Endroid\QrCode\Color\Color;
+use Endroid\QrCode\Builder\Builder;
 use Endroid\QrCode\Encoding\Encoding;
-use Endroid\QrCode\ErrorCorrectionLevel\ErrorCorrectionLevelLow;
-use Endroid\QrCode\QrCode;
-use Endroid\QrCode\Label\Label;
-use Endroid\QrCode\Logo\Logo;
+use Endroid\QrCode\ErrorCorrectionLevel\ErrorCorrectionLevelHigh;
+use Endroid\QrCode\Label\Alignment\LabelAlignmentCenter;
 use Endroid\QrCode\Label\Font\NotoSans;
 use Endroid\QrCode\RoundBlockSizeMode\RoundBlockSizeModeMargin;
 use Endroid\QrCode\Writer\PngWriter;
@@ -36,31 +34,34 @@ trait DraftTrait
             }
         }
 
-        $generateQrCode = ($verifyCode) ? $this->generateQrCode($id, $verifyCode) : null;
-
+        $generateQrCode = ($verifyCode) ? $this->generateQrCode($id) : null;
         $pdf = PDF::loadView('pdf.outboxkeluar', compact('draft', 'header', 'carbonCopy', 'generateQrCode', 'verifyCode'));
         return $pdf->stream();
     }
 
-    public function generateQrCode($id, $verifyCode)
+    /**
+     * generateQrCode
+     *
+     * @param  mixed $id
+     * @return void
+     */
+    public function generateQrCode($id)
     {
-        $writer = new PngWriter();
         // Create QR code
-        $QrCode = QrCode::create($id)
-            ->setEncoding(new Encoding('UTF-8'))
-            ->setErrorCorrectionLevel(new ErrorCorrectionLevelLow())
-            ->setSize(70)
-            ->setMargin(0)
-            ->setRoundBlockSizeMode(new RoundBlockSizeModeMargin())
-            ->setForegroundColor(new Color(0, 0, 0))
-            ->setBackgroundColor(new Color(255, 255, 255));
-        // Create generic logo
-        $logo = Logo::create(public_path('images/logo-jabar.jpg'))
-            ->setResizeToWidth(20);
+        $result = Builder::create()
+            ->writer(new PngWriter())
+            ->writerOptions([])
+            ->data($id)
+            ->encoding(new Encoding('UTF-8'))
+            ->errorCorrectionLevel(new ErrorCorrectionLevelHigh())
+            ->size(62)
+            ->margin(0)
+            ->roundBlockSizeMode(new RoundBlockSizeModeMargin())
+            ->logoPath(public_path('images/logo-jabar.jpg'))
+            ->logoResizeToWidth(10)
+            ->build();
 
-        $result = $writer->write($QrCode, $logo, null);
         header('Content-Type: '.$result->getMimeType());
-
         $fileName = $id . '.png';
         Storage::disk('local')->put($fileName, $result->getString());
 
