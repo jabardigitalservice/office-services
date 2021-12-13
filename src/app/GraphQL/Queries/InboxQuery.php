@@ -51,10 +51,7 @@ class InboxQuery
     public function unreadCount($rootValue, array $args, GraphQLContext $context)
     {
         $userPosition = $context->user->PeoplePosition;
-        $positionGroups = array_merge(
-            config('constants.peoplePositionGroups.2'),
-            config('constants.peoplePositionGroups.9')
-        );
+        $positionGroups = call_user_func_array('array_merge', config('constants.peoplePositionGroups'));
 
         $found = $this->isFoundUserPosition($userPosition, $positionGroups);
         if ($found) {
