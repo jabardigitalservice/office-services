@@ -8,6 +8,7 @@ use App\Http\Traits\SignatureTrait;
 use App\Models\Draft;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Storage;
 
 class DraftSignatureMutator
 {
@@ -68,12 +69,66 @@ class DraftSignatureMutator
         if ($response->status() != 200) {
             throw new CustomException('Document failed', 'Signature failed, check your file again');
         } else {
-            // //Save new file & update status
-            // $data = $this->saveNewFile($response, $data);
-            // //Save log
-            // $this->createPassphraseSessionLog($response);
+            //Save new file & update status
+            $data = $this->saveNewFile($response, $data, $verifyCode);
+            //Save log
+            $this->createPassphraseSessionLog($response);
         }
 
         return $data;
+    }
+
+    /**
+     * saveNewFile
+     *
+     * @param  mixed $pdf
+     * @param  mixed $data
+     * @param  mixed $verifyCode
+     * @return void
+     */
+    protected function saveNewFile($pdf, $data, $verifyCode)
+    {
+        Storage::disk('local')->put($data->document_file_name, $pdf->body());
+
+        $response = $this->doTransferFile($data);
+
+        if ($response->status() != 200) {
+            throw new CustomException('Webhook failed', json_decode($response));
+        } else {
+            $data = $this->doCreateSignature($data, $verifyCode);
+        }
+
+        Storage::disk('local')->delete($data->NId_Temp . '.png');
+        Storage::disk('local')->delete($data->document_file_name);
+    }
+
+    /**
+     * doTransferFile
+     *
+     * @param  mixed $data
+     * @param  mixed $file
+     * @param  mixed $name
+     * @return mixed
+     */
+    public function doTransferFile($data)
+    {
+        $fileSignatured = fopen(Storage::path($data->document_file_name), 'r');
+        $QrCode = fopen(Storage::path($data->NId_Temp), 'r');
+
+        $response = Http::withHeaders([
+            'Secret' => config('sikd.webhook_secret'),
+        ])->attach(
+            'signature',
+            $fileSignatured,
+        )->attach(
+            'qrcode',
+            $QrCode,
+        )->post(config('sikd.webhook_url'));
+
+        return $response;
+    }
+
+    protected function doCreateSignature($data)
+    {
     }
 }

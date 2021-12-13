@@ -9,7 +9,6 @@ use App\Http\Traits\SignatureTrait;
 use App\Exceptions\CustomException;
 use App\Models\DocumentSignature;
 use App\Models\DocumentSignatureSent;
-use App\Models\PassphraseSession;
 use Carbon\Carbon;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Http;
@@ -122,30 +121,6 @@ class DocumentSignatureMutator
     }
 
     /**
-     * createPassphraseSessionLog
-     *
-     * @param  mixed $response
-     * @return void
-     */
-    protected function createPassphraseSessionLog($response)
-    {
-        $passphraseSession = new PassphraseSession();
-        $passphraseSession->nama_lengkap    = auth()->user()->PeopleName;
-        $passphraseSession->jam_akses       = Carbon::now();
-        $passphraseSession->keterangan      = 'Insert Passphrase Berhasil, Data disimpan';
-        $passphraseSession->log_desc        = 'sukses';
-
-        if ($response->status() != 200) {
-            $passphraseSession->keterangan      = 'Insert Passphrase Gagal, Data failed';
-            $passphraseSession->log_desc        = 'gagal';
-        }
-
-        $passphraseSession->save();
-
-        return $passphraseSession;
-    }
-
-    /**
      * saveNewFile
      *
      * @param  object $response
@@ -162,7 +137,7 @@ class DocumentSignatureMutator
         $response = Http::withHeaders([
             'Secret' => config('sikd.webhook_secret'),
         ])->attach(
-            'file',
+            'signature',
             $fileSignatured,
             $newFileName
         )->post(config('sikd.webhook_url'));

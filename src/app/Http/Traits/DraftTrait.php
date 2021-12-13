@@ -19,8 +19,6 @@ trait DraftTrait
 {
     public function setDraftDocumentPdf($id, $verifyCode = null)
     {
-        $verifyCode = substr(sha1(uniqid(mt_rand(), TRUE)), 0, 10); // remove
-
         $draft  = Draft::where('NId_Temp', $id)->firstOrFail();
         $header = MasterDraftHeader::where('GRoleId', $draft->createdBy->role->GRoleId)->first();
 
