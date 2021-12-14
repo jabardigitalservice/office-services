@@ -17,6 +17,8 @@ class Draft extends Model
 
     protected $primaryKey = 'NId_Temp';
 
+    public $timestamps = false;
+
     public function type()
     {
         return $this->belongsTo(DocumentType::class, 'JenisId', 'JenisId');

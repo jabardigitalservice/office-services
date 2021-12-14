@@ -36,7 +36,7 @@
             .qr-wrapper {
                 position: absolute;
                 left: 0;
-                top: -15px;
+                top: -10px;
                 width: 65px;
             }
             .clearfix {
@@ -108,8 +108,8 @@
         @if ($generateQrCode)
             <footer>
                 <div class="qr-wrapper">
-                    <img src="{{ storage_path('app/' . $generateQrCode) }}" alt="QR Code Signed">
-                    <p style="text-align: center; font-weight: bold; font-size: 9px; position: relative; top: -25px">{{ $verifyCode }}</p>
+                    <img src="{{ storage_path('app/' . $generateQrCode) }}" alt="QR Code Signed" width="50px">
+                    <p style="text-align: center; font-weight: bold; font-size: 9px; position: relative; top: -15px">{{ $verifyCode }}</p>
                 </div>
                 <div>
                     Dokumen ini telah ditandatangani secara elektronik menggunakan sertifikat elektronik yang diterbitkan oleh

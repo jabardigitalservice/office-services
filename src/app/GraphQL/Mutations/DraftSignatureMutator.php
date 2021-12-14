@@ -2,10 +2,18 @@
 
 namespace App\GraphQL\Mutations;
 
+use App\Enums\DraftConceptStatusTypeEnum;
 use App\Exceptions\CustomException;
 use App\Http\Traits\DraftTrait;
 use App\Http\Traits\SignatureTrait;
 use App\Models\Draft;
+use App\Models\InboxFile;
+use App\Models\InboxReceiver;
+use App\Models\InboxReceiverCorrection;
+use App\Models\People;
+use App\Models\Signature;
+use App\Models\TableSetting;
+use Carbon\Carbon;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
@@ -21,11 +29,11 @@ class DraftSignatureMutator
      */
     public function signature($rootValue, array $args)
     {
-        $draftId = Arr::get($args, 'input.draftId');
+        $draftId    = Arr::get($args, 'input.draftId');
         $passphrase = Arr::get($args, 'input.passphrase');
-        $draft = Draft::where('NId_temp', $draftId)->first();
+        $draft      = Draft::where('NId_temp', $draftId)->first();
 
-        if ($draft->Konsep == 0) {
+        if ($draft->Konsep == DraftConceptStatusTypeEnum::APPROVED()->value) {
             throw new CustomException('Document already signed', 'Status of this document is already signed');
         }
 
@@ -36,6 +44,10 @@ class DraftSignatureMutator
         }
 
         $signature = $this->doSignature($setupConfig, $draft, $passphrase);
+
+        $draft->Konsep = DraftConceptStatusTypeEnum::APPROVED()->value;
+        $draft->save();
+
         return $signature;
     }
 
@@ -43,22 +55,18 @@ class DraftSignatureMutator
      * doSignature
      *
      * @param  array $setupConfig
-     * @param  collection $data
+     * @param  collection $draft
      * @param  string $passphrase
      * @return collection
      */
-    protected function doSignature($setupConfig, $data, $passphrase)
+    protected function doSignature($setupConfig, $draft, $passphrase)
     {
         $url = $setupConfig['url'] . '/api/sign/pdf';
         $verifyCode = substr(sha1(uniqid(mt_rand(), TRUE)), 0, 10);
         $response = Http::withHeaders([
             'Authorization' => 'Basic ' . $setupConfig['auth'],
             'Cookie' => 'JSESSIONID=' . $setupConfig['cookies'],
-        ])->attach(
-            'file',
-            $this->setDraftDocumentPdf($data->NId_Tem, $verifyCode),
-            $data->document_file_name
-        )->post($url, [
+        ])->attach('file', $this->setDraftDocumentPdf($draft->NId_Temp, $verifyCode), $draft->document_file_name)->post($url, [
             'nik'           => $setupConfig['nik'],
             'passphrase'    => $passphrase,
             'tampilan'      => 'invisible',
@@ -70,65 +78,175 @@ class DraftSignatureMutator
             throw new CustomException('Document failed', 'Signature failed, check your file again');
         } else {
             //Save new file & update status
-            $data = $this->saveNewFile($response, $data, $verifyCode);
+            $draft = $this->saveNewFile($response, $draft, $verifyCode);
             //Save log
             $this->createPassphraseSessionLog($response);
         }
 
-        return $data;
+        return $draft;
     }
 
     /**
      * saveNewFile
      *
      * @param  mixed $pdf
-     * @param  mixed $data
-     * @param  mixed $verifyCode
-     * @return void
+     * @param  collection $draft
+     * @param  string $verifyCode
+     * @return collection
      */
-    protected function saveNewFile($pdf, $data, $verifyCode)
+    protected function saveNewFile($pdf, $draft, $verifyCode)
     {
-        Storage::disk('local')->put($data->document_file_name, $pdf->body());
-
-        $response = $this->doTransferFile($data);
-
+        //save signed data
+        Storage::disk('local')->put($draft->document_file_name, $pdf->body());
+        //transfer to existing service
+        $response = $this->doTransferFile($draft);
         if ($response->status() != 200) {
             throw new CustomException('Webhook failed', json_decode($response));
-        } else {
-            $data = $this->doCreateSignature($data, $verifyCode);
         }
+        $this->doSaveSignature($draft, $verifyCode);
+        //remove temp data
+        Storage::disk('local')->delete($draft->NId_Temp . '.png');
+        Storage::disk('local')->delete($draft->document_file_name);
 
-        Storage::disk('local')->delete($data->NId_Temp . '.png');
-        Storage::disk('local')->delete($data->document_file_name);
+        return $draft;
     }
 
     /**
      * doTransferFile
      *
-     * @param  mixed $data
-     * @param  mixed $file
-     * @param  mixed $name
+     * @param  collection $draft
      * @return mixed
      */
-    public function doTransferFile($data)
+    public function doTransferFile($draft)
     {
-        $fileSignatured = fopen(Storage::path($data->document_file_name), 'r');
-        $QrCode = fopen(Storage::path($data->NId_Temp), 'r');
-
+        $fileSignatured = fopen(Storage::path($draft->document_file_name), 'r');
+        $QrCode = fopen(Storage::path($draft->NId_Temp . '.png'), 'r');
         $response = Http::withHeaders([
             'Secret' => config('sikd.webhook_secret'),
-        ])->attach(
-            'signature',
-            $fileSignatured,
-        )->attach(
-            'qrcode',
-            $QrCode,
-        )->post(config('sikd.webhook_url'));
+        ])->attach('draft', $fileSignatured)->attach('qrcode', $QrCode)->post(config('sikd.webhook_url'));
 
         return $response;
     }
 
-    protected function doCreateSignature($data)
+    /**
+     * doSaveSignature
+     *
+     * @param  mixed $draft
+     * @param  mixed $verifyCode
+     * @return mixed
+     */
+    protected function doSaveSignature($draft, $verifyCode)
     {
+        $signature = new Signature();
+        $signature->NId    = $draft->NId_Temp;
+        $signature->TglProses   = Carbon::now();
+        $signature->PeopleId    = auth()->user()->PeopleId;
+        $signature->RoleId      = auth()->user()->PrimaryRoleId;
+        $signature->Verifikasi  = $verifyCode;
+        $signature->QRCode      = $draft->NId_Temp . '.png';
+        $signature->save();
+
+        $this->doSaveInboxFile($draft, $verifyCode);
+        $this->doUpdateInboxReceiver($draft);
+        $this->doSaveInboxReceiverCorrection($draft);
+
+        return $signature;
+    }
+
+    /**
+     * doSaveInboxFile
+     *
+     * @param  mixed $draft
+     * @param  mixed $verifyCode
+     * @return void
+     */
+    protected function doSaveInboxFile($draft, $verifyCode)
+    {
+        $inboxFile = new InboxFile();
+        $inboxFile->FileKey         = TableSetting::first()->tb_key;
+        $inboxFile->GIR_Id          = $draft->GIR_Id;
+        $inboxFile->NId             = $draft->NId_Temp;
+        $inboxFile->PeopleID        = auth()->user()->PeopleId;
+        $inboxFile->PeopleRoleID    = auth()->user()->PrimaryRoleId;
+        $inboxFile->FileName_real   = $draft->document_file_name;
+        $inboxFile->FileName_fake   = $draft->document_file_name;
+        $inboxFile->FileStatus      = 'available';
+        $inboxFile->EditedDate      = Carbon::now();
+        $inboxFile->Keterangan      = 'outbox';
+        $inboxFile->Id_Dokumen      = $verifyCode;
+        $inboxFile->save();
+
+        return $inboxFile;
+    }
+
+    /**
+     * doUpdateInboxReceiver
+     *
+     * @param  mixed $draft
+     * @return void
+     */
+    protected function doUpdateInboxReceiver($draft)
+    {
+        $InboxReceiver = InboxReceiver::where('NId', $draft->NId_Temp)
+                                        ->where('RoleId_To', auth()->user()->RoleId)
+                                        ->update(['Status' => 1,'StatusReceive' => 'read']);
+        return $InboxReceiver;
+    }
+
+    /**
+     * doSaveInboxReceiverCorrection
+     *
+     * @param  mixed $draft
+     * @return void
+     */
+    protected function doSaveInboxReceiverCorrection($draft)
+    {
+        list($toId, $toRoleId, $toRoleDesc) = $this->getReceiverPeople($draft);
+
+        $InboxReceiverCorrection = new InboxReceiverCorrection();
+        $InboxReceiverCorrection->NId           = $draft->NId_Temp;
+        $InboxReceiverCorrection->NKey          = TableSetting::first()->tb_key;
+        $InboxReceiverCorrection->GIR_Id        = $draft->GIR_Id;
+        $InboxReceiverCorrection->From_Id       = auth()->user()->PeopleId;
+        $InboxReceiverCorrection->RoleId_From   = auth()->user()->PrimaryRoleId;
+        $InboxReceiverCorrection->To_Id         = $toId;
+        $InboxReceiverCorrection->RoleId_To     = $toRoleId;
+        $InboxReceiverCorrection->ReceiverAs    = 'approvenaskah';
+        $InboxReceiverCorrection->StatusReceive = 'unread';
+        $InboxReceiverCorrection->ReceiveDate   = Carbon::now();
+        $InboxReceiverCorrection->To_Id_Desc    = $toRoleDesc;
+        $InboxReceiverCorrection->save();
+
+        return $InboxReceiverCorrection;
+    }
+
+    /**
+     * getReceiverPeople
+     *
+     * @param  collection $draft
+     * @return array
+     */
+    protected function getReceiverPeople($draft)
+    {
+        switch ($draft->TtdText) {
+            case 'none':
+                $toId = auth()->user()->PeopleId;
+                $toRoleId = auth()->user()->PrimaryRoleId;
+                $toRoleDesc = auth()->user()->role->RoleDesc;
+                break;
+            case 'AL':
+                $parentId = People::where('PrimaryRoleId', auth()->user()->RoleAtasan)->first();
+                $toId = $parentId->PeopleId;
+                $toRoleId = $parentId->PrimaryRoleId;
+                $toRoleDesc = $parentId->role->RoleDesc;
+                break;
+            default:
+                $toId = $draft->Approve_People;
+                $toRoleId = $draft->reviewer->PrimaryRoleId;
+                $toRoleDesc = $draft->reviewer->role->RoleDesc;
+                break;
+        }
+
+        return [$toId, $toRoleId, $toRoleDesc];
     }
 }

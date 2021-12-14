@@ -19,6 +19,7 @@ trait DraftTrait
 {
     public function setDraftDocumentPdf($id, $verifyCode = null)
     {
+        $verifyCode = substr(sha1(uniqid(mt_rand(), TRUE)), 0, 10);
         $draft  = Draft::where('NId_Temp', $id)->firstOrFail();
         $header = MasterDraftHeader::where('GRoleId', $draft->createdBy->role->GRoleId)->first();
 
@@ -52,11 +53,11 @@ trait DraftTrait
             ->data($id)
             ->encoding(new Encoding('UTF-8'))
             ->errorCorrectionLevel(new ErrorCorrectionLevelHigh())
-            ->size(62)
+            ->size(500)
             ->margin(0)
             ->roundBlockSizeMode(new RoundBlockSizeModeMargin())
             ->logoPath(public_path('images/logo-jabar.jpg'))
-            ->logoResizeToWidth(10)
+            ->logoResizeToWidth(150)
             ->build();
 
         header('Content-Type: '.$result->getMimeType());
