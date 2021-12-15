@@ -33,7 +33,12 @@
                 margin-left: 5px;
                 text-align: center;
             }
-
+            .qr-wrapper {
+                position: absolute;
+                left: 0;
+                top: -10px;
+                width: 65px;
+            }
             .clearfix {
                 clear: both;
             }
@@ -100,11 +105,19 @@
     </head>
     <body>
         <!-- Define header and footer blocks before your content -->
-        <footer>
-            Dokumen ini telah ditandatangani secara elektronik menggunakan sertifikat elektronik yang diterbitkan oleh
-            <br>
-            Balai Sertifikasi Elektronik (BSrE) Badan Siber dan Sandi Negara
-        </footer>
+        @if ($generateQrCode)
+            <footer>
+                <div class="qr-wrapper">
+                    <img src="{{ storage_path('app/' . $generateQrCode) }}" alt="QR Code Signed" width="50px">
+                    <p style="text-align: center; font-weight: bold; font-size: 9px; position: relative; top: -15px">{{ $verifyCode }}</p>
+                </div>
+                <div>
+                    Dokumen ini telah ditandatangani secara elektronik menggunakan sertifikat elektronik yang diterbitkan oleh
+                    <br>
+                    Balai Sertifikasi Elektronik (BSrE) Badan Siber dan Sandi Negara
+                </div>
+            </footer>
+        @endif
 
         <!-- Wrap the content of your PDF inside a main tag -->
         <main>

@@ -37,4 +37,9 @@ class InboxFile extends Model
 
         return $query;
     }
+
+    public function setEditedDateAttribute($value)
+    {
+        $this->attributes['EditedDate'] = $value->copy()->setTimezone(config('sikd.timezone_server'));
+    }
 }
