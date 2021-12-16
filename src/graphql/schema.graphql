@@ -151,6 +151,10 @@ type Mutation {
     documentSignatureForward(input: DocumentSignatureForwardInput): [DocumentSignatureForward!]
         @field(resolver: "DocumentSignatureForwardMutator@forward")
         @guard
+
+    draftReturn(input: DraftReturnInput): InboxReceiverCorrection!
+        @field(resolver: "InboxReceiverCorrectionMutator@backToDrafter")
+        @guard
 }
 
 #import auth.graphql

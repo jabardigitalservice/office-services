@@ -1,4 +1,5 @@
 type InboxReceiverCorrection {
+    id: ID!
     draftId: String! @rename(attribute: "NId")
     groupId: String! @rename(attribute: "GIR_Id")
     date: DateTime! @rename(attribute: "ReceiveDate")
@@ -29,6 +30,13 @@ input DraftFilterInput {
     urgencies: String
     statuses: String
     receiverTypes: String
+}
+
+input DraftReturnInput {
+    id: ID!
+    options: String
+    drafterId: Int!
+    message: String
 }
 
 enum DraftObjectiveType {

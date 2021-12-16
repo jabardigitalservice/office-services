@@ -38,6 +38,22 @@ class InboxReceiverCorrection extends Model
         return $this->hasMany(PersonalAccessToken::class, 'tokenable_id', 'To_Id');
     }
 
+    public function setReceiveDateAttribute($value)
+    {
+        $this->attributes['ReceiveDate'] = $value->copy()->addHours(7);
+    }
+
+    public function setGirIdAttribute($value)
+    {
+        // GirId = peopleId + now (date in 'dmyhis' format)
+        // 19 means the datetime characters numbers
+        $peopleId = substr($value, 0, -19);
+        $dateString = substr($value, -19);
+        $date = parseDateTimeFormat($dateString, 'dmyhis');
+
+        $this->attributes['GIR_Id'] = $peopleId . $date;
+    }
+
     public function search($query, $search)
     {
         $query->whereIn('NId', function ($inboxQuery) use ($search) {
