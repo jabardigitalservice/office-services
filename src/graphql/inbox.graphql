@@ -20,6 +20,8 @@ type UnreadCount {
     regional: Int!
     internal: Int!
     disposition: Int!
+    signature: Int!
+    draft: Int!
 }
 
 #import people.graphql

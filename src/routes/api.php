@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\V1\SendNotificationController;
+use App\Http\Controllers\V1\DocumentDraftPdfController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -21,4 +22,5 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 
 Route::prefix('v1')->group(function () {
     Route::post('/send-notification', [SendNotificationController::class, '__invoke']);
+    Route::get('/draft/{id}', [DocumentDraftPdfController::class, '__invoke']);
 });

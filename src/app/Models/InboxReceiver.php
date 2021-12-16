@@ -13,7 +13,7 @@ class InboxReceiver extends Model
 
     protected $connection = 'sikdweb';
 
-    protected $table = "inbox_receiver";
+    protected $table = 'inbox_receiver';
 
     public $timestamps = false;
 
@@ -32,7 +32,8 @@ class InboxReceiver extends Model
         'StatusReceive',
         'ReceiveDate',
         'To_Id_Desc',
-        'Status'
+        'Status',
+        'TindakLanjut'
     ];
 
     public function inboxDetail()

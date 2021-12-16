@@ -20,13 +20,18 @@ class People extends Authenticatable
 
     public $timestamps = false;
 
-    protected $table = "people";
+    protected $table = 'people';
 
     protected $primaryKey = 'PeopleId';
 
     public function role()
     {
         return $this->belongsTo(Role::class, 'PrimaryRoleId', 'RoleId');
+    }
+
+    public function parentRole()
+    {
+        return $this->belongsTo(Role::class, 'RoleAtasan', 'RoleId');
     }
 
     public function siapPeople()

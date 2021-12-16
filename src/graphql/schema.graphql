@@ -126,18 +126,27 @@ type Mutation {
 
     inboxForward(input: ForwardInput!): [InboxReceiver]
         @field(resolver: "InboxMutator@forward")
+        @guard
 
     endInboxForward(inboxId: String!): String
         @field(resolver: "InboxMutator@endForward")
+        @guard
 
     documentSignature(input: DocumentSignatureInput): DocumentSignatureSent
         @field(resolver: "DocumentSignatureMutator@signature")
+        @guard
+
+    draftSignature(input: DraftSignatureInput): Draft
+        @field(resolver: "DraftSignatureMutator@signature")
+        @guard
 
     documentSignatureReject(input: DocumentSignaturRejectInput): DocumentSignatureSent
         @field(resolver: "DocumentSignatureRejectMutator@reject")
+        @guard
 
     documentSignatureForward(input: DocumentSignatureForwardInput): [DocumentSignatureForward!]
         @field(resolver: "DocumentSignatureForwardMutator@forward")
+        @guard
 }
 
 #import auth.graphql

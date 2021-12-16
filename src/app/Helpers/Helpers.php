@@ -16,3 +16,8 @@ function parseDateTimeFormat($value, $format)
 {
     return parseDateTimeValue($value)->format($format);
 }
+
+function parseSetLocaleDate($value, $locale, $format)
+{
+    return Carbon::parse($value)->locale($locale)->translatedFormat($format);
+}

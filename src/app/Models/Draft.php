@@ -11,11 +11,13 @@ class Draft extends Model
 
     protected $connection = 'sikdweb';
 
-    protected $table = "konsep_naskah";
+    protected $table = 'konsep_naskah';
 
     protected $keyType = 'string';
 
     protected $primaryKey = 'NId_Temp';
+
+    public $timestamps = false;
 
     public function type()
     {
@@ -35,5 +37,51 @@ class Draft extends Model
     public function reviewer()
     {
         return $this->belongsTo(People::class, 'Approve_People', 'PeopleId');
+    }
+
+    public function approver()
+    {
+        return $this->belongsTo(People::class, 'Approve_People3', 'PeopleId');
+    }
+
+    public function draftType()
+    {
+        return $this->belongsTo(MasterDraftType::class, 'JenisId', 'JenisId');
+    }
+
+    public function classified()
+    {
+        return $this->belongsTo(MasterClassified::class, 'SifatId', 'SifatId');
+    }
+
+    public function measureUnit()
+    {
+        return $this->belongsTo(MasterMeasureUnit::class, 'MeasureUnitId', 'MeasureUnitId');
+    }
+
+    public function classification()
+    {
+        return $this->belongsTo(Classification::class, 'ClId', 'ClId');
+    }
+
+    public function getDocumentFileNameAttribute()
+    {
+        $label = match ($this->Ket) {
+            'outboxnotadinas'       => 'nota_dinas-' . $this->NId_Temp . '.pdf',
+            'outboxsprint'          => 'sprint-' . $this->NId_Temp . '.pdf',
+            'outboxsprintgub'       => 'sprintgub-' . $this->NId_Temp . '.pdf',
+            'outboxundangan'        => 'undangan-' . $this->NId_Temp . '.pdf',
+            'outboxedaran'          => 'surat_edaran-' . $this->NId_Temp . '.pdf',
+            'outboxinstruksigub'    => 'surat_instruksi-' . $this->NId_Temp . '.pdf',
+            'outboxsupertugas'      => 'surat_supertugas-' . $this->NId_Temp . '.pdf',
+            'outboxkeluar'          => 'surat_dinas-' . $this->NId_Temp . '.pdf',
+            'outboxsket'            => 'surat_keterangan-' . $this->NId_Temp . '.pdf',
+            'outboxpengumuman'      => 'pengumuman-' . $this->NId_Temp . '.pdf',
+            'outboxsuratizin'       => 'surat_izin-' . $this->NId_Temp . '.pdf',
+            'outboxrekomendasi'     => 'rekomendasi-' . $this->NId_Temp . '.pdf',
+            default                 => 'nadin_lain-' . $this->NId_Temp . '.pdf',
+        };
+
+        return $label;
     }
 }

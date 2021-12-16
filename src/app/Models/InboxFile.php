@@ -11,7 +11,7 @@ class InboxFile extends Model
 
     protected $connection = 'sikdweb';
 
-    protected $table = "inbox_files";
+    protected $table = 'inbox_files';
 
     public $timestamps = false;
 
@@ -36,5 +36,10 @@ class InboxFile extends Model
             ->where('Id_dokumen', '<>', '');
 
         return $query;
+    }
+
+    public function setEditedDateAttribute($value)
+    {
+        $this->attributes['EditedDate'] = $value->copy()->setTimezone(config('sikd.timezone_server'));
     }
 }

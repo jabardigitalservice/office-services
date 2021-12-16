@@ -14,7 +14,7 @@ class InboxReceiverCorrection extends Model
 
     protected $connection = 'sikdweb';
 
-    protected $table = "inbox_receiver_koreksi";
+    protected $table = 'inbox_receiver_koreksi';
 
     public $timestamps = false;
 
@@ -146,28 +146,53 @@ class InboxReceiverCorrection extends Model
     {
         $arrayReceiverTypes = explode(", ", $receiverTypes);
         $receiverAs = $this->getReceiverAsData($arrayReceiverTypes);
+        if (in_array(CustomReceiverTypeEnum::REVIEW(), $arrayReceiverTypes)) {
+            $this->receiverReviewQuery($query, $receiverAs);
+        } else {
+            $this->receiverDefaultQuery($query, $receiverAs);
+            $this->receiverSignQuery($query, $arrayReceiverTypes);
+        }
+    }
 
-        $query->whereIn('ReceiverAs', $receiverAs)
+    protected function receiverDefaultQuery($query, $receiverTypes)
+    {
+        $query->whereIn('ReceiverAs', $receiverTypes)
             ->whereIn('NId', function ($draftQuery) {
                 $draftQuery->select('NId_Temp')
                     ->from('konsep_naskah');
             });
+    }
 
-        if (count($arrayReceiverTypes) == 1) {
-            if (in_array(CustomReceiverTypeEnum::SIGNED(), $arrayReceiverTypes)) {
-                $query->whereIn('NId', function ($draftQuery) {
+    protected function receiverReviewQuery($query, $receiverTypes)
+    {
+        $query->where(function ($query) use ($receiverTypes) {
+            $query->whereIn('ReceiverAs', $receiverTypes)
+                ->orWhere('ReceiverAs', 'meneruskan')
+                ->whereIn('NId', function ($draftQuery) {
                     $draftQuery->select('NId_Temp')
+                        ->from('konsep_naskah')
+                        ->where('Konsep', '!=', '0')
+                        ->where('nosurat', '=', null);
+                });
+        });
+    }
+
+    protected function receiverSignQuery($query, $receiverTypes)
+    {
+        $operator = null;
+        if (in_array(CustomReceiverTypeEnum::SIGNED(), $receiverTypes)) {
+            $operator = '=';
+        } elseif (in_array(CustomReceiverTypeEnum::SIGN_REQUEST(), $receiverTypes)) {
+            $operator = '!=';
+        }
+
+        if ($operator) {
+            $query->whereIn('NId', function ($draftQuery) use ($operator) {
+                $draftQuery->select('NId_Temp')
                     ->from('konsep_naskah')
-                    ->where('Konsep', '=', '0')
+                    ->where('Konsep', $operator, '0')
                     ->where('nosurat', '!=', null);
-                });
-            } elseif (in_array(CustomReceiverTypeEnum::SIGN_REQUEST(), $arrayReceiverTypes)) {
-                $query->whereIn('NId', function ($draftQuery) {
-                    $draftQuery->select('NId_Temp')
-                    ->from('konsep_naskah')
-                    ->where('Konsep', '!=', '0');
-                });
-            }
+            });
         }
     }
 
