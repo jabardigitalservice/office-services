@@ -32,7 +32,8 @@ class InboxReceiver extends Model
         'StatusReceive',
         'ReceiveDate',
         'To_Id_Desc',
-        'Status'
+        'Status',
+        'TindakLanjut'
     ];
 
     public function inboxDetail()
