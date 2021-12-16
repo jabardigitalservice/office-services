@@ -23,8 +23,8 @@ class InboxReceiverCorrectionMutator
     {
         $time = Carbon::now();
         $inbox = InboxReceiverCorrection::findOrFail(Arr::get($args, 'input.id'));
-        $this->updateInboxStatus($inbox);
         $this->createNewInboxCorrection($inbox, $args, $time);
+        $this->updateInboxStatus($inbox);
         $newInbox = $this->createNewInbox($inbox, $args, $time);
         return $newInbox;
     }
