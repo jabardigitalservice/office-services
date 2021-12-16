@@ -118,6 +118,10 @@ type Query {
     ): [InboxReceiverCorrection!]!
         @field(resolver: "DraftQuery@timeline")
         @guard
+
+    correctionOptions: [MasterCorrectionOption!]!
+        @paginate(type: CONNECTION)
+        @guard
 }
 
 type Mutation {
@@ -158,3 +162,4 @@ type Mutation {
 #import documentSignatureForward.graphql
 #import masterDisposition.graphql
 #import inboxReceiverCorrection.graphql
+#import masterCorrectionOption.graphql
