@@ -92,6 +92,7 @@ class DocumentSignatureSent extends Model
         if ($read || $unread) {
             $readId = DB::connection('mysql')->table('document_signature_sent_reads')
             ->select('document_signature_sent_id')
+            ->where('people_id', auth()->user()->PeopleId)
             ->pluck('document_signature_sent_id');
         }
 

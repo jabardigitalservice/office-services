@@ -89,6 +89,7 @@ class DocumentSignatureQuery
         if (!$documentSignatureSent->documentSignatureSentRead) {
             $data = new DocumentSignatureSentRead();
             $data->document_signature_sent_id = $documentSignatureSent->id;
+            $data->people_id = auth()->user()->PeopleId;
             $data->read = true;
             $data->save();
         }
