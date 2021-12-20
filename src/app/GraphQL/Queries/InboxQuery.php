@@ -146,7 +146,7 @@ class InboxQuery
     {
         $user = $context->user;
         $readIds = DB::connection('mysql')->table('document_signature_sent_reads')
-            ->where('people_id', auth()->user()->PeopleId)
+            ->where('people_id', $user->PeopleId)
             ->pluck('document_signature_sent_id');
         $query = DocumentSignatureSent::where('PeopleIDTujuan', $user->PeopleId)
             ->orWhere('PeopleId', $user->PeopleId)
