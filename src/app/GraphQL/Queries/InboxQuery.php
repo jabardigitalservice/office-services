@@ -4,6 +4,7 @@ namespace App\GraphQL\Queries;
 
 use App\Enums\InboxReceiverScopeType;
 use App\Enums\PeopleGroupTypeEnum;
+use App\Enums\SignatureStatusTypeEnum;
 use App\Exceptions\CustomException;
 use App\Models\DocumentSignatureSent;
 use App\Models\InboxReceiver;
@@ -145,8 +146,11 @@ class InboxQuery
     {
         $user = $context->user;
         $readIds = DB::connection('mysql')->table('document_signature_sent_reads')
+            ->where('people_id', $user->PeopleId)
             ->pluck('document_signature_sent_id');
         $query = DocumentSignatureSent::where('PeopleIDTujuan', $user->PeopleId)
+            ->orWhere('PeopleId', $user->PeopleId)
+            ->where('status', '!=', SignatureStatusTypeEnum::WAITING()->value)
             ->whereNotIn('id', $readIds);
 
         return $query->count();
