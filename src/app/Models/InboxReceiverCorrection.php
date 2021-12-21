@@ -120,13 +120,13 @@ class InboxReceiverCorrection extends Model
         return $query;
     }
 
-    protected function statusQuery($query, $statuses)
+    private function statusQuery($query, $statuses)
     {
         $arrayStatuses = explode(", ", $statuses);
         $query->whereIn('StatusReceive', $arrayStatuses);
     }
 
-    protected function typeQuery($query, $types)
+    private function typeQuery($query, $types)
     {
         $tables = array(
             0 => array('name'  => 'konsep_naskah', 'column' => 'JenisId'),
@@ -135,7 +135,7 @@ class InboxReceiverCorrection extends Model
         $this->threeLvlQuery($query, $types, $tables);
     }
 
-    protected function urgencyQuery($query, $urgencies)
+    private function urgencyQuery($query, $urgencies)
     {
         $tables = array(
             0 => array('name'  => 'konsep_naskah', 'column' => 'UrgensiId'),
@@ -144,7 +144,7 @@ class InboxReceiverCorrection extends Model
         $this->threeLvlQuery($query, $urgencies, $tables);
     }
 
-    protected function threeLvlQuery($query, $requestFilter, $tables)
+    private function threeLvlQuery($query, $requestFilter, $tables)
     {
         $arrayTypes = explode(", ", $requestFilter);
         $query->whereIn('NId', function ($draftQuery) use ($arrayTypes, $tables) {
@@ -158,7 +158,7 @@ class InboxReceiverCorrection extends Model
         });
     }
 
-    protected function receiverQuery($query, $receiverTypes)
+    private function receiverQuery($query, $receiverTypes)
     {
         $arrayReceiverTypes = explode(", ", $receiverTypes);
         $receiverAs = $this->getReceiverAsData($arrayReceiverTypes);
@@ -170,7 +170,7 @@ class InboxReceiverCorrection extends Model
         }
     }
 
-    protected function receiverDefaultQuery($query, $receiverTypes)
+    private function receiverDefaultQuery($query, $receiverTypes)
     {
         $query->whereIn('ReceiverAs', $receiverTypes)
             ->whereIn('NId', function ($draftQuery) {
@@ -179,7 +179,7 @@ class InboxReceiverCorrection extends Model
             });
     }
 
-    protected function receiverReviewQuery($query, $receiverTypes)
+    private function receiverReviewQuery($query, $receiverTypes)
     {
         $query->where(function ($query) use ($receiverTypes) {
             $query->whereIn('ReceiverAs', $receiverTypes)
@@ -193,7 +193,7 @@ class InboxReceiverCorrection extends Model
         });
     }
 
-    protected function receiverSignQuery($query, $receiverTypes)
+    private function receiverSignQuery($query, $receiverTypes)
     {
         $operator = null;
         if (in_array(CustomReceiverTypeEnum::SIGNED(), $receiverTypes)) {
@@ -212,7 +212,7 @@ class InboxReceiverCorrection extends Model
         }
     }
 
-    protected function getReceiverAsData($arrayReceiverTypes)
+    private function getReceiverAsData($arrayReceiverTypes)
     {
         $receiverAs = [];
         foreach ($arrayReceiverTypes as $receiverType) {

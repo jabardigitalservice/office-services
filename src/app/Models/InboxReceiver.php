@@ -6,6 +6,7 @@ use App\Enums\InboxReceiverScopeType;
 use App\Enums\PeopleGroupTypeEnum;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Hoyvoy\CrossDatabase\Eloquent\Model;
+use Illuminate\Support\Arr;
 
 class InboxReceiver extends Model
 {
@@ -89,20 +90,20 @@ class InboxReceiver extends Model
 
     public function filter($query, $filter)
     {
+        $this->filterByResource($query, $filter);
+        $this->filterByStatus($query, $filter);
+        $this->filterByType($query, $filter);
+        $this->filterByUrgency($query, $filter);
+        $this->filterByFolder($query, $filter);
+        $this->filterByForwardStatus($query, $filter);
+        $this->filterByReceiverTypes($query, $filter);
+        $this->filterByScope($query, $filter);
+        return $query;
+    }
+
+    private function filterByResource($query, $filter)
+    {
         $sources = $filter["sources"] ?? null;
-        $statuses = $filter["statuses"] ?? null;
-        $types = $filter["types"] ?? null;
-        $urgencies = $filter["urgencies"] ?? null;
-        $forwarded = $filter["forwarded"] ?? null;
-        $folder = $filter["folder"] ?? null;
-        $receiverTypes = $filter["receiverTypes"] ?? null;
-        $scope = $filter["scope"] ?? null;
-
-        if ($statuses) {
-            $arrayStatuses = explode(", ", $statuses);
-            $query->whereIn('StatusReceive', $arrayStatuses);
-        }
-
         if ($sources) {
             $arraySources = explode(", ", $sources);
             $query->whereIn('NId', function ($inboxQuery) use ($arraySources) {
@@ -111,33 +112,58 @@ class InboxReceiver extends Model
                 ->whereIn('Pengirim', $arraySources);
             });
         }
+    }
 
+    private function filterByStatus($query, $filter)
+    {
+        $statuses = $filter["statuses"] ?? null;
+        if ($statuses) {
+            $arrayStatuses = explode(", ", $statuses);
+            $query->whereIn('StatusReceive', $arrayStatuses);
+        }
+    }
+
+    private function filterByType($query, $filter)
+    {
+        $types = $filter["types"] ?? null;
         if ($types) {
-            $arrayTypes = explode(", ", $types);
-            $query->whereIn('NId', function ($inboxQuery) use ($arrayTypes) {
-                $inboxQuery->select('NId')
-                ->from('inbox')
-                ->whereIn('JenisId', function ($docQuery) use ($arrayTypes) {
-                    $docQuery->select('JenisId')
-                    ->from('master_jnaskah')
-                    ->whereIn('JenisId', $arrayTypes);
-                });
-            });
+            $tables = array(
+                0 => array('name'  => 'inbox', 'column' => 'JenisId'),
+                1 => array('name'  => 'master_jnaskah', 'column' => 'JenisId')
+            );
+            $this->threeLvlQuery($query, $types, $tables);
         }
+    }
 
+    private function filterByUrgency($query, $filter)
+    {
+        $urgencies = $filter["urgencies"] ?? null;
         if ($urgencies) {
-            $arrayUrgencies = explode(", ", $urgencies);
-            $query->whereIn('NId', function ($inboxQuery) use ($arrayUrgencies) {
-                $inboxQuery->select('NId')
-                ->from('inbox')
-                ->whereIn('UrgensiId', function ($urgencyQuery) use ($arrayUrgencies) {
-                    $urgencyQuery->select('UrgensiId')
-                    ->from('master_urgensi')
-                    ->whereIn('UrgensiName', $arrayUrgencies);
-                });
-            });
+            $tables = array(
+                0 => array('name'  => 'inbox', 'column' => 'UrgensiId'),
+                1 => array('name'  => 'master_urgensi', 'column' => 'UrgensiName')
+            );
+            $this->threeLvlQuery($query, $urgencies, $tables);
         }
+    }
 
+    private function threeLvlQuery($query, $requestFilter, $tables)
+    {
+        $arrayTypes = explode(", ", $requestFilter);
+        $query->whereIn('NId', function ($draftQuery) use ($arrayTypes, $tables) {
+            $draftQuery->select('NId')
+            ->from(Arr::get($tables, '0.name'))
+            ->whereIn(Arr::get($tables, '0.column'), function ($docQuery) use ($arrayTypes, $tables) {
+                $docQuery->select(Arr::get($tables, '0.column'))
+                    ->from(Arr::get($tables, '1.name'))
+                    ->whereIn(Arr::get($tables, '1.column'), $arrayTypes);
+            });
+        });
+    }
+
+    private function filterByFolder($query, $filter)
+    {
+        $folder = $filter["forwarded"] ?? null;
         if ($folder) {
             $arrayFolders = explode(", ", $folder);
             $query->whereIn('NId', function ($inboxQuery) use ($arrayFolders) {
@@ -147,17 +173,29 @@ class InboxReceiver extends Model
             });
             $query->where('ReceiverAs', 'to');
         }
+    }
 
-        if ($forwarded || $forwarded == '0') {
+    private function filterByForwardStatus($query, $filter)
+    {
+        $forwarded = $filter["forwarded"] ?? null;
+        if ($forwarded) {
             $arrayForwarded = explode(", ", $forwarded);
             $query->whereIn('Status', $arrayForwarded);
         }
+    }
 
+    private function filterByReceiverTypes($query, $filter)
+    {
+        $receiverTypes = $filter["receiverTypes"] ?? null;
         if ($receiverTypes) {
             $arrayReceiverTypes = explode(", ", $receiverTypes);
             $query->whereIn('ReceiverAs', $arrayReceiverTypes);
         }
+    }
 
+    private function filterByScope($query, $filter)
+    {
+        $scope = $filter["scope"] ?? null;
         if ($scope) {
             $departmentId = $this->generateDeptId(auth()->user()->PrimaryRoleId);
             $comparison = '';
@@ -172,8 +210,6 @@ class InboxReceiver extends Model
             }
             $query->where('RoleId_From', $comparison, $departmentId . '%');
         }
-
-        return $query;
     }
 
     private function generateDeptId($roleId)
