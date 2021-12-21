@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-use App\Enums\InboxReceiverScopeType;
+use App\Enums\ListTypeEnum;
 use App\Enums\PeopleGroupTypeEnum;
 use App\Http\Traits\InboxFilterTrait;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -10,7 +10,8 @@ use Hoyvoy\CrossDatabase\Eloquent\Model;
 
 class InboxReceiver extends Model
 {
-    use HasFactory, InboxFilterTrait;
+    use HasFactory;
+    use InboxFilterTrait;
 
     protected $connection = 'sikdweb';
 
@@ -92,124 +93,13 @@ class InboxReceiver extends Model
     {
         $this->filterByResource($query, $filter);
         $this->filterByStatus($query, $filter);
-        $this->filterByType($query, $filter);
-        $this->filterByUrgency($query, $filter);
+        $this->filterByType($query, $filter, ListTypeEnum::INBOX_LIST());
+        $this->filterByUrgency($query, $filter, ListTypeEnum::INBOX_LIST());
         $this->filterByFolder($query, $filter);
         $this->filterByForwardStatus($query, $filter);
         $this->filterByReceiverTypes($query, $filter);
         $this->filterByScope($query, $filter);
         return $query;
-    }
-
-    private function filterByResource($query, $filter)
-    {
-        $sources = $filter["sources"] ?? null;
-        if ($sources) {
-            $arraySources = explode(", ", $sources);
-            $query->whereIn('NId', function ($inboxQuery) use ($arraySources) {
-                $inboxQuery->select('NId')
-                ->from('inbox')
-                ->whereIn('Pengirim', $arraySources);
-            });
-        }
-    }
-
-    private function filterByStatus($query, $filter)
-    {
-        $statuses = $filter["statuses"] ?? null;
-        if ($statuses) {
-            $arrayStatuses = explode(", ", $statuses);
-            $query->whereIn('StatusReceive', $arrayStatuses);
-        }
-    }
-
-    private function filterByType($query, $filter)
-    {
-        $types = $filter["types"] ?? null;
-        if ($types) {
-            $keyColumn = 'NId';
-            $tables = array(
-                0 => array('name'  => 'inbox', 'column' => 'JenisId'),
-                1 => array('name'  => 'master_jnaskah', 'column' => 'JenisId')
-            );
-            $this->threeLvlQuery($query, $types, $keyColumn, $tables);
-        }
-    }
-
-    private function filterByUrgency($query, $filter)
-    {
-        $urgencies = $filter["urgencies"] ?? null;
-        if ($urgencies) {
-            $keyColumn = 'NId';
-            $tables = array(
-                0 => array('name'  => 'inbox', 'column' => 'UrgensiId'),
-                1 => array('name'  => 'master_urgensi', 'column' => 'UrgensiName')
-            );
-            $this->threeLvlQuery($query, $urgencies, $keyColumn, $tables);
-        }
-    }
-
-    private function filterByFolder($query, $filter)
-    {
-        $folder = $filter["forwarded"] ?? null;
-        if ($folder) {
-            $arrayFolders = explode(", ", $folder);
-            $query->whereIn('NId', function ($inboxQuery) use ($arrayFolders) {
-                $inboxQuery->select('NId')
-                ->from('inbox')
-                ->whereIn('NTipe', $arrayFolders);
-            });
-            $query->where('ReceiverAs', 'to');
-        }
-    }
-
-    private function filterByForwardStatus($query, $filter)
-    {
-        $forwarded = $filter["forwarded"] ?? null;
-        if ($forwarded) {
-            $arrayForwarded = explode(", ", $forwarded);
-            $query->whereIn('Status', $arrayForwarded);
-        }
-    }
-
-    private function filterByReceiverTypes($query, $filter)
-    {
-        $receiverTypes = $filter["receiverTypes"] ?? null;
-        if ($receiverTypes) {
-            $arrayReceiverTypes = explode(", ", $receiverTypes);
-            $query->whereIn('ReceiverAs', $arrayReceiverTypes);
-        }
-    }
-
-    private function filterByScope($query, $filter)
-    {
-        $scope = $filter["scope"] ?? null;
-        if ($scope) {
-            $departmentId = $this->generateDeptId(auth()->user()->PrimaryRoleId);
-            $comparison = '';
-            switch ($scope) {
-                case InboxReceiverScopeType::REGIONAL():
-                    $comparison = 'NOT LIKE';
-                    break;
-
-                case InboxReceiverScopeType::INTERNAL():
-                    $comparison = 'LIKE';
-                    break;
-            }
-            $query->where('RoleId_From', $comparison, $departmentId . '%');
-        }
-    }
-
-    private function generateDeptId($roleId)
-    {
-        // If the user is not uk.setda
-        if ($roleId != 'uk.1.1.1.1.1') {
-            $arrayRoleId = explode(".", $roleId);
-            $arrayDepartmentId = array_slice($arrayRoleId, 0, 3);
-            $departmentId = join(".", $arrayDepartmentId);
-            return $departmentId;
-        }
-        return $roleId;
     }
 
     public function search($query, $search)
