@@ -4,13 +4,15 @@ namespace App\Models;
 
 use App\Enums\CustomReceiverTypeEnum;
 use App\Enums\DraftObjectiveTypeEnum;
+use App\Enums\ListTypeEnum;
 use App\Http\Traits\InboxFilterTrait;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class InboxReceiverCorrection extends Model
 {
-    use HasFactory, InboxFilterTrait;
+    use HasFactory;
+    use InboxFilterTrait;
 
     protected $connection = 'sikdweb';
 
@@ -96,65 +98,25 @@ class InboxReceiverCorrection extends Model
 
     public function filter($query, $filter)
     {
-        $statuses = $filter["statuses"] ?? null;
-        $types = $filter["types"] ?? null;
-        $urgencies = $filter["urgencies"] ?? null;
-        $receiverTypes = $filter["receiverTypes"] ?? null;
-
-        if ($statuses) {
-            $this->statusQuery($query, $statuses);
-        }
-
-        if ($types) {
-            $this->typeQuery($query, $types);
-        }
-
-        if ($urgencies) {
-            $this->urgencyQuery($query, $urgencies);
-        }
-
-        if ($receiverTypes) {
-            $this->receiverQuery($query, $receiverTypes);
-        }
-
+        $this->filterByStatus($query, $filter);
+        $this->filterByType($query, $filter, ListTypeEnum::DRAFT_LIST());
+        $this->filterByUrgency($query, $filter, ListTypeEnum::DRAFT_LIST());
+        $this->filterDraftByReceiverTypes($query, $filter);
         return $query;
     }
 
-    private function statusQuery($query, $statuses)
+    private function filterDraftByReceiverTypes($query, $filter)
     {
-        $arrayStatuses = explode(", ", $statuses);
-        $query->whereIn('StatusReceive', $arrayStatuses);
-    }
-
-    private function typeQuery($query, $types)
-    {
-        $keyColumn = 'NId_Temp';
-        $tables = array(
-            0 => array('name'  => 'konsep_naskah', 'column' => 'JenisId'),
-            1 => array('name'  => 'master_jnaskah', 'column' => 'JenisId')
-        );
-        $this->threeLvlQuery($query, $types, $keyColumn, $tables);
-    }
-
-    private function urgencyQuery($query, $urgencies)
-    {
-        $keyColumn = 'NId_Temp';
-        $tables = array(
-            0 => array('name'  => 'konsep_naskah', 'column' => 'UrgensiId'),
-            1 => array('name'  => 'master_urgensi', 'column' => 'UrgensiName')
-        );
-        $this->threeLvlQuery($query, $urgencies, $keyColumn, $tables);
-    }
-
-    private function receiverQuery($query, $receiverTypes)
-    {
-        $arrayReceiverTypes = explode(", ", $receiverTypes);
-        $receiverAs = $this->getReceiverAsData($arrayReceiverTypes);
-        if (in_array(CustomReceiverTypeEnum::REVIEW(), $arrayReceiverTypes)) {
-            $this->receiverReviewQuery($query, $receiverAs);
-        } else {
-            $this->receiverDefaultQuery($query, $receiverAs);
-            $this->receiverSignQuery($query, $arrayReceiverTypes);
+        $receiverTypes = $filter["receiverTypes"] ?? null;
+        if ($receiverTypes) {
+            $arrayReceiverTypes = explode(", ", $receiverTypes);
+            $receiverAs = $this->getReceiverAsData($arrayReceiverTypes);
+            if (in_array(CustomReceiverTypeEnum::REVIEW(), $arrayReceiverTypes)) {
+                $this->receiverReviewQuery($query, $receiverAs);
+            } else {
+                $this->receiverDefaultQuery($query, $receiverAs);
+                $this->receiverSignQuery($query, $arrayReceiverTypes);
+            }
         }
     }
 
