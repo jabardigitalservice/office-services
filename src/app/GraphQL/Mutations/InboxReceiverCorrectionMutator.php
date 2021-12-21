@@ -48,7 +48,7 @@ class InboxReceiverCorrectionMutator
 
     /**
      * updateInboxStatus
-     * @param Array $$draftData
+     * @param Array $draftData
      *
      * @throws \Exception
      *
