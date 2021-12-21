@@ -41,83 +41,136 @@ class People extends Authenticatable
 
     public function filter($query, $filter)
     {
-        $proposedTo = $filter["proposedTo"] ?? null;
-        $peopleId = auth()->user()->PeopleId;
-        $roleId = auth()->user()->PrimaryRoleId;
-        $roleIdUnit = count(explode(".", $roleId));
+        $this->filterByProposedType($query, $filter);
+        return $query;
+    }
 
-        $query->where('PeopleId', '<>', $peopleId);
+    /**
+     * filter people list based on roleId.
+     *
+     * @param  Object  $query
+     * @param  String  $roleId
+     *
+     * @return Void
+     */
+    private function filterByProposedType($query, $filter)
+    {
+        $user = auth()->user();
+        $query->where('PeopleId', '<>', $user->PeopleId);
+        $proposedTo = $filter["proposedTo"] ?? null;
         switch ($proposedTo) {
             case PeopleProposedTypeEnum::FORWARD():
-                $query->whereNotIn('GroupId', [
-                    PeopleGroupTypeEnum::TU(),
-                    PeopleGroupTypeEnum::SETDA_RECIPIENT(),
-                    PeopleGroupTypeEnum::SETDA_CONTROLLER(),
-                    PeopleGroupTypeEnum::SETDA_DIRECTOR(),
-                ]);
-
-                switch ($roleIdUnit) {
-                    case ArchiverIdUnitTypeEnum::SETDA()->value:
-                        // A special condition when the archiver (unit kearsipan) is 'unit kearsipan setda (uk.setda)'
-                        // uk.setda role id is uk.1.1.1.1.1 (roleIdUnit=6)
-                        $query->whereIn('PrimaryRoleId', function ($roleQuery) {
-                            $roleQuery->select('RoleId')
-                                ->from('role')
-                                // The forward targets have various role ids
-                                // with min. length id is 4, for example uk.1 as the government
-                                // and max. length id is 18, for instance uk.1.1.1.1.1.1.1.2 as the bureau chief
-                                ->whereRaw('LENGTH(PrimaryRoleId) >= 4 AND LENGTH(PrimaryRoleId) <= 18')
-                                ->where('RoleCode', 3);
-                        });
-                        break;
-
-                    case ArchiverIdUnitTypeEnum::DEPT()->value:
-                        // Department archivers (unit kearsipan dinas) always have the roleIdUnit=3
-                        // e.g.: uk.1.15 as uk.deptA; uk.1.37 as uk.uk.deptB
-                        // These are the role id patterns for 'kadis' and 'sekdis' of a department (dinas)
-                        $query->whereIn('PrimaryRoleId', [$roleId . '.1', $roleId . '.1.1']);
-                        break;
-
-                    default:
-                        // For another archivers, the people targets are their direct superior roles
-                        $query->where('PrimaryRoleId', auth()->user()->RoleAtasan);
-                        break;
-                }
-
+                $this->filterForward($query);
                 break;
 
             case PeopleProposedTypeEnum::DISPOSITION():
-                // The disposition targets are the people who has the 'RoleAtasan' as the user's roleId.
-                $query->where('RoleAtasan', $roleId)
-                // Data from group table: 3=Pejabat Struktural 4=Sekdis 7=Staf
-                ->whereIn('GroupId', [
-                    PeopleGroupTypeEnum::STRUCTURAL()->value,
-                    PeopleGroupTypeEnum::SECRETARY()->value,
-                    PeopleGroupTypeEnum::STAFF()->value
-                ]);
-
+                $this->filterDisposition($query);
                 break;
 
             case PeopleProposedTypeEnum::FORWARD_DOC_SIGNATURE():
-                // Data from group table: 6=Unit Kearsipan 8=Tata Usaha
-                $peopleTu = People::whereHas('role', function ($role) {
-                    $role->where('RoleCode', auth()->user()->role->RoleCode);
-                    $role->where('Code_Tu', auth()->user()->role->Code_Tu);
-                })->where('GroupId', PeopleGroupTypeEnum::TU()->value)->pluck('PeopleId');
-
-                $peopleUk = People::whereHas('role', function ($role) {
-                    $role->where('RoleCode', auth()->user()->role->RoleCode);
-                    $role->where('GRoleId', auth()->user()->role->GRoleId);
-                })->where('GroupId', PeopleGroupTypeEnum::UK()->value)->pluck('PeopleId');
-
-                $peopleIds = Arr::collapse([$peopleTu, $peopleUk]);
-
-                $query->whereIn('PeopleId', $peopleIds);
-
+                $this->filterForwardSignature($query);
                 break;
         }
+    }
 
-        return $query;
+    /**
+     * Filter people for forwarding proposed.
+     *
+     * @param  Object  $query
+     *
+     * @return Void
+     */
+    private function filterForward($query)
+    {
+        $this->groupExceptionQuery($query);
+        $roleId = auth()->user()->PrimaryRoleId;
+        $roleIdUnit = count(explode(".", $roleId));
+        switch ($roleIdUnit) {
+            case ArchiverIdUnitTypeEnum::SETDA()->value:
+                // A special condition when the archiver (unit kearsipan) is 'unit kearsipan setda (uk.setda)'
+                // uk.setda role id is uk.1.1.1.1.1 (roleIdUnit=6)
+                $query->whereIn('PrimaryRoleId', function ($roleQuery) {
+                    $roleQuery->select('RoleId')
+                        ->from('role')
+                        // The forward targets have various role ids
+                        // with min. length id is 4, for example uk.1 as the government
+                        // and max. length id is 18, for instance uk.1.1.1.1.1.1.1.2 as the bureau chief
+                        ->whereRaw('LENGTH(PrimaryRoleId) >= 4 AND LENGTH(PrimaryRoleId) <= 18')
+                        ->where('RoleCode', 3);
+                });
+                break;
+
+            case ArchiverIdUnitTypeEnum::DEPT()->value:
+                // Department archivers (unit kearsipan dinas) always have the roleIdUnit=3
+                // These are the role id patterns for 'kadis' and 'sekdis' of a department (dinas)
+                $query->whereIn('PrimaryRoleId', [$roleId . '.1', $roleId . '.1.1']);
+                break;
+
+            default:
+                // For another archivers, the people targets are their direct superior roles
+                $query->where('PrimaryRoleId', auth()->user()->RoleAtasan);
+                break;
+        }
+    }
+
+    /**
+     * Filter people for disposition proposed.
+     *
+     * @param  Object  $query
+     *
+     * @return Void
+     */
+    private function filterDisposition($query)
+    {
+        // The disposition targets are the people who has the 'RoleAtasan' as the user's roleId.
+        $query->where('RoleAtasan', auth()->user()->PrimaryRoleId)
+        // Data from group table: 3=Pejabat Struktural 4=Sekdis 7=Staf
+        ->whereIn('GroupId', [
+            PeopleGroupTypeEnum::STRUCTURAL()->value,
+            PeopleGroupTypeEnum::SECRETARY()->value,
+            PeopleGroupTypeEnum::STAFF()->value
+        ]);
+    }
+
+    /**
+     * Filter people for forwarding doc signature proposed.
+     *
+     * @param  Object  $query
+     *
+     * @return Void
+     */
+    private function filterForwardSignature($query)
+    {
+        // Data from group table: 6=Unit Kearsipan 8=Tata Usaha
+        $peopleTu = People::whereHas('role', function ($role) {
+            $role->where('RoleCode', auth()->user()->role->RoleCode);
+            $role->where('Code_Tu', auth()->user()->role->Code_Tu);
+        })->where('GroupId', PeopleGroupTypeEnum::TU()->value)->pluck('PeopleId');
+
+        $peopleUk = People::whereHas('role', function ($role) {
+            $role->where('RoleCode', auth()->user()->role->RoleCode);
+            $role->where('GRoleId', auth()->user()->role->GRoleId);
+        })->where('GroupId', PeopleGroupTypeEnum::UK()->value)->pluck('PeopleId');
+
+        $peopleIds = Arr::collapse([$peopleTu, $peopleUk]);
+        $query->whereIn('PeopleId', $peopleIds);
+    }
+
+    /**
+     * People group exception.
+     *
+     * @param  Object  $query
+     *
+     * @return Void
+     */
+    private function groupExceptionQuery($query)
+    {
+        $query->whereNotIn('GroupId', [
+            PeopleGroupTypeEnum::TU(),
+            PeopleGroupTypeEnum::SETDA_RECIPIENT(),
+            PeopleGroupTypeEnum::SETDA_CONTROLLER(),
+            PeopleGroupTypeEnum::SETDA_DIRECTOR(),
+        ]);
     }
 
     /**
