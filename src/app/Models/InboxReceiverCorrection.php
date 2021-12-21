@@ -4,13 +4,13 @@ namespace App\Models;
 
 use App\Enums\CustomReceiverTypeEnum;
 use App\Enums\DraftObjectiveTypeEnum;
+use App\Http\Traits\InboxFilterTrait;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Arr;
 
 class InboxReceiverCorrection extends Model
 {
-    use HasFactory;
+    use HasFactory, InboxFilterTrait;
 
     protected $connection = 'sikdweb';
 
@@ -128,34 +128,22 @@ class InboxReceiverCorrection extends Model
 
     private function typeQuery($query, $types)
     {
+        $keyColumn = 'NId_Temp';
         $tables = array(
             0 => array('name'  => 'konsep_naskah', 'column' => 'JenisId'),
             1 => array('name'  => 'master_jnaskah', 'column' => 'JenisId')
         );
-        $this->threeLvlQuery($query, $types, $tables);
+        $this->threeLvlQuery($query, $types, $keyColumn, $tables);
     }
 
     private function urgencyQuery($query, $urgencies)
     {
+        $keyColumn = 'NId_Temp';
         $tables = array(
             0 => array('name'  => 'konsep_naskah', 'column' => 'UrgensiId'),
             1 => array('name'  => 'master_urgensi', 'column' => 'UrgensiName')
         );
-        $this->threeLvlQuery($query, $urgencies, $tables);
-    }
-
-    private function threeLvlQuery($query, $requestFilter, $tables)
-    {
-        $arrayTypes = explode(", ", $requestFilter);
-        $query->whereIn('NId', function ($draftQuery) use ($arrayTypes, $tables) {
-            $draftQuery->select('NId_Temp')
-            ->from(Arr::get($tables, '0.name'))
-            ->whereIn(Arr::get($tables, '0.column'), function ($docQuery) use ($arrayTypes, $tables) {
-                $docQuery->select(Arr::get($tables, '0.column'))
-                    ->from(Arr::get($tables, '1.name'))
-                    ->whereIn(Arr::get($tables, '1.column'), $arrayTypes);
-            });
-        });
+        $this->threeLvlQuery($query, $urgencies, $keyColumn, $tables);
     }
 
     private function receiverQuery($query, $receiverTypes)

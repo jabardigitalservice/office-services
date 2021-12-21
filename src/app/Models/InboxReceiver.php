@@ -4,13 +4,13 @@ namespace App\Models;
 
 use App\Enums\InboxReceiverScopeType;
 use App\Enums\PeopleGroupTypeEnum;
+use App\Http\Traits\InboxFilterTrait;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Hoyvoy\CrossDatabase\Eloquent\Model;
-use Illuminate\Support\Arr;
 
 class InboxReceiver extends Model
 {
-    use HasFactory;
+    use HasFactory, InboxFilterTrait;
 
     protected $connection = 'sikdweb';
 
@@ -127,11 +127,12 @@ class InboxReceiver extends Model
     {
         $types = $filter["types"] ?? null;
         if ($types) {
+            $keyColumn = 'NId';
             $tables = array(
                 0 => array('name'  => 'inbox', 'column' => 'JenisId'),
                 1 => array('name'  => 'master_jnaskah', 'column' => 'JenisId')
             );
-            $this->threeLvlQuery($query, $types, $tables);
+            $this->threeLvlQuery($query, $types, $keyColumn, $tables);
         }
     }
 
@@ -139,26 +140,13 @@ class InboxReceiver extends Model
     {
         $urgencies = $filter["urgencies"] ?? null;
         if ($urgencies) {
+            $keyColumn = 'NId';
             $tables = array(
                 0 => array('name'  => 'inbox', 'column' => 'UrgensiId'),
                 1 => array('name'  => 'master_urgensi', 'column' => 'UrgensiName')
             );
-            $this->threeLvlQuery($query, $urgencies, $tables);
+            $this->threeLvlQuery($query, $urgencies, $keyColumn, $tables);
         }
-    }
-
-    private function threeLvlQuery($query, $requestFilter, $tables)
-    {
-        $arrayTypes = explode(", ", $requestFilter);
-        $query->whereIn('NId', function ($draftQuery) use ($arrayTypes, $tables) {
-            $draftQuery->select('NId')
-            ->from(Arr::get($tables, '0.name'))
-            ->whereIn(Arr::get($tables, '0.column'), function ($docQuery) use ($arrayTypes, $tables) {
-                $docQuery->select(Arr::get($tables, '0.column'))
-                    ->from(Arr::get($tables, '1.name'))
-                    ->whereIn(Arr::get($tables, '1.column'), $arrayTypes);
-            });
-        });
     }
 
     private function filterByFolder($query, $filter)
