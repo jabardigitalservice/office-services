@@ -2,6 +2,7 @@
 
 namespace App\Http\Traits;
 
+use App\Enums\InboxFilterTypeEnum;
 use App\Enums\InboxReceiverScopeType;
 use App\Enums\ListTypeEnum;
 use Illuminate\Support\Arr;
@@ -161,12 +162,13 @@ trait InboxFilterTrait
     {
         $types = $filter["types"] ?? null;
         if ($types) {
-            $firstTable = $this->defineFirstTable($listType);
-            $tables = array(
-                0 => array('name'  => $firstTable['name'], 'column' => 'JenisId'),
-                1 => array('name'  => 'master_jnaskah', 'column' => 'JenisId')
+            $arrayTypes = explode(", ", $types);
+            $this->inboxCategoryFilterQuery(
+                $query,
+                $arrayTypes,
+                $listType,
+                InboxFilterTypeEnum::TYPES()
             );
-            $this->threeLvlQuery($query, $types, $firstTable['keyColumn'], $tables);
         }
     }
 
@@ -177,57 +179,86 @@ trait InboxFilterTrait
      * @param Array  $filter
      * @param ListTypeEnum $listType
      *
-     * @return array
+     * @return Void
      */
     private function filterByUrgency($query, $filter, $listType)
     {
         $urgencies = $filter["urgencies"] ?? null;
         if ($urgencies) {
-            $firstTable = $this->defineFirstTable($listType);
-            $tables = array(
-                0 => array('name'  => $firstTable['name'], 'column' => 'UrgensiId'),
-                1 => array('name'  => 'master_urgensi', 'column' => 'UrgensiName')
+            $arrayUrgencies = explode(", ", $urgencies);
+            $this->inboxCategoryFilterQuery(
+                $query,
+                $arrayUrgencies,
+                $listType,
+                InboxFilterTypeEnum::URGENCIES()
             );
-            $this->threeLvlQuery($query, $urgencies, $firstTable['keyColumn'], $tables);
         }
     }
 
     /**
-     * Define the first table to be queried
+     * Query for filtering based on filter category.
+     *
+     * @param Object                $query
+     * @param Array                 $keysFilter
+     * @param ListTypeEnum          $listType
+     * @param InboxFilterTypeEnum   $categoryType
+     *
+     * @return Void
+     */
+    private function inboxCategoryFilterQuery($query, $keysFilter, $listType, $categoryType)
+    {
+        if ($categoryType === InboxFilterTypeEnum::URGENCIES()) {
+            $categoryColumn = 'UrgensiId';
+            $filterQuery = fn($query) => $this->urgencyQuery($query, $keysFilter);
+        } else {
+            $categoryColumn = 'JenisId';
+            $filterQuery = fn($query) => $this->typeQuery($query, $keysFilter);
+        }
+
+        $table = $this->defineListTable($listType);
+        $query->whereIn('NId', fn($query) => $query->select(Arr::get($table, 'key'))
+            ->from(Arr::get($table, 'name'))
+            ->whereIn($categoryColumn, $filterQuery));
+    }
+
+    /**
+     * Define the chosen table.
      *
      * @param ListTypeEnum $listType
      *
-     * @return array
+     * @return Array
      */
-    private function defineFirstTable($listType)
+    private function defineListTable($listType)
     {
         if ($listType === ListTypeEnum::DRAFT_LIST()) {
-            return ['name' => 'konsep_naskah', 'keyColumn' => 'NId_Temp'];
+            return array('name' => 'konsep_naskah', 'key' => 'NId_Temp');
         }
-        return ['name' => 'inbox', 'keyColumn' => 'NId'];
+        return array('name' => 'inbox', 'key' => 'NId');
     }
 
     /**
-     * Query that handle three sub queries
+     * Query for filtering based on inbox type table.
      *
      * @param Object $query
-     * @param String $requestFilter
-     * @param String $keyColumn
-     * @param Array  $tables
+     * @param Array $keysFilter
      *
-     * @return array
+     * @return Void
      */
-    private function threeLvlQuery($query, $requestFilter, $keyColumn, $tables)
+    private function typeQuery($query, $keysFilter)
     {
-        $arrayTypes = explode(", ", $requestFilter);
-        $query->whereIn('NId', function ($draftQuery) use ($arrayTypes, $keyColumn, $tables) {
-            $draftQuery->select($keyColumn)
-            ->from(Arr::get($tables, '0.name'))
-            ->whereIn(Arr::get($tables, '0.column'), function ($docQuery) use ($arrayTypes, $tables) {
-                $docQuery->select(Arr::get($tables, '0.column'))
-                    ->from(Arr::get($tables, '1.name'))
-                    ->whereIn(Arr::get($tables, '1.column'), $arrayTypes);
-            });
-        });
+        $query->select('JenisId')->from('master_jnaskah')->whereIn('JenisId', $keysFilter);
+    }
+
+    /**
+     * Query for filtering based on urgency table.
+     *
+     * @param Object $query
+     * @param Array $keysFilter
+     *
+     * @return Void
+     */
+    private function urgencyQuery($query, $keysFilter)
+    {
+        $query->select('UrgensiId')->from('master_urgensi')->whereIn('UrgensiName', $keysFilter);
     }
 }
