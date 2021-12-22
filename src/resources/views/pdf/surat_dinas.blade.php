@@ -1,6 +1,11 @@
 @extends('pdf.layouts.master')
 
 @section('content')
+    <style>
+        body {
+            font-size: 12px;
+        }
+    </style>
     @if ($draft->lampiran != null || $draft->lampiran2 != null || $draft->lampiran3 != null || $draft->lampiran4 != null)
         @php $firstPageBreak = 'always'; @endphp
     @else
@@ -13,7 +18,7 @@
         <section id="header-content-section">
             <div style="margin-top: 49px">
                 <div class="left-header">&nbsp;</div>
-                <div class="right-header"><p style="margin-bottom: 0;">{{ $draft->lokasi }}, {{ parseSetLocaleDate($draft->TglReg, 'id', 'd F Y'); }}</p></div>
+                <div class="right-header"><p style="margin-bottom: 0;">{{ $draft->lokasi }}, {{ ($generateQrCode) ? parseSetLocaleDate($draft->TglReg, 'id', 'd F Y') : 'Tempat / Tanggal / Bulan / Tahun'; }}</p></div>
                 <div class="clearfix"></div>
             </div>
             <div>
@@ -23,7 +28,7 @@
             </div>
             <div>
                 <div class="left-header">
-                    <table class="no-padding-table">
+                    <table class="table-collapse no-padding-table">
                         <tr>
                             <td style="width: 69px">Nomor</td>
                             <td style="width: 18px">:</td>
@@ -66,7 +71,7 @@
                 <div class="clearfix"></div>
             </div>
         </section>
-        <section id="body-content-section">
+        <section id="body-content-section" style="margin: 0px 0px 10px 69px;">
             {!! $draft->Konten; !!}
         </section>
         @include('pdf.layouts.signature')
@@ -74,55 +79,43 @@
             <table width="100%" style="line-height: 15px;">
                 <tr>
                     <td width="10%" valign="top">
-                        @php $greeting = 'Yth.'; @endphp
-                        @if ($carbonCopy)
+                        @if ($customData['carbonCopy'])
                             Tembusan : <br>
-                        @endif
-                        @forelse ($carbonCopy as $index => $value)
-                            @php
-                                $index++;
-                                $roleNmae  = ucwords(strtolower($value->RoleName));
-                                $str = str_replace('Dan', 'dan', $roleNmae);
-                                $str = str_replace('Uptd', 'UPTD', $str);
-                                $str = str_replace('Dprd', 'DPRD', $str);
-                            @endphp
-
-                            @php $endGreeting = ';'; @endphp
-
-                            @if ($index < $carbonCopy->count())
-                                @if ($index == ($carbonCopy->count()-1))
-                                    @php $endGreeting = '; dan'; @endphp
-                                @endif
-                            @else
-                                @php $endGreeting = ''; @endphp
-                            @endif
-
-                            <table border="0" height="20" width="100">
-                                <tr style="width:80px" margin-right="50px" height="20">
-                                <td style="text-align: justify; width: 10;"valign="top">{!! $index !!}.</td>
-                                <td style="text-align: justify; margin-right:30px;"valign="top">{!! $greeting !!}&nbsp;</td>
-                                <td style="text-align: justify; width: 545;"valign="top">{!! $str !!} {!! $endGreeting !!}</td>
-                                </tr>
-                            </table>
-                        @empty
-                            @if ($carbonCopy)
+                            @php $totalCarbonCopy = count($customData['carbonCopy']) @endphp
+                            @foreach ($customData['carbonCopy'] as $index => $value)
                                 @php
-                                    $roleNmae  = ucwords(strtolower($carbonCopy->RoleName));
-                                    $str = str_replace('Dan', 'dan', $roleNmae);
+                                    $index++;
+                                    $roleName  = Str::title(strtolower($value->RoleName));
+                                    $str = str_replace('Dan', 'dan', $roleName);
                                     $str = str_replace('Uptd', 'UPTD', $str);
                                     $str = str_replace('Dprd', 'DPRD', $str);
                                 @endphp
+
+                                @php $endGreeting = ';'; @endphp
+
+                                @if ($index < $customData['carbonCopy']->count())
+                                    @if ($index == ($customData['carbonCopy']->count()-1))
+                                        @php $endGreeting = '; dan'; @endphp
+                                    @endif
+                                @else
+                                    @php $endGreeting = ''; @endphp
+                                @endif
+
                                 <table border="0" height="20" width="100">
                                     <tr style="width:80px" margin-right="50px" height="20">
-                                        <td style="text-align: justify; margin-right:30px;"valign="top">{!! $greeting !!}&nbsp;</td>
-                                        <td style="text-align: justify; width: 545;"valign="top">{!! $str !!}</td>
+                                    @if ($totalCarbonCopy > 1)
+                                        <td valign="top" style="text-align: justify; width: 16px;"valign="top">{{ $index }}.</td>
+                                    @endif
+                                    <td style="text-align: justify; margin-right:30px;"valign="top">Yth. &nbsp;</td>
+                                    <td style="text-align: justify; width: 545;"valign="top">{!! $str !!}{!! $endGreeting !!}</td>
                                     </tr>
                                 </table>
-                            @endif
-                        @endforelse
+                            @endforeach
+                        @endif
                     </td>
                 </tr>
             </table>
         </section>
     </div>
+    @include('pdf.layouts.attachment.attachment')
 @endsection
