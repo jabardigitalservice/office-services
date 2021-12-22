@@ -4,13 +4,15 @@ namespace App\Models;
 
 use App\Enums\CustomReceiverTypeEnum;
 use App\Enums\DraftObjectiveTypeEnum;
+use App\Enums\ListTypeEnum;
+use App\Http\Traits\InboxFilterTrait;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Arr;
 
 class InboxReceiverCorrection extends Model
 {
     use HasFactory;
+    use InboxFilterTrait;
 
     protected $connection = 'sikdweb';
 
@@ -96,81 +98,29 @@ class InboxReceiverCorrection extends Model
 
     public function filter($query, $filter)
     {
-        $statuses = $filter["statuses"] ?? null;
-        $types = $filter["types"] ?? null;
-        $urgencies = $filter["urgencies"] ?? null;
-        $receiverTypes = $filter["receiverTypes"] ?? null;
-
-        if ($statuses) {
-            $this->statusQuery($query, $statuses);
-        }
-
-        if ($types) {
-            $this->typeQuery($query, $types);
-        }
-
-        if ($urgencies) {
-            $this->urgencyQuery($query, $urgencies);
-        }
-
-        if ($receiverTypes) {
-            $this->receiverQuery($query, $receiverTypes);
-        }
-
+        $this->filterByStatus($query, $filter);
+        $this->filterByType($query, $filter, ListTypeEnum::DRAFT_LIST());
+        $this->filterByUrgency($query, $filter, ListTypeEnum::DRAFT_LIST());
+        $this->filterDraftByReceiverTypes($query, $filter);
         return $query;
     }
 
-    protected function statusQuery($query, $statuses)
+    private function filterDraftByReceiverTypes($query, $filter)
     {
-        $arrayStatuses = explode(", ", $statuses);
-        $query->whereIn('StatusReceive', $arrayStatuses);
-    }
-
-    protected function typeQuery($query, $types)
-    {
-        $tables = array(
-            0 => array('name'  => 'konsep_naskah', 'column' => 'JenisId'),
-            1 => array('name'  => 'master_jnaskah', 'column' => 'JenisId')
-        );
-        $this->threeLvlQuery($query, $types, $tables);
-    }
-
-    protected function urgencyQuery($query, $urgencies)
-    {
-        $tables = array(
-            0 => array('name'  => 'konsep_naskah', 'column' => 'UrgensiId'),
-            1 => array('name'  => 'master_urgensi', 'column' => 'UrgensiName')
-        );
-        $this->threeLvlQuery($query, $urgencies, $tables);
-    }
-
-    protected function threeLvlQuery($query, $requestFilter, $tables)
-    {
-        $arrayTypes = explode(", ", $requestFilter);
-        $query->whereIn('NId', function ($draftQuery) use ($arrayTypes, $tables) {
-            $draftQuery->select('NId_Temp')
-            ->from(Arr::get($tables, '0.name'))
-            ->whereIn(Arr::get($tables, '0.column'), function ($docQuery) use ($arrayTypes, $tables) {
-                $docQuery->select(Arr::get($tables, '0.column'))
-                    ->from(Arr::get($tables, '1.name'))
-                    ->whereIn(Arr::get($tables, '1.column'), $arrayTypes);
-            });
-        });
-    }
-
-    protected function receiverQuery($query, $receiverTypes)
-    {
-        $arrayReceiverTypes = explode(", ", $receiverTypes);
-        $receiverAs = $this->getReceiverAsData($arrayReceiverTypes);
-        if (in_array(CustomReceiverTypeEnum::REVIEW(), $arrayReceiverTypes)) {
-            $this->receiverReviewQuery($query, $receiverAs);
-        } else {
-            $this->receiverDefaultQuery($query, $receiverAs);
-            $this->receiverSignQuery($query, $arrayReceiverTypes);
+        $receiverTypes = $filter["receiverTypes"] ?? null;
+        if ($receiverTypes) {
+            $arrayReceiverTypes = explode(", ", $receiverTypes);
+            $receiverAs = $this->getReceiverAsData($arrayReceiverTypes);
+            if (in_array(CustomReceiverTypeEnum::REVIEW(), $arrayReceiverTypes)) {
+                $this->receiverReviewQuery($query, $receiverAs);
+            } else {
+                $this->receiverDefaultQuery($query, $receiverAs);
+                $this->receiverSignQuery($query, $arrayReceiverTypes);
+            }
         }
     }
 
-    protected function receiverDefaultQuery($query, $receiverTypes)
+    private function receiverDefaultQuery($query, $receiverTypes)
     {
         $query->whereIn('ReceiverAs', $receiverTypes)
             ->whereIn('NId', function ($draftQuery) {
@@ -179,7 +129,7 @@ class InboxReceiverCorrection extends Model
             });
     }
 
-    protected function receiverReviewQuery($query, $receiverTypes)
+    private function receiverReviewQuery($query, $receiverTypes)
     {
         $query->where(function ($query) use ($receiverTypes) {
             $query->whereIn('ReceiverAs', $receiverTypes)
@@ -193,7 +143,7 @@ class InboxReceiverCorrection extends Model
         });
     }
 
-    protected function receiverSignQuery($query, $receiverTypes)
+    private function receiverSignQuery($query, $receiverTypes)
     {
         $operator = null;
         if (in_array(CustomReceiverTypeEnum::SIGNED(), $receiverTypes)) {
@@ -212,7 +162,7 @@ class InboxReceiverCorrection extends Model
         }
     }
 
-    protected function getReceiverAsData($arrayReceiverTypes)
+    private function getReceiverAsData($arrayReceiverTypes)
     {
         $receiverAs = [];
         foreach ($arrayReceiverTypes as $receiverType) {

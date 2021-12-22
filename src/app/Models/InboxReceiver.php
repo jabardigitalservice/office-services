@@ -2,14 +2,16 @@
 
 namespace App\Models;
 
-use App\Enums\InboxReceiverScopeType;
+use App\Enums\ListTypeEnum;
 use App\Enums\PeopleGroupTypeEnum;
+use App\Http\Traits\InboxFilterTrait;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Hoyvoy\CrossDatabase\Eloquent\Model;
 
 class InboxReceiver extends Model
 {
     use HasFactory;
+    use InboxFilterTrait;
 
     protected $connection = 'sikdweb';
 
@@ -89,103 +91,15 @@ class InboxReceiver extends Model
 
     public function filter($query, $filter)
     {
-        $sources = $filter["sources"] ?? null;
-        $statuses = $filter["statuses"] ?? null;
-        $types = $filter["types"] ?? null;
-        $urgencies = $filter["urgencies"] ?? null;
-        $forwarded = $filter["forwarded"] ?? null;
-        $folder = $filter["folder"] ?? null;
-        $receiverTypes = $filter["receiverTypes"] ?? null;
-        $scope = $filter["scope"] ?? null;
-
-        if ($statuses) {
-            $arrayStatuses = explode(", ", $statuses);
-            $query->whereIn('StatusReceive', $arrayStatuses);
-        }
-
-        if ($sources) {
-            $arraySources = explode(", ", $sources);
-            $query->whereIn('NId', function ($inboxQuery) use ($arraySources) {
-                $inboxQuery->select('NId')
-                ->from('inbox')
-                ->whereIn('Pengirim', $arraySources);
-            });
-        }
-
-        if ($types) {
-            $arrayTypes = explode(", ", $types);
-            $query->whereIn('NId', function ($inboxQuery) use ($arrayTypes) {
-                $inboxQuery->select('NId')
-                ->from('inbox')
-                ->whereIn('JenisId', function ($docQuery) use ($arrayTypes) {
-                    $docQuery->select('JenisId')
-                    ->from('master_jnaskah')
-                    ->whereIn('JenisId', $arrayTypes);
-                });
-            });
-        }
-
-        if ($urgencies) {
-            $arrayUrgencies = explode(", ", $urgencies);
-            $query->whereIn('NId', function ($inboxQuery) use ($arrayUrgencies) {
-                $inboxQuery->select('NId')
-                ->from('inbox')
-                ->whereIn('UrgensiId', function ($urgencyQuery) use ($arrayUrgencies) {
-                    $urgencyQuery->select('UrgensiId')
-                    ->from('master_urgensi')
-                    ->whereIn('UrgensiName', $arrayUrgencies);
-                });
-            });
-        }
-
-        if ($folder) {
-            $arrayFolders = explode(", ", $folder);
-            $query->whereIn('NId', function ($inboxQuery) use ($arrayFolders) {
-                $inboxQuery->select('NId')
-                ->from('inbox')
-                ->whereIn('NTipe', $arrayFolders);
-            });
-            $query->where('ReceiverAs', 'to');
-        }
-
-        if ($forwarded || $forwarded == '0') {
-            $arrayForwarded = explode(", ", $forwarded);
-            $query->whereIn('Status', $arrayForwarded);
-        }
-
-        if ($receiverTypes) {
-            $arrayReceiverTypes = explode(", ", $receiverTypes);
-            $query->whereIn('ReceiverAs', $arrayReceiverTypes);
-        }
-
-        if ($scope) {
-            $departmentId = $this->generateDeptId(auth()->user()->PrimaryRoleId);
-            $comparison = '';
-            switch ($scope) {
-                case InboxReceiverScopeType::REGIONAL():
-                    $comparison = 'NOT LIKE';
-                    break;
-
-                case InboxReceiverScopeType::INTERNAL():
-                    $comparison = 'LIKE';
-                    break;
-            }
-            $query->where('RoleId_From', $comparison, $departmentId . '%');
-        }
-
+        $this->filterByResource($query, $filter);
+        $this->filterByStatus($query, $filter);
+        $this->filterByType($query, $filter, ListTypeEnum::INBOX_LIST());
+        $this->filterByUrgency($query, $filter, ListTypeEnum::INBOX_LIST());
+        $this->filterByFolder($query, $filter);
+        $this->filterByForwardStatus($query, $filter);
+        $this->filterByReceiverTypes($query, $filter);
+        $this->filterByScope($query, $filter);
         return $query;
-    }
-
-    private function generateDeptId($roleId)
-    {
-        // If the user is not uk.setda
-        if ($roleId != 'uk.1.1.1.1.1') {
-            $arrayRoleId = explode(".", $roleId);
-            $arrayDepartmentId = array_slice($arrayRoleId, 0, 3);
-            $departmentId = join(".", $arrayDepartmentId);
-            return $departmentId;
-        }
-        return $roleId;
     }
 
     public function search($query, $search)
