@@ -23,7 +23,7 @@ class DocumentDraftPdfController extends Controller
         } catch (\Throwable $th) {
             throw new CustomException(
                 'Document can not be generate',
-                'Invalid generate pdf. Message : ' . $th->getMessage(),
+                'Invalid generate pdf. Message : ' . $th->getMessage() . ' on line ' . $th->getLine(),
             );
         }
     }

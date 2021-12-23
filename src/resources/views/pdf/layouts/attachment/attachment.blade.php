@@ -4,7 +4,7 @@
             <table style="text-align: justify">
                 <tbody>
                     <tr>
-                        <td style="width: 70px; vertical-align: top;">LAMPIRAN</td>
+                        <td style="width: 70px; vertical-align: top;">LAMPIRAN I</td>
                         @include('pdf.layouts.attachment.header')
                     </tr>
                 </tbody>

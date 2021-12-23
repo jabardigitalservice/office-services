@@ -4,7 +4,6 @@
             /** Define the margins of your page **/
             body {
                 font-family: "Arial, Helvetica, sans-serif";
-                font-size: 12px;
             }
             @page {
                 margin: 85px 85.5px 80px 123.1px;
@@ -59,12 +58,20 @@
             .right-header__sub-right {
                 padding-left: 25px;
             }
-            .no-padding-table {
+            .table-collapse {
                 border-collapse: collapse;
             }
-            .no-padding-table td {
+            .table-collapse td {
                 padding: 0;
                 margin: 0;
+            }
+            .mini-padding-table td {
+                padding: 1.8px;
+                margin: 1.8px;
+            }
+
+            .mini-list-table td {
+                padding: 0px 0px 1.8px 0px !important;
             }
             #header-content-section {
                 margin-bottom: 55px;
@@ -72,7 +79,6 @@
             #body-content-section {
                 text-align: justify;
                 line-height: 17px;
-                margin: 0px 0px 10px 69px;
             }
 
             #body-content-section table {
@@ -122,7 +128,6 @@
         <!-- Wrap the content of your PDF inside a main tag -->
         <main>
             @yield('content')
-            @include('pdf.layouts.attachment.attachment')
         </main>
     </body>
 </html>

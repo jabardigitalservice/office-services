@@ -4,6 +4,7 @@ namespace App\Http\Traits;
 
 use App\Models\Draft;
 use App\Models\MasterDraftHeader;
+use App\Models\People;
 use App\Models\Role;
 use Endroid\QrCode\Builder\Builder;
 use Endroid\QrCode\Encoding\Encoding;
@@ -19,22 +20,12 @@ trait DraftTrait
 {
     public function setDraftDocumentPdf($id, $verifyCode = null)
     {
-        $verifyCode = substr(sha1(uniqid(mt_rand(), TRUE)), 0, 10);
         $draft  = Draft::where('NId_Temp', $id)->firstOrFail();
         $header = MasterDraftHeader::where('GRoleId', $draft->createdBy->role->GRoleId)->first();
-
-        $carbonCopy = [];
-        if ($draft->RoleId_Cc) {
-            $explodeCarbonCopy = explode(',', $draft->RoleId_Cc);
-            if (!empty($explodeCarbonCopy)) {
-                $carbonCopy = Role::whereIn('RoleId', $explodeCarbonCopy)->get();
-            } else {
-                $carbonCopy = Role::where('RoleId', $explodeCarbonCopy[0])->first();
-            }
-        }
+        $customData = $this->customData($draft);
 
         $generateQrCode = ($verifyCode) ? $this->generateQrCode($id) : null;
-        $pdf = PDF::loadView('pdf.outboxkeluar', compact('draft', 'header', 'carbonCopy', 'generateQrCode', 'verifyCode'));
+        $pdf = PDF::loadView($draft->document_template_name, compact('draft', 'header', 'customData', 'generateQrCode', 'verifyCode'));
         return $pdf->stream();
     }
 
@@ -65,5 +56,74 @@ trait DraftTrait
         Storage::disk('local')->put($fileName, $result->getString());
 
         return $fileName;
+    }
+
+    /**
+     * customData
+     *
+     * @param  collection $draft
+     * @return array
+     */
+    public function customData($draft)
+    {
+        $customData = match ($draft->Ket) {
+            'outboxnotadinas'       => $this->setDataNotaDinas($draft),
+            'outboxkeluar'          => $this->setDataSuratDinas($draft),
+        };
+
+        return $customData;
+    }
+
+    /**
+     * setDataSuratDinas
+     *
+     * @param  collection $draft
+     * @return array
+     */
+    public function setDataNotaDinas($draft)
+    {
+        $response['carbonCopy'] = $this->getCarbonCopy($draft);
+        $response['receivers'] = $this->getReceivers($draft);
+        return $response;
+    }
+
+    /**
+     * setDataSuratDinas
+     *
+     * @param  collection $draft
+     * @return array
+     */
+    public function setDataSuratDinas($draft)
+    {
+        $response['carbonCopy'] = $this->getCarbonCopy($draft);
+        return $response;
+    }
+
+    /**
+     * getCarbonCopy
+     *
+     * @param  collection $draft
+     * @return array
+     */
+    public function getCarbonCopy($draft)
+    {
+        $carbonCopy = [];
+        if ($draft->RoleId_Cc) {
+            $explodeCarbonCopy = explode(',', $draft->RoleId_Cc);
+            $carbonCopy = Role::whereIn('RoleId', $explodeCarbonCopy)->get();
+        }
+
+        return $carbonCopy;
+    }
+
+    public function getReceivers($draft)
+    {
+        $receivers = [];
+        if ($draft->RoleId_To) {
+            $explodeReceivers = explode(',', $draft->RoleId_To);
+            $receivers = People::whereIn('PeopleId', $explodeReceivers)->get();
+        }
+
+        return $receivers;
     }
 }

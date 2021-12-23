@@ -16,7 +16,7 @@
     @else
         {!! $draft->reviewer->role->RoleName !!},
     @endif
-    <table class="no-padding-table" style="text-align: justify">
+    <table class="table-collapse no-padding-table" style="text-align: justify">
         <tr>
             <td style="width: 80px; vertical-align: top;">NOMOR</td>
             <td style="width: 15px; vertical-align: top;">:</td>

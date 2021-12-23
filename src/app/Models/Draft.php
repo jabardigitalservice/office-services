@@ -84,4 +84,25 @@ class Draft extends Model
 
         return $label;
     }
+
+    public function getDocumentTemplateNameAttribute()
+    {
+        $label = match ($this->Ket) {
+            'outboxnotadinas'       => 'pdf.nota_dinas',
+            'outboxsprint'          => 'pdf.sprint',
+            'outboxsprintgub'       => 'pdf.sprintgub',
+            'outboxundangan'        => 'pdf.undangan',
+            'outboxedaran'          => 'pdf.surat_edaran',
+            'outboxinstruksigub'    => 'pdf.surat_instruksi',
+            'outboxsupertugas'      => 'pdf.surat_supertugas',
+            'outboxkeluar'          => 'pdf.surat_dinas',
+            'outboxsket'            => 'pdf.surat_keterangan',
+            'outboxpengumuman'      => 'pdf.pengumuman',
+            'outboxsuratizin'       => 'pdf.surat_izin',
+            'outboxrekomendasi'     => 'pdf.rekomendasi',
+            default                 => 'pdf.nadin_lain',
+        };
+
+        return $label;
+    }
 }
