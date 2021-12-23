@@ -2,8 +2,10 @@
 
 namespace App\Models;
 
+use App\Enums\DraftConceptStatusTypeEnum;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\URL;
 
 class Draft extends Model
 {
@@ -62,6 +64,21 @@ class Draft extends Model
     public function classification()
     {
         return $this->belongsTo(Classification::class, 'ClId', 'ClId');
+    }
+
+    public function inboxFile()
+    {
+        return $this->belongsTo(InboxFile::class, 'NId_Temp', 'NId');
+    }
+
+    public function getDraftFileAttribute()
+    {
+        $file = URL::to('/api/v1/draft/' . $this->NId_Temp);
+        if ($this->Konsep == DraftConceptStatusTypeEnum::APPROVED()->value) {
+            $file = config('sikd.base_path_file_letter') . $this->inboxFile->FileName_fake;
+        }
+
+        return $file;
     }
 
     public function getDocumentFileNameAttribute()
