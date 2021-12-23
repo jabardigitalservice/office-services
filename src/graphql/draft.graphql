@@ -10,6 +10,7 @@ type Draft {
     location: String @rename(attribute: "lokasi")
     address: String @rename(attribute: "Alamat")
     folder: String @rename(attribute: "Ket")
+    file: String @rename(attribute: "DraftFile")
     type: DocumentType @belongsTo
     urgency: DocumentUrgency @belongsTo
     createdBy: People @belongsTo

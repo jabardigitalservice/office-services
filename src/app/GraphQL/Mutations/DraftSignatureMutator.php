@@ -206,7 +206,7 @@ class DraftSignatureMutator
         $InboxReceiverCorrection = new InboxReceiverCorrection();
         $InboxReceiverCorrection->NId           = $draft->NId_Temp;
         $InboxReceiverCorrection->NKey          = TableSetting::first()->tb_key;
-        $InboxReceiverCorrection->GIR_Id        = $draft->GIR_Id;
+        $InboxReceiverCorrection->GIR_Id        = auth()->user()->PeopleId . Carbon::now();
         $InboxReceiverCorrection->From_Id       = auth()->user()->PeopleId;
         $InboxReceiverCorrection->RoleId_From   = auth()->user()->PrimaryRoleId;
         $InboxReceiverCorrection->To_Id         = $toId;
