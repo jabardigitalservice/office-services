@@ -104,6 +104,8 @@ class InboxQuery
 
         if ($scope == InboxReceiverScopeType::DISPOSITION()) {
             $query->where('ReceiverAs', 'cc1');
+        } elseif ($scope == InboxReceiverScopeType::REGIONAL()) {
+            $query->whereHas('inboxDetail', fn($query) => $query->where('Pengirim', 'eksternal'));
         }
 
         return $query->count();
@@ -148,10 +150,11 @@ class InboxQuery
         $readIds = DB::connection('mysql')->table('document_signature_sent_reads')
             ->where('people_id', $user->PeopleId)
             ->pluck('document_signature_sent_id');
-        $query = DocumentSignatureSent::where('PeopleIDTujuan', $user->PeopleId)
-            ->orWhere('PeopleId', $user->PeopleId)
-            ->where('status', '!=', SignatureStatusTypeEnum::WAITING()->value)
-            ->whereNotIn('id', $readIds);
+
+        $query = DocumentSignatureSent::whereNotIn('id', $readIds)
+            ->where(fn($query) => $query->where('PeopleIDTujuan', $user->PeopleId))
+            ->orWhere(fn($query) => $query->where('PeopleId', $user->PeopleId)
+                ->where('status', '!=', SignatureStatusTypeEnum::WAITING()->value));
 
         return $query->count();
     }
