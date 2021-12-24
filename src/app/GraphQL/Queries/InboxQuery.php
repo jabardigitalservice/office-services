@@ -104,6 +104,8 @@ class InboxQuery
 
         if ($scope == InboxReceiverScopeType::DISPOSITION()) {
             $query->where('ReceiverAs', 'cc1');
+        } elseif ($scope == InboxReceiverScopeType::REGIONAL()) {
+            $query->whereHas('inboxDetail', fn($query) => $query->where('Pengirim', 'eksternal'));
         }
 
         return $query->count();
