@@ -57,7 +57,7 @@ trait InboxFilterTrait
      */
     private function filterByFolder($query, $filter)
     {
-        $folder = $filter["forwarded"] ?? null;
+        $folder = $filter["folder"] ?? null;
         if ($folder) {
             $arrayFolders = explode(", ", $folder);
             $query->whereIn('NId', function ($inboxQuery) use ($arrayFolders) {
