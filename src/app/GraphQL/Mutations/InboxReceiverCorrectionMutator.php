@@ -123,7 +123,6 @@ class InboxReceiverCorrectionMutator
         $date = parseDateTimeFormat($dateString, 'dmyhis');
         $title = 'TTE Naskah';
         $body = 'Yah! Ada ' . $draft->type->JenisName . ' terkait dengan ' . $draft->Hal . ' yang harus Anda perbaiki terlebih dahulu. Yuk cek sekarang juga!';
-        // $body = 'Halo terdapat ' . $draft->type->JenisName . ' terkait dengan ' . $draft->Hal . ' yang harus segera Anda Tandatangani. Yuk cek sekarang juga!';
 
         $messageAttribute = [
             'notification' => [
