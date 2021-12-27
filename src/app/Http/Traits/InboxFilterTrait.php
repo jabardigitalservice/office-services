@@ -80,7 +80,7 @@ trait InboxFilterTrait
     private function filterByForwardStatus($query, $filter)
     {
         $forwarded = $filter["forwarded"] ?? null;
-        if ($forwarded) {
+        if ($forwarded || $forwarded == 0) {
             $arrayForwarded = explode(", ", $forwarded);
             $query->whereIn('Status', $arrayForwarded);
         }
