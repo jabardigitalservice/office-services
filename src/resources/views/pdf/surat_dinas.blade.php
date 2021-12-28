@@ -18,7 +18,7 @@
         <section id="header-content-section">
             <div style="margin-top: 49px">
                 <div class="left-header">&nbsp;</div>
-                <div class="right-header"><p style="margin-bottom: 0;">{{ $draft->lokasi }}, {{ ($generateQrCode) ? parseSetLocaleDate($draft->TglReg, 'id', 'd F Y') : 'Tempat / Tanggal / Bulan / Tahun'; }}</p></div>
+                <div class="right-header"><p style="margin-bottom: 0;">{{ ($generateQrCode) ? $draft->lokasi . ', ' . parseSetLocaleDate($draft->TglReg, 'id', 'd F Y') : 'Tempat / Tanggal / Bulan / Tahun'; }}</p></div>
                 <div class="clearfix"></div>
             </div>
             <div>
@@ -78,15 +78,15 @@
         <section id="carboncopy-content-section">
             <table width="100%" style="line-height: 15px;">
                 <tr>
-                    <td width="10%" valign="top">
+                    <td width="100%" valign="top">
                         @if ($customData['carbonCopy'])
                             Tembusan : <br>
                             @php $totalCarbonCopy = count($customData['carbonCopy']) @endphp
                             @foreach ($customData['carbonCopy'] as $index => $value)
                                 @php
                                     $index++;
-                                    $roleName  = Str::title(strtolower($value->RoleName));
-                                    $str = str_replace('Dan', 'dan', $roleName);
+                                    $roleDesc  = Str::title(strtolower($value->RoleDesc));
+                                    $str = str_replace('Dan', 'dan', $roleDesc);
                                     $str = str_replace('Uptd', 'UPTD', $str);
                                     $str = str_replace('Dprd', 'DPRD', $str);
                                 @endphp
@@ -101,13 +101,12 @@
                                     @php $endGreeting = ''; @endphp
                                 @endif
 
-                                <table border="0" height="20" width="100">
-                                    <tr style="width:80px" margin-right="50px" height="20">
-                                    @if ($totalCarbonCopy > 1)
-                                        <td valign="top" style="text-align: justify; width: 16px;"valign="top">{{ $index }}.</td>
-                                    @endif
-                                    <td style="text-align: justify; margin-right:30px;"valign="top">Yth. &nbsp;</td>
-                                    <td style="text-align: justify; width: 545;"valign="top">{!! $str !!}{!! $endGreeting !!}</td>
+                                <table border="0" width="100%">
+                                    <tr margin-right="50px">
+                                        @if ($totalCarbonCopy > 1)
+                                            <td valign="top" style="text-align: justify; width: 16px;"valign="top">{{ $index }}.</td>
+                                        @endif
+                                        <td style="text-align: left;" valign="top">Yth. {{ $str }}{{ $endGreeting }}</td>
                                     </tr>
                                 </table>
                             @endforeach

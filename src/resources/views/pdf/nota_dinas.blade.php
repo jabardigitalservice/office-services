@@ -54,8 +54,8 @@
                             @forelse ($customData['carbonCopy'] as $index => $value)
                                 @php
                                     $index++;
-                                    $roleName  = Str::title(strtolower($value->RoleName));
-                                    $str = str_replace('Dan', 'dan', $roleName);
+                                    $roleDesc  = Str::title(strtolower($value->RoleDesc));
+                                    $str = str_replace('Dan', 'dan', $roleDesc);
                                     $str = str_replace('Uptd', 'UPTD', $str);
                                     $str = str_replace('Dprd', 'DPRD', $str);
                                 @endphp
