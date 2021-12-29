@@ -31,7 +31,7 @@
         <tr>
             <td style="width: 80px; vertical-align: top;">TANGGAL</td>
             <td style="width: 15px; vertical-align: top;">:</td>
-            <td style="vertical-align: top;">{{ parseSetLocaleDate($draft->TglReg, 'id', 'd F Y'); }}</td>
+            <td style="vertical-align: top;">{{ ($generateQrCode) ? $draft->lokasi . ', ' . parseSetLocaleDate($draft->TglReg, 'id', 'd F Y') : 'Tempat / Tanggal / Bulan / Tahun'; }}</td>
         </tr>
         <tr>
             <td style="width: 80px; vertical-align: top;">PERIHAL</td>

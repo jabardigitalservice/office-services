@@ -57,20 +57,15 @@
                         <div style="margin-bottom: 20px">
                             @if ($draft->TtdText == 'PLT')
                                 Plt. {!! $draft->reviewer->role->RoleName !!},
-
                             @elseif ($draft->TtdText == 'PLH')
                                 Plh. {!! $draft->reviewer->role->RoleName !!},
-                                <br>{!! $draft->reviewer->role->RoleName !!},
-
                             @elseif ($draft->TtdText2 == 'Atas_Nama')
                                 a.n.&nbsp;{!! $draft->approver->role->RoleName !!},
-                                <br><{!! $draft->reviewer->role->RoleName !!},
-
+                                    <br>{!! $draft->reviewer->role->RoleName !!},
                             @elseif ($draft->TtdText2 == 'untuk_beliau')
                                 a.n.&nbsp;{!! $draft->approver->role->RoleName !!},
-                                <br>{!! $draft->reviewer->parentRole->RoleName !!},
-                                <br>u.b.<br>{!! $draft->reviewer->role->RoleName !!},
-
+                                    <br>{!! $draft->reviewer->parentRole->RoleName !!},
+                                    <br>u.b.<br>{!! $draft->reviewer->role->RoleName !!},
                             @else
                                 {!! $draft->reviewer->role->RoleName !!},
                             @endif
