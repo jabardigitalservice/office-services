@@ -121,7 +121,7 @@ class InboxReceiverCorrectionMutator
         $peopleId = substr($draftData['groupId'], 0, -19);
         $dateString = substr($draftData['groupId'], -19);
         $date = parseDateTimeFormat($dateString, 'dmyhis');
-        $title = 'Review Naskah';
+        $title = 'Perbaikan Naskah';
         $body = 'Yah! Ada ' . $draft->type->JenisName . ' terkait dengan ' . $draft->Hal . ' yang harus Anda perbaiki terlebih dahulu. Yuk cek sekarang juga!';
 
         $messageAttribute = [
