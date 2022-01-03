@@ -47,7 +47,7 @@ class DraftSignatureMutator
 
         $signature = $this->doSignature($setupConfig, $draft, $passphrase);
 
-        $draft->Konsep = DraftConceptStatusTypeEnum::APPROVED()->value;
+        $draft->Konsep = DraftConceptStatusTypeEnum::SENT()->value;
         $draft->save();
 
         return $signature;
