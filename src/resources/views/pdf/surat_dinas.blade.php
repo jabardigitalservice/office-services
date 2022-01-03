@@ -85,8 +85,8 @@
                             @foreach ($customData['carbonCopy'] as $index => $value)
                                 @php
                                     $index++;
-                                    $roleDesc  = Str::title(strtolower($value->RoleDesc));
-                                    $str = str_replace('Dan', 'dan', $roleDesc);
+                                    $role = Str::title(strtolower($value->PeoplePosition));
+                                    $str = str_replace('Dan', 'dan', $role);
                                     $str = str_replace('Uptd', 'UPTD', $str);
                                     $str = str_replace('Dprd', 'DPRD', $str);
                                 @endphp
@@ -98,7 +98,7 @@
                                         @php $endGreeting = '; dan'; @endphp
                                     @endif
                                 @else
-                                    @php $endGreeting = ''; @endphp
+                                    @php $endGreeting = '.'; @endphp
                                 @endif
 
                                 <table border="0" width="100%">
@@ -106,7 +106,7 @@
                                         @if ($totalCarbonCopy > 1)
                                             <td valign="top" style="text-align: justify; width: 16px;"valign="top">{{ $index }}.</td>
                                         @endif
-                                        <td style="text-align: left;" valign="top">Yth. {{ $str }}{{ $endGreeting }}</td>
+                                        <td style="text-align: left;" valign="top">Yth. {{ rtrim($str) }}{{ $endGreeting }}</td>
                                     </tr>
                                 </table>
                             @endforeach
