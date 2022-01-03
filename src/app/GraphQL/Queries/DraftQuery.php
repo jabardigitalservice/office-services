@@ -56,10 +56,7 @@ class DraftQuery
 
         $inboxReceiverCorrection = new InboxReceiverCorrection();
         $receiverAsReviewData = $inboxReceiverCorrection->getReceiverAsReviewData();
-        //remove to_draft_keluar from list
-        if (($key = array_search('to_draft_keluar', $receiverAsReviewData)) !== false) {
-            unset($receiverAsReviewData[$key]);
-        }
+
         $draft = Draft::where('NId_temp', $draftId)->first();
         $hasNumber = $draft->nosurat ? true : false;
         $removeLatestId = false;
