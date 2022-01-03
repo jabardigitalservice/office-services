@@ -93,18 +93,20 @@ class DocumentSignatureSent extends Model
             $readId = DB::connection('mysql')->table('document_signature_sent_reads')
             ->select('document_signature_sent_id')
             ->where('people_id', auth()->user()->PeopleId)
-            ->pluck('document_signature_sent_id');
+            ->pluck('document_signature_sent_id')
+            ->toArray();
         }
 
         if ($read && !$unread) {
-            $documentSignatureSentIds = array_intersect($documentSignatureSentIds, $readId->toArray());
+            $documentSignatureSentIds = array_intersect($documentSignatureSentIds, $readId);
         }
-
-        $query->whereIn('id', $documentSignatureSentIds);
 
         if (!$read && $unread) {
-            $query->whereNotIn('id', $readId);
+            $documentSignatureSentIds = array_diff($documentSignatureSentIds, $readId);
         }
+
+
+        $query->whereIn('id', $documentSignatureSentIds);
 
         if ($statuses  || $statuses == '0') {
             $arrayStatuses = explode(", ", $statuses);

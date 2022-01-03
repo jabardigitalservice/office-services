@@ -149,12 +149,16 @@ class InboxQuery
         $user = $context->user;
         $readIds = DB::connection('mysql')->table('document_signature_sent_reads')
             ->where('people_id', $user->PeopleId)
-            ->pluck('document_signature_sent_id');
+            ->pluck('document_signature_sent_id')
+            ->toArray();
 
-        $query = DocumentSignatureSent::whereNotIn('id', $readIds)
-            ->where(fn($query) => $query->where('PeopleIDTujuan', $user->PeopleId))
+        $sentIds = DocumentSignatureSent::where(fn($query) => $query->where('PeopleIDTujuan', $user->PeopleId))
             ->orWhere(fn($query) => $query->where('PeopleId', $user->PeopleId)
-                ->where('status', '!=', SignatureStatusTypeEnum::WAITING()->value));
+                ->where('status', '!=', SignatureStatusTypeEnum::WAITING()->value))
+            ->pluck('id')
+            ->toArray();
+
+        $query = DocumentSignatureSent::whereIn('id', array_diff($sentIds, $readIds));
 
         return $query->count();
     }
