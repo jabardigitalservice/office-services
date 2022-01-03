@@ -41,4 +41,9 @@ class Inbox extends Model
     {
         return $this->belongsTo(People::class, 'CreatedBy', 'PeopleId');
     }
+
+    public function setNTglRegAttribute($value)
+    {
+        $this->attributes['NTglReg'] = $value->copy()->addHours(7);
+    }
 }

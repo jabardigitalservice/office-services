@@ -3,10 +3,12 @@
 namespace App\GraphQL\Mutations;
 
 use App\Enums\DraftConceptStatusTypeEnum;
+use App\Enums\PeopleGroupTypeEnum;
 use App\Exceptions\CustomException;
 use App\Http\Traits\DraftTrait;
 use App\Http\Traits\SignatureTrait;
 use App\Models\Draft;
+use App\Models\Inbox;
 use App\Models\InboxFile;
 use App\Models\InboxReceiver;
 use App\Models\InboxReceiverCorrection;
@@ -149,6 +151,9 @@ class DraftSignatureMutator
         $this->doSaveInboxFile($draft, $verifyCode);
         $this->doUpdateInboxReceiver($draft);
         $this->doSaveInboxReceiverCorrection($draft);
+        //Forward the document to TU / UK
+        $this->forwardToInbox($draft);
+        $this->forwardToInboxReceiver($draft);
 
         return $signature;
     }
@@ -248,5 +253,90 @@ class DraftSignatureMutator
         }
 
         return [$toId, $toRoleId, $toRoleDesc];
+    }
+
+    /**
+     * forwardToInbox
+     *
+     * @param  mixed $draft
+     * @return void
+     */
+    protected function forwardToInbox($draft)
+    {
+        $inbox = new Inbox();
+        $inbox->NKey            = TableSetting::first()->tb_key;
+        $inbox->NId             = $draft->NId_Temp;
+        $inbox->CreatedBy       = auth()->user()->PeopleId;
+        $inbox->CreationRoleId  = auth()->user()->PrimaryRoleId;
+        $inbox->NTglReg         = Carbon::now();
+        $inbox->Tgl             = Carbon::parse($draft->TglNaskah)->format('Y-m-d H:i:s');
+        $inbox->JenisId         = $draft->JenisId;
+        $inbox->UrgensiId       = $draft->UrgensiId;
+        $inbox->SifatId         = $draft->SifatId;
+        $inbox->Nomor           = $draft->nosurat;
+        $inbox->Hal             = $draft->Hal;
+        $inbox->Pengirim        = 'internal';
+        $inbox->NTipe           = $draft->Ket;
+        $inbox->Namapengirim    = auth()->user()->role->RoleDesc;
+        $inbox->NFileDir        = 'naskah';
+        $inbox->BerkasId        = '1';
+        $inbox->save();
+
+        return $inbox;
+    }
+
+    /**
+     * forwardToInboxReceiver
+     *
+     * @param  mixed $draft
+     * @return void
+     */
+
+    protected function forwardToInboxReceiver($draft)
+    {
+        $receiver = $this->getTargetInboxReceiver($draft);
+
+        foreach ($receiver as $key => $value) {
+            $InboxReceiver = new InboxReceiver();
+            $InboxReceiver->NId           = $draft->NId_Temp;
+            $InboxReceiver->NKey          = TableSetting::first()->tb_key;
+            $InboxReceiver->GIR_Id        = $draft->GIR_Id;
+            $InboxReceiver->From_Id       = auth()->user()->PeopleId;
+            $InboxReceiver->RoleId_From   = auth()->user()->PrimaryRoleId;
+            $InboxReceiver->To_Id         = $value->PeopleId;
+            $InboxReceiver->RoleId_To     = $value->PrimaryRoleId;
+            $InboxReceiver->ReceiverAs    = 'to_forward';
+            $InboxReceiver->StatusReceive = 'unread';
+            $InboxReceiver->ReceiveDate   = Carbon::now();
+            $InboxReceiver->To_Id_Desc    = auth()->user()->role->RoleDesc;
+            $InboxReceiver->Status        = '0';
+            $InboxReceiver->save();
+        }
+
+        return $receiver;
+    }
+
+    /**
+     * getTargetInboxReceiver
+     *
+     * @param  mixed $draft
+     * @return array
+     */
+
+    protected function getTargetInboxReceiver($draft)
+    {
+        if ($draft->Ket === 'outboxnotadinas') {
+            $peopleIds = People::whereHas('role', function ($role) {
+                $role->where('RoleCode', auth()->user()->role->RoleCode);
+                $role->where('Code_Tu', auth()->user()->role->Code_Tu);
+            })->where('GroupId', PeopleGroupTypeEnum::TU()->value);
+        } else{
+            $peopleIds = People::whereHas('role', function ($role) {
+                $role->where('RoleCode', auth()->user()->role->RoleCode);
+                $role->where('GRoleId', auth()->user()->role->GRoleId);
+            })->where('GroupId', PeopleGroupTypeEnum::UK()->value);
+        }
+
+        return $peopleIds->get();
     }
 }
