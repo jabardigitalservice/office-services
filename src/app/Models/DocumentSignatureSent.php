@@ -52,7 +52,9 @@ class DocumentSignatureSent extends Model
 
     public function documentSignatureSentRead()
     {
-        return $this->belongsTo(DocumentSignatureSentRead::class, 'id', 'document_signature_sent_id');
+        return $this->belongsTo(DocumentSignatureSentRead::class, 'id', 'document_signature_sent_id')->where(function ($query) {
+            $query->where('people_id', auth()->user()->PeopleId);
+        });
     }
 
     public function documentSignature()
