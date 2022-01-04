@@ -35,6 +35,11 @@ class InboxReceiverCorrection extends Model
         return $this->belongsTo(People::class, 'To_Id', 'PeopleId');
     }
 
+    public function correction()
+    {
+        return $this->belongsTo(InboxCorrection::class, 'NId', 'NId');
+    }
+
     public function personalAccessTokens()
     {
         return $this->hasMany(PersonalAccessToken::class, 'tokenable_id', 'To_Id');

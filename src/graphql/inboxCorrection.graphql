@@ -1,0 +1,13 @@
+type InboxCorrection {
+    inboxId: String @rename(attribute: "NId")
+    groupId: String @rename(attribute: "GIR_Id")
+    indexNumber: String @rename(attribute: "NoIndex")
+    roleId: String @rename(attribute: "RoleId")
+    qrcode: String @rename(attribute: "QRCode")
+    correctionOptions: [Correction]
+}
+
+type Correction {
+    id: String @rename(attribute: "KoreksiId")
+    name: String @rename(attribute: "KoreksiName")
+}
