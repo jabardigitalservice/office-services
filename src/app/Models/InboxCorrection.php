@@ -34,4 +34,10 @@ class InboxCorrection extends Model
 
         $this->attributes['Koreksi'] = $correctionOptions;
     }
+
+    public function getCorrectionOptionsAttribute()
+    {
+        $correctionIds = explode('|', $this->Koreksi);
+        return MasterCorrectionOption::whereIn('KoreksiId', $correctionIds)->get();
+    }
 }
