@@ -54,8 +54,8 @@
                             @forelse ($customData['carbonCopy'] as $index => $value)
                                 @php
                                     $index++;
-                                    $roleDesc  = Str::title(strtolower($value->RoleDesc));
-                                    $str = str_replace('Dan', 'dan', $roleDesc);
+                                    $role = Str::title(strtolower($value->PeoplePosition));
+                                    $str = str_replace('Dan', 'dan', $role);
                                     $str = str_replace('Uptd', 'UPTD', $str);
                                     $str = str_replace('Dprd', 'DPRD', $str);
                                 @endphp
@@ -65,7 +65,7 @@
                                         @if ($totalCarbonCopy > 1)
                                             <td valign="top" style="text-align: justify; width: 16px;"valign="top">{{ $index }}.</td>
                                         @endif
-                                        <td style="text-align: justify; width: 545;"valign="top">{!! $str !!}</td>
+                                        <td style="text-align: justify; width: 545;"valign="top">{!! rtrim($str) !!}</td>
                                     </tr>
                                 </table>
                             @empty

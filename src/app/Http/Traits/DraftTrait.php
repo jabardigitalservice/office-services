@@ -108,7 +108,10 @@ trait DraftTrait
         $carbonCopy = [];
         if ($draft->RoleId_Cc) {
             $explodeCarbonCopy = explode(',', $draft->RoleId_Cc);
-            $carbonCopy = Role::whereIn('RoleId', $explodeCarbonCopy)->get();
+            //Query like existing code
+            $carbonCopy = People::whereIn('PrimaryRoleId', $explodeCarbonCopy)
+                                ->where('GroupId', '<>', 8)
+                                ->groupBy('PrimaryRoleId')->get();
         }
 
         return $carbonCopy;
