@@ -10,10 +10,13 @@ trait LogUserActivityTrait
     {
         if ($request != null) {
             $request = str_replace('\n', '', json_encode($request->input('query')));
-            $request = str_replace('{', '/', $request);
+            $request = str_replace('{', '|', $request);
             $request = str_replace('}', '', $request);
             $request = explode('(', $request);
             $request = preg_replace("/[[:blank:]]+/"," ",$request[0]);
+            $request = str_replace('"| ', '', $request);
+            $request = str_replace('"', '', $request);
+
         }
 
         $log            = new LogUserActivity();
