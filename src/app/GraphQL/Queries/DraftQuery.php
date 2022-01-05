@@ -59,7 +59,6 @@ class DraftQuery
 
         $draft = Draft::where('NId_temp', $draftId)->first();
         $hasNumber = $draft->nosurat ? true : false;
-        $removeLatestId = false;
         $receiverAsReviewData = Arr::prepend($receiverAsReviewData, $type);
         $inboxReceiverCorrections = $this->inboxReceiverCorrection($draftId, $receiverAsReviewData);
 
@@ -67,8 +66,8 @@ class DraftQuery
         if ($hasNumber) {
             // we need to recheck to same query because we don't have a flag for know a receiver from forward function is review or just sign the document
             $inboxReceiverCorrectionsForCheckData = $this->inboxReceiverCorrection($draftId, $receiverAsReviewData);
-            $firstReceiver = $inboxReceiverCorrectionsForCheckData->first();
             $allReceiver = $inboxReceiverCorrectionsForCheckData->get()->pluck('To_Id')->toArray();
+            $firstReceiver = $inboxReceiverCorrectionsForCheckData->first();
             $checkDataLatest = array_count_values($allReceiver);
 
             if ($checkDataLatest[$firstReceiver->To_Id] == 1) {
