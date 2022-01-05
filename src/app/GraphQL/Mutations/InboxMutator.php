@@ -156,13 +156,13 @@ class InboxMutator
 
         if ($action == PeopleProposedTypeEnum::FORWARD()) {
             $createdBy = Inbox::where('NId', $inboxData['inboxId'])->first()->createdBy;
-            $title = $createdBy->role->rolecode->rolecode_sort;
-            $body = $inbox->Hal . ' | ' . $inbox->type->JenisName . ' | ' . $inbox->urgency->UrgensiName;
+            $title = '';
+            $body = $createdBy->role->rolecode->rolecode_sort . ' telah mengirimkan surat terkait dengan ' . $inbox->Hal . '. Klik disini untuk membaca dan menindaklanjuti pesan.';
             $actionMessage = FcmNotificationActionTypeEnum::INBOX_DETAIL();
         } elseif ($action == PeopleProposedTypeEnum::DISPOSITION()) {
             $sender = auth()->user()->PeopleName;
             $title = 'Disposisi Naskah';
-            $body = 'Wah ada Disposisi nih terkait dengan ' . $inbox->Hal . ' dari ' . $sender . '. Yuk cek sekarang juga!' . ' | ' . $inbox->urgency->UrgensiName;
+            $body = $sender . 'telah mendisposisikan ' . $inbox->type->JenisName . ' terkait dengan ' . $inbox->Hal . '. Klik disini untuk membaca dan menindaklanjuti pesan.';
             $actionMessage = FcmNotificationActionTypeEnum::DISPOSITION_DETAIL();
         }
 
