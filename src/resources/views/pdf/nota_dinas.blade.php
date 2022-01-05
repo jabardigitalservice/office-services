@@ -50,11 +50,11 @@
                         <td valign="top" style="width: 86px">Tembusan</td>
                         <td valign="top" style="width: 8px">:</td>
                         <td valign="top">
-                            @php $totalCarbonCopy = count($customData['carbonCopy']) @endphp
-                            @forelse ($customData['carbonCopy'] as $index => $value)
+                            @php $totalCarbonCopy = count($customData['carbonCopy']); $index = 0; @endphp
+                            @foreach ($customData['carbonCopy'] as $value)
                                 @php
                                     $index++;
-                                    $role = Str::title(strtolower($value->PeoplePosition));
+                                    $role = Str::title(strtolower($value));
                                     $str = str_replace('Dan', 'dan', $role);
                                     $str = str_replace('Uptd', 'UPTD', $str);
                                     $str = str_replace('Dprd', 'DPRD', $str);
