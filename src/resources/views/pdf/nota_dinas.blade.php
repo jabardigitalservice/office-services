@@ -6,7 +6,7 @@
             font-size: 13px;
         }
     </style>
-    @if (($draft->lampiran != null && count(array_filter(json_decode($draft->lampiran))) > 0) || $draft->lampiran2 != null || $draft->lampiran3 != null || $draft->lampiran4 != null)
+    @if ($draft->lampiran != null && count(array_filter(json_decode($draft->lampiran))) > 0)
         @php $firstPageBreak = 'always'; @endphp
     @else
         @php $firstPageBreak = 'never'; @endphp
@@ -111,6 +111,6 @@
         </div>
     </div>
     @if ($draft->lampiran != null && count(array_filter(json_decode($draft->lampiran))) > 0)
-        @include('pdf.layouts.attachment.attachment')
+        @include('pdf.layouts.attachment.attachment_array')
     @endif
 @endsection
