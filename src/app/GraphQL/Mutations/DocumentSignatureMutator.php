@@ -202,7 +202,7 @@ class DocumentSignatureMutator
         $messageAttribute = [
             'notification' => [
                 'title' => 'TTE Naskah',
-                'body' => 'Terdapat naskah masuk untuk segera Anda tanda tangani secara digial. Klik disini untuk membaca dan menindaklanjuti pesan.'
+                'body' => 'Terdapat naskah masuk untuk segera Anda tanda tangani secara digital. Klik disini untuk membaca dan menindaklanjuti pesan.'
             ],
             'data' => [
                 'documentSignatureSentId' => $nextDocumentSentId,
