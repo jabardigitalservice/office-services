@@ -185,7 +185,7 @@ class DocumentSignatureMutator
             ]);
 
             //Send notification to next people
-            $this->doSendNotification($data->sender->PeopleName, $nextDocumentSent->id);
+            $this->doSendNotification($nextDocumentSent->id);
         }
 
         return $updateDocumentSent;
@@ -197,12 +197,12 @@ class DocumentSignatureMutator
      * @param  object $data
      * @return void
      */
-    protected function doSendNotification($name, $nextDocumentSentId)
+    protected function doSendNotification($nextDocumentSentId)
     {
         $messageAttribute = [
             'notification' => [
                 'title' => 'TTE Naskah',
-                'body' => 'Ada naskah masuk dari ' . $name . ' yang harus segera di tandatangani. Silakan cek disini.'
+                'body' => 'Terdapat naskah masuk untuk segera Anda tanda tangani secara digital. Klik disini untuk membaca dan menindaklanjuti pesan.'
             ],
             'data' => [
                 'documentSignatureSentId' => $nextDocumentSentId,

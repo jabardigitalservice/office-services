@@ -162,7 +162,7 @@ class InboxMutator
         } elseif ($action == PeopleProposedTypeEnum::DISPOSITION()) {
             $sender = auth()->user()->PeopleName;
             $title = 'Disposisi Naskah';
-            $body = $sender . 'telah mendisposisikan ' . $inbox->type->JenisName . ' terkait dengan ' . $inbox->Hal . '. Klik disini untuk membaca dan menindaklanjuti pesan.';
+            $body = $sender . ' telah mendisposisikan ' . $inbox->type->JenisName . ' terkait dengan ' . $inbox->Hal . '. Klik disini untuk membaca dan menindaklanjuti pesan.';
             $actionMessage = FcmNotificationActionTypeEnum::DISPOSITION_DETAIL();
         }
 
