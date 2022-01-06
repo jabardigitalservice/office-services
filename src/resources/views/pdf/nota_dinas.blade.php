@@ -51,7 +51,7 @@
                         <td valign="top" style="width: 8px">:</td>
                         <td valign="top">
                             @php $totalCarbonCopy = count($customData['carbonCopy']); $index = 0; @endphp
-                            @foreach ($customData['carbonCopy'] as $value)
+                            @forelse ($customData['carbonCopy'] as $value)
                                 @php
                                     $index++;
                                     $role = Str::title(strtolower($value));

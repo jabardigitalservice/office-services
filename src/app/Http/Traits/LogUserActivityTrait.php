@@ -24,5 +24,7 @@ trait LogUserActivityTrait
         $log->device    = $device;
         $log->query     = $request;
         $log->save();
+
+        return $log;
     }
 }
