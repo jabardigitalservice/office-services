@@ -109,9 +109,13 @@ trait DraftTrait
         if ($draft->RoleId_Cc) {
             $explodeCarbonCopy = explode(',', $draft->RoleId_Cc);
             //Query like existing code
-            $carbonCopy = People::whereIn('PrimaryRoleId', $explodeCarbonCopy)
+            $collection = People::whereIn('PrimaryRoleId', $explodeCarbonCopy)
                                 ->where('GroupId', '<>', 8)
-                                ->groupBy('PrimaryRoleId')->get();
+                                ->get();
+            //Manipulate data for getting latest record from same PrimaryRoleId value
+            $carbonCopy = $collection->mapWithKeys(function ($item, $key) {
+                return [$item['PrimaryRoleId'] => $item['PeoplePosition']];
+            });
         }
 
         return $carbonCopy;
