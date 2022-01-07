@@ -107,6 +107,14 @@
                 margin: 0;
                 line-height: 16px
             }
+
+            .attachment-list-number {
+                counter-increment: item-counter;
+            }
+
+            .attachment-list-number:after {
+                content: counter(item-counter, upper-roman) ""; /* by specifying the upper-roman as style the output would be in roman numbers */
+            }
         </style>
     </head>
     <body>
