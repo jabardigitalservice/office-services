@@ -83,6 +83,11 @@ class InboxReceiverCorrection extends Model
     public function objective($query, $objective)
     {
         $userId = auth()->user()->PeopleId;
+        $query->whereIn('NId', function ($draftQuery) {
+            $draftQuery->select('NId_Temp')
+                ->from('konsep_naskah');
+        });
+
         switch ($objective) {
             case DraftObjectiveTypeEnum::IN():
                 $query->where('From_Id', '!=', $userId)
@@ -127,43 +132,44 @@ class InboxReceiverCorrection extends Model
 
     private function receiverDefaultQuery($query, $receiverTypes)
     {
-        $query->whereIn('ReceiverAs', $receiverTypes)
-            ->whereIn('NId', function ($draftQuery) {
-                $draftQuery->select('NId_Temp')
-                    ->from('konsep_naskah');
-            });
+        $query->whereIn('ReceiverAs', $receiverTypes);
     }
 
     private function receiverReviewQuery($query, $receiverTypes)
     {
-        $query->where(function ($query) use ($receiverTypes) {
-            $query->whereIn('ReceiverAs', $receiverTypes)
-                ->orWhere('ReceiverAs', 'meneruskan')
-                ->whereIn('NId', function ($draftQuery) {
-                    $draftQuery->select('NId_Temp')
-                        ->from('konsep_naskah')
-                        ->where('Konsep', '!=', '0')
-                        ->where('nosurat', '=', null);
-                });
-        });
+        $query->where(fn($query) => $query->whereIn('ReceiverAs', $receiverTypes)
+            ->orWhere(fn($query) => $query->where('ReceiverAs', 'meneruskan')
+                ->whereIn('NId', fn($query) => $query->select('NId_Temp')
+                    ->from('konsep_naskah')
+                    ->where('Konsep', '!=', '0')
+                    ->where(fn($query) => $query->where('nosurat', '=', null)
+                        ->orWhere('nosurat', '!=', null)
+                        ->where('Approve_People', '!=', auth()->user()->PeopleId)))));
     }
 
     private function receiverSignQuery($query, $receiverTypes)
     {
-        $operator = null;
-        if (in_array(CustomReceiverTypeEnum::SIGNED(), $receiverTypes)) {
-            $operator = '=';
-        } elseif (in_array(CustomReceiverTypeEnum::SIGN_REQUEST(), $receiverTypes)) {
-            $operator = '!=';
+        $operator = $this->signedOperatorSelect($receiverTypes);
+        if ($operator) {
+            $query->whereIn('NId', fn($query) => $query->select('NId_Temp')
+                ->from('konsep_naskah')
+                ->where('Konsep', $operator, '0')
+                ->where('nosurat', '!=', null));
         }
 
-        if ($operator) {
-            $query->whereIn('NId', function ($draftQuery) use ($operator) {
-                $draftQuery->select('NId_Temp')
-                    ->from('konsep_naskah')
-                    ->where('Konsep', $operator, '0')
-                    ->where('nosurat', '!=', null);
-            });
+        if (in_array(CustomReceiverTypeEnum::SIGN_REQUEST(), $receiverTypes)) {
+            $query->whereIn('NId', fn($query) => $query->select('NId_Temp')
+                ->from('konsep_naskah')
+                ->where('Approve_People', '=', auth()->user()->PeopleId));
+        }
+    }
+
+    private function signedOperatorSelect($receiverTypes)
+    {
+        if (in_array(CustomReceiverTypeEnum::SIGNED(), $receiverTypes)) {
+            return '=';
+        } elseif (in_array(CustomReceiverTypeEnum::SIGN_REQUEST(), $receiverTypes)) {
+            return'!=';
         }
     }
 
