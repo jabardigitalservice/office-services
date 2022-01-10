@@ -74,7 +74,7 @@ class Draft extends Model
     public function getDraftFileAttribute()
     {
         $file = URL::to('/api/v1/draft/' . $this->NId_Temp);
-        if ($this->Konsep == DraftConceptStatusTypeEnum::APPROVED()->value) {
+        if ($this->inboxFile) {
             $file = config('sikd.base_path_file_letter') . $this->inboxFile->FileName_fake;
         }
 
