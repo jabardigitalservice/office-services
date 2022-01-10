@@ -90,7 +90,8 @@ class InboxReceiverCorrection extends Model
 
         switch ($objective) {
             case DraftObjectiveTypeEnum::IN():
-                $query->where('ReceiverAs', '!=', 'to_koreksi');
+                $query->where('From_Id', '!=', $userId)
+                    ->where('ReceiverAs', '!=', 'to_koreksi');
                 break;
 
             case DraftObjectiveTypeEnum::OUT():
