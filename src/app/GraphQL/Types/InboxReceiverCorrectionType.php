@@ -16,19 +16,32 @@ class InboxReceiverCorrectionType
      */
     public function isActioned($rootValue, array $args, GraphQLContext $context)
     {
-        $peopleId = auth()->user()->PeopleId;
-        $receiver = InboxReceiverCorrection::where('NId', $rootValue->NId)
-            ->where('To_Id', $peopleId)
-            ->first();
-
-        $sender = InboxReceiverCorrection::where('NId', $rootValue->NId)
-            ->where('From_Id', $peopleId)
-            ->first();
-
+        $receiver = $this->getDraftByOriginPeopleType($rootValue, 'RECEIVER');
+        $sender = $this->getDraftByOriginPeopleType($rootValue, 'SENDER');
         if ($receiver && $sender) {
             return true;
         }
-
         return false;
+    }
+
+    /**
+     * Get draft record by the sender or receiver
+     * @param $rootValue
+     * @param String $type
+     *
+     * @return InboxReceiverCorrection
+     */
+    private function getDraftByOriginPeopleType($rootValue, $type)
+    {
+        $peopleId = auth()->user()->PeopleId;
+        if ($type == 'RECEIVER') {
+            $field = 'To_Id';
+        } else {
+            $field = 'From_Id';
+        }
+
+        return InboxReceiverCorrection::where('NId', $rootValue->NId)
+            ->where($field, $peopleId)
+            ->first();
     }
 }
