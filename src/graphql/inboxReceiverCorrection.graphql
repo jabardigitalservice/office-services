@@ -9,12 +9,13 @@ type InboxReceiverCorrection {
     receiverAs: String @rename(attribute: "ReceiverAs")
     receiveStatus: String @rename(attribute: "StatusReceive")
     toIdDesc: String @rename(attribute: "To_Id_Desc")
-    isActioned: Int @rename(attribute: "Status")
+    isReturned: Int @rename(attribute: "Status")
     correctionId: String @rename(attribute: "id_koreksi")
     draftDetail: Draft @belongsTo
     sender: People @belongsTo
     receiver: People @belongsTo
     correction: InboxCorrection @belongsTo
+    isActioned: Boolean @field(resolver: "App\\GraphQL\\Types\\InboxReceiverCorrectionType@isActioned")
 }
 
 enum TimelineType {
