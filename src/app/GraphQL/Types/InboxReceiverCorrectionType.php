@@ -3,6 +3,7 @@
 namespace App\GraphQL\Types;
 
 use App\Models\InboxReceiverCorrection;
+use App\Enums\DocumentSignatureSentNotificationTypeEnum;
 use Nuwave\Lighthouse\Support\Contracts\GraphQLContext;
 
 class InboxReceiverCorrectionType
@@ -16,8 +17,15 @@ class InboxReceiverCorrectionType
      */
     public function isActioned($rootValue, array $args, GraphQLContext $context)
     {
-        $receiver = $this->getDraftByOriginPeopleType($rootValue, 'RECEIVER');
-        $sender = $this->getDraftByOriginPeopleType($rootValue, 'SENDER');
+        $receiver = $this->getDraftByOriginPeopleType(
+            $rootValue,
+            DocumentSignatureSentNotificationTypeEnum::RECEIVER()
+        );
+        $sender = $this->getDraftByOriginPeopleType(
+            $rootValue,
+            DocumentSignatureSentNotificationTypeEnum::SENDER()
+        );
+
         if ($receiver && $sender) {
             return true;
         }
@@ -27,14 +35,14 @@ class InboxReceiverCorrectionType
     /**
      * Get draft record by the sender or receiver
      * @param $rootValue
-     * @param String $type
+     * @param DocumentSignatureSentNotificationTypeEnum $type
      *
      * @return InboxReceiverCorrection
      */
     private function getDraftByOriginPeopleType($rootValue, $type)
     {
         $peopleId = auth()->user()->PeopleId;
-        if ($type == 'RECEIVER') {
+        if ($type == DocumentSignatureSentNotificationTypeEnum::RECEIVER()) {
             $field = 'To_Id';
         } else {
             $field = 'From_Id';
