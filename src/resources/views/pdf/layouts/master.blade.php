@@ -60,10 +60,15 @@
             }
             .table-collapse {
                 border-collapse: collapse;
+                word-wrap: break-word;
+                word-break: break-all;
             }
+
             .table-collapse td {
                 padding: 0;
                 margin: 0;
+                word-wrap: break-word;
+                word-break: break-all;
             }
             .mini-padding-table td {
                 padding: 1.8px;
