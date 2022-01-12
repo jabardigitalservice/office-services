@@ -326,17 +326,20 @@ class DraftSignatureMutator
     protected function getTargetInboxReceiver($draft)
     {
         if ($draft->Ket === 'outboxnotadinas') {
-            $peopleIds = People::whereHas('role', function ($role) {
-                $role->where('RoleCode', auth()->user()->role->RoleCode);
-                $role->where('Code_Tu', auth()->user()->role->Code_Tu);
-            })->where('GroupId', PeopleGroupTypeEnum::TU()->value);
-        } else{
+            // After signed draft, the document with 'nota dinas' will be forwarded to Receiver People Ids and TU People Ids
+            $peopleToIds = People::whereIn('PeopleId', explode(',', $draft->RoleId_To))->get();
+            $peopleTUIds = People::whereHas('role', function ($role) use ($peopleToIds) {
+                $role->whereIn('RoleCode', $peopleToIds->pluck('role.RoleCode')->toArray());
+                $role->whereIn('Code_Tu', $peopleToIds->pluck('role.Code_Tu')->toArray());
+            })->where('GroupId', PeopleGroupTypeEnum::TU()->value)->get();
+            $peopleIds = $peopleToIds->merge($peopleTUIds);
+        } else {
             $peopleIds = People::whereHas('role', function ($role) {
                 $role->where('RoleCode', auth()->user()->role->RoleCode);
                 $role->where('GRoleId', auth()->user()->role->GRoleId);
-            })->where('GroupId', PeopleGroupTypeEnum::UK()->value);
+            })->where('GroupId', PeopleGroupTypeEnum::UK()->value)->get();
         }
 
-        return $peopleIds->get();
+        return $peopleIds;
     }
 }
