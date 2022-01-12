@@ -87,7 +87,7 @@
                     <tr>
                         <td valign="top" style="width: 86px">Tanggal</td>
                         <td valign="top" style="width: 8px">:</td>
-                        <td valign="top">{{ ($generateQrCode) ? $draft->lokasi . ', ' . parseSetLocaleDate($draft->TglReg, 'id', 'd F Y') : 'Tempat / Tanggal / Bulan / Tahun'; }}</td>
+                        <td valign="top">{{ parseSetLocaleDate($draft->TglReg, 'id', 'd F Y') }}</td>
                     </tr>
                     <tr>
                         <td valign="top" style="width: 86px">Sifat</td>
