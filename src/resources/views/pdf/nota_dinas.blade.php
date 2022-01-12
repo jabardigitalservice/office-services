@@ -16,11 +16,11 @@
             <img style="width: 100%" src="{{ config('sikd.base_path_file') . 'kop/' . $header->Header }}">
         </section>
         <section>
-            <div style="margin-top: 44px">
+            <div style="margin-top: {{ ($draft->createdBy->role->GRoleId == 'XxJyPn38Yh.40') ? '77px;' : '44px' }} "> <!-- Custom condition header for gubernur level -->
                 <p style="font-weight: bold; text-align: center; font-size: 14px;">NOTA DINAS</p>
             </div>
             <div style="margin-top: 19px; padding: 10px;">
-                <table class="table-collapse mini-padding-table">
+                <table class="table-collapse mini-padding-table" width="100%">
                     <tr>
                         <td valign="top" style="width: 86px">Kepada</td>
                         <td valign="top" style="width: 8px">:</td>
@@ -33,7 +33,7 @@
                                         @if ($totalReceivers > 1)
                                             <td valign="top" style="text-align: justify; width: 16px;"valign="top">{{ $index }}.</td>
                                         @endif
-                                        <td valign="top" style="text-align: justify; width: 545;"valign="top">{{ Str::title($value->PeoplePosition); }}</td>
+                                        <td valign="top" style="text-align: justify; width: 450px;"valign="top">{{ Str::title($value->PeoplePosition); }}</td>
                                     </tr>
                                 </table>
                             @empty
@@ -65,7 +65,7 @@
                                         @if ($totalCarbonCopy > 1)
                                             <td valign="top" style="text-align: justify; width: 16px;"valign="top">{{ $index }}.</td>
                                         @endif
-                                        <td style="text-align: justify; width: 545;"valign="top">{!! rtrim($str) !!}</td>
+                                        <td style="text-align: justify; width: 450px;"valign="top">{!! rtrim($str) !!}</td>
                                     </tr>
                                 </table>
                             @empty
@@ -87,7 +87,7 @@
                     <tr>
                         <td valign="top" style="width: 86px">Tanggal</td>
                         <td valign="top" style="width: 8px">:</td>
-                        <td valign="top">{{ parseSetLocaleDate($draft->TglReg, 'id', 'd F Y'); }}</td>
+                        <td valign="top">{{ ($generateQrCode) ? $draft->lokasi . ', ' . parseSetLocaleDate($draft->TglReg, 'id', 'd F Y') : 'Tempat / Tanggal / Bulan / Tahun'; }}</td>
                     </tr>
                     <tr>
                         <td valign="top" style="width: 86px">Sifat</td>
