@@ -4,6 +4,7 @@ namespace App\GraphQL\Types;
 
 use App\Models\InboxReceiverCorrection;
 use App\Enums\DocumentSignatureSentNotificationTypeEnum;
+use App\Models\InboxReceiver;
 use Nuwave\Lighthouse\Support\Contracts\GraphQLContext;
 
 class InboxReceiverCorrectionType
@@ -53,5 +54,32 @@ class InboxReceiverCorrectionType
             ->where('ReceiverAs', '!=', 'to_koreksi')
             ->pluck('id')
             ->toArray();
+    }
+
+    public function senderSignatureRequest($rootValue, array $args, GraphQLContext $context)
+    {
+        $letterNumberDraft = $rootValue->draftDetail->nosurat;
+        if (!$letterNumberDraft) {
+            return null;
+        }
+
+        $getUKReceiver = InboxReceiverCorrection::where('NId', $rootValue->NId)
+            ->where('ReceiverAs', 'Meminta Nomber Surat') // data from existing
+            ->first();
+
+        $getLatestReceiver = InboxReceiverCorrection::where('NId', $rootValue->NId)
+            ->where('From_Id', $getUKReceiver->To_Id)
+            ->first();
+
+        if ($getLatestReceiver->To_Id == $getUKReceiver->From_Id) {
+            $getByToId = InboxReceiverCorrection::where('NId', $rootValue->NId)
+                ->where('To_Id', $getLatestReceiver->To_Id)
+                ->where('GIR_Id', '<>', $getLatestReceiver->GIR_Id)
+                ->get();
+
+            return $getByToId->last()->sender;
+        } else {
+            return $getUKReceiver->sender;
+        }
     }
 }

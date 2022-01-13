@@ -16,6 +16,7 @@ type InboxReceiverCorrection {
     receiver: People @belongsTo
     correction: InboxCorrection @belongsTo
     isActioned: Boolean @field(resolver: "App\\GraphQL\\Types\\InboxReceiverCorrectionType@isActioned")
+    senderRequestSignature: People @field(resolver: "App\\GraphQL\\Types\\InboxReceiverCorrectionType@senderSignatureRequest")
 }
 
 enum TimelineType {
