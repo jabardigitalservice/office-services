@@ -17,19 +17,19 @@ class InboxReceiverCorrectionType
      */
     public function isActioned($rootValue, array $args, GraphQLContext $context)
     {
-        $receiver = $this->getDraftByOriginPeopleType(
+        $receiverIds = $this->getDraftByOriginPeopleType(
             $rootValue,
             DocumentSignatureSentNotificationTypeEnum::RECEIVER()
         );
-        $sender = $this->getDraftByOriginPeopleType(
+        $senderIds = $this->getDraftByOriginPeopleType(
             $rootValue,
             DocumentSignatureSentNotificationTypeEnum::SENDER()
         );
 
-        if ($receiver && $sender) {
-            return true;
+        if (count($receiverIds) != count($senderIds) && $rootValue->id == max($receiverIds)) {
+            return false;
         }
-        return false;
+        return true;
     }
 
     /**
@@ -37,7 +37,7 @@ class InboxReceiverCorrectionType
      * @param $rootValue
      * @param DocumentSignatureSentNotificationTypeEnum $type
      *
-     * @return InboxReceiverCorrection
+     * @return Array
      */
     private function getDraftByOriginPeopleType($rootValue, $type)
     {
@@ -50,6 +50,8 @@ class InboxReceiverCorrectionType
 
         return InboxReceiverCorrection::where('NId', $rootValue->NId)
             ->where($field, $peopleId)
-            ->first();
+            ->where('ReceiverAs', '!=', 'to_koreksi')
+            ->pluck('id')
+            ->toArray();
     }
 }
