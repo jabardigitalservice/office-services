@@ -4,6 +4,7 @@ namespace App\GraphQL\Types;
 
 use App\Models\InboxReceiverCorrection;
 use App\Enums\DocumentSignatureSentNotificationTypeEnum;
+use App\Enums\InboxReceiverCorrectionTypeEnum;
 use Nuwave\Lighthouse\Support\Contracts\GraphQLContext;
 
 class InboxReceiverCorrectionType
@@ -63,7 +64,7 @@ class InboxReceiverCorrectionType
         }
 
         $getUKReceiver = InboxReceiverCorrection::where('NId', $rootValue->NId)
-            ->where('ReceiverAs', 'Meminta Nomber Surat') // data from existing
+            ->where('ReceiverAs', InboxReceiverCorrectionTypeEnum::NUMBERING()->value) // data from existing
             ->first();
 
         $getLatestReceiver = InboxReceiverCorrection::where('NId', $rootValue->NId)
