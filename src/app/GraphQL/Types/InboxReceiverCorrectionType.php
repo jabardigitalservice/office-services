@@ -4,7 +4,6 @@ namespace App\GraphQL\Types;
 
 use App\Models\InboxReceiverCorrection;
 use App\Enums\DocumentSignatureSentNotificationTypeEnum;
-use App\Models\InboxReceiver;
 use Nuwave\Lighthouse\Support\Contracts\GraphQLContext;
 
 class InboxReceiverCorrectionType
