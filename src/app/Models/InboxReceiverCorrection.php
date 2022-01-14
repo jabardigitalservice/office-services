@@ -204,4 +204,9 @@ class InboxReceiverCorrection extends Model
             'to_draft_rekomendasi'
         ];
     }
+
+    public function history($query, $draftId)
+    {
+        return $query->where('NId', $draftId);
+    }
 }

@@ -119,6 +119,13 @@ type Query {
         @field(resolver: "DraftQuery@timeline")
         @guard
 
+    draftHistory(
+        draftId: String @builder(method: "App\\Models\\InboxReceiverCorrection@history")
+    ): [InboxReceiverCorrection!]!
+        @all
+        @orderBy(column: "ReceiveDate", direction: DESC)
+        @guard
+
     correctionOptions: [MasterCorrectionOption!]!
         @paginate(type: CONNECTION)
         @guard
