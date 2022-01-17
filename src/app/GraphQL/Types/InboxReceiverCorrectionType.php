@@ -58,7 +58,7 @@ class InboxReceiverCorrectionType
 
     public function senderSignatureRequest($rootValue, array $args, GraphQLContext $context)
     {
-        $letterNumberDraft = $rootValue->draftDetail->nosurat;
+        $letterNumberDraft = optional($rootValue->draftDetail)->nosurat;
         if (!$letterNumberDraft) {
             return null;
         }
