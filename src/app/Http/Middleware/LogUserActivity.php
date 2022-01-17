@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 class LogUserActivity
 {
     use LogUserActivityTrait;
+
     /**
      * Handle an incoming request.
      *
