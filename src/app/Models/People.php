@@ -188,8 +188,8 @@ class People extends Authenticatable
     private function filterNumbering($query)
     {
         $query->whereIn('PrimaryRoleId', fn($query) => $query->select('RoleId')
-                ->from('role')
-                ->where('GRoleId', auth()->user()->role->groupRole->GRoleId));
+            ->from('role')
+            ->where('GRoleId', auth()->user()->role->GRoleId));
     }
 
     /**
