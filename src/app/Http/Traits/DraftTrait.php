@@ -14,6 +14,9 @@ use Endroid\QrCode\Writer\PngWriter;
 use Illuminate\Support\Facades\Storage;
 use PDF;
 
+/**
+ * Create draft on pdf format.
+ */
 trait DraftTrait
 {
     public function setDraftDocumentPdf($id, $verifyCode = null)

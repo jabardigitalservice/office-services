@@ -6,6 +6,9 @@ use App\Models\PassphraseSession;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Http;
 
+/**
+ * Setup configuration for signature document
+ */
 trait SignatureTrait
 {
     /**

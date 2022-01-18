@@ -7,6 +7,9 @@ use App\Enums\InboxReceiverScopeType;
 use App\Enums\ListTypeEnum;
 use Illuminate\Support\Arr;
 
+/**
+ * Filter inbox data with parameters
+ */
 trait InboxFilterTrait
 {
     /**

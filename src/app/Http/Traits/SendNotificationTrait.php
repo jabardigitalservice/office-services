@@ -9,6 +9,9 @@ use App\Models\InboxReceiver;
 use App\Models\InboxReceiverCorrection;
 use Illuminate\Support\Facades\Http;
 
+/**
+ * Send notification to mobile device using firebase cloud messaging
+ */
 trait SendNotificationTrait
 {
     public function setupInboxReceiverNotification($request)
