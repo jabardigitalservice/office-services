@@ -21,7 +21,7 @@ trait LogUserActivityTrait
             $secondWord = explode('{', $request);
             $secondWord = explode('(', (($firstWordTemp == '{') ? $secondWord[0] : $secondWord[1]));
             $secondWord = ltrim($secondWord[0]);
-            //join word into one string
+            //join word into a single string
             $request = $firstWord . ' | ' . $secondWord;
         }
 
