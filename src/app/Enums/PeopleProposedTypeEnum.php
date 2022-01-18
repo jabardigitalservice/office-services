@@ -8,9 +8,10 @@ use Spatie\Enum\Enum;
  * @method static self FORWARD()
  * @method static self DISPOSITION()
  * @method static self FORWARD_DOC_SIGNATURE()
+ * @method static self NUMBERING_UK()
+ * @method static self NUMBERING_TU()
  */
 
 final class PeopleProposedTypeEnum extends Enum
 {
-
 }
