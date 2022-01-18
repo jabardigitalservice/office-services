@@ -19,6 +19,8 @@ enum ProposedTypes {
     FORWARD
     DISPOSITION
     FORWARD_DOC_SIGNATURE
+    NUMBERING_UK
+    NUMBERING_TU
 }
 
 #import role.graphql
