@@ -20,6 +20,24 @@ class InboxReceiverCorrection extends Model
 
     public $timestamps = false;
 
+    protected $fillable = [
+        'NId',
+        'NKey',
+        'GIR_Id',
+        'From_Id',
+        'RoleId_From',
+        'To_Id',
+        'RoleId_To',
+        'ReceiverAs',
+        'Msg',
+        'StatusReceive',
+        'ReceiveDate',
+        'To_Id_Desc',
+        'RoleCode',
+        'JenisId',
+        'id_koreksi'
+    ];
+
     public function draftDetail()
     {
         return $this->belongsTo(Draft::class, 'NId', 'NId_Temp');
