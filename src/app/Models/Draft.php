@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use App\Enums\DraftConceptStatusTypeEnum;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\URL;
@@ -20,6 +19,12 @@ class Draft extends Model
     protected $primaryKey = 'NId_Temp';
 
     public $timestamps = false;
+
+    protected $fillable = [
+        'RoleId_From',
+        'Approve_People',
+        'Nama_ttd_konsep'
+    ];
 
     public function type()
     {

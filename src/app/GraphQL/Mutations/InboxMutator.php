@@ -5,9 +5,11 @@ namespace App\GraphQL\Mutations;
 use App\Enums\FcmNotificationActionTypeEnum;
 use App\Enums\PeopleProposedTypeEnum;
 use App\Http\Traits\SendNotificationTrait;
+use App\Models\Draft;
 use App\Models\Inbox;
 use App\Models\InboxDisposition;
 use App\Models\InboxReceiver;
+use App\Models\InboxReceiverCorrection;
 use App\Models\People;
 use App\Models\TableSetting;
 use Illuminate\Support\Arr;
@@ -47,17 +49,12 @@ class InboxMutator
         $inboxReceivers = [];
         foreach ($inboxData['receiversIds'] as $receiverId) {
             $newInboxReceiver = $this->createInboxReceiver($inboxData, $receiverId, $action);
+            $this->createInboxReceiverCorrection($inboxData, $receiverId, $action);
             array_push($inboxReceivers, $newInboxReceiver);
         }
 
-        // If the action is disposition, should create a inboxDisposition
-        if ($action == PeopleProposedTypeEnum::DISPOSITION()) {
-            $this->createInboxDisposition($inboxData);
-        }
-
-        // The origin inbox's status to be marked as actioned (forwarded/dispositioned)
+        $this->createInboxDisposition($inboxData, $action);
         $this->markActioned($inboxData);
-        // Send the notification
         $this->actionNotification($inboxData, $action);
         return $inboxReceivers;
     }
@@ -90,33 +87,27 @@ class InboxMutator
      *
      * @return InboxReceiver
      */
-    protected function createInboxReceiver($inboxData, $receiverId, $action)
+    private function createInboxReceiver($inboxData, $receiverId, $action)
     {
-        $receiver = People::findOrFail($receiverId);
-        $nkey = TableSetting::first()->tb_key;
-
-        $label = 'to_forward';
-        if ($action == PeopleProposedTypeEnum::DISPOSITION()) {
-            $label = 'cc1';
-        }
-
-        $inboxReceiver = [
-            'NId'           => $inboxData['inboxId'],
-            'NKey'          => $nkey,
-            'GIR_Id'        => $inboxData['groupId'],
-            'From_Id'       => $inboxData['from']->PeopleId,
-            'RoleId_From'   => $inboxData['from']->PrimaryRoleId,
-            'To_Id'         => $receiverId,
-            'RoleId_To'     => $receiver->PrimaryRoleId,
-            'ReceiverAs'    => $label,
-            'Msg'           => $inboxData['message'],
-            'StatusReceive' => 'unread',
-            'ReceiveDate'   => $inboxData['time'],
-            'To_Id_Desc'    => $receiver->role->RoleDesc,
-            'Status'        => 0,
-        ];
-
+        $inboxReceiver = $this->generateInboxReceiverData($inboxData, $receiverId, $action);
         return InboxReceiver::create($inboxReceiver);
+    }
+
+    /**
+     * Find draft
+     * if the action is FORWARD_DRAFT
+     *
+     * @param String $action
+     *
+     * @throws \Exception
+     *
+     * @return Draft
+     */
+    private function findDraft($inboxData, $action)
+    {
+        if ($action == PeopleProposedTypeEnum::FORWARD_DRAFT()) {
+            return Draft::where('NId_Temp', $inboxData['inboxId'])->firstOrFail();
+        }
     }
 
     /**
@@ -124,7 +115,7 @@ class InboxMutator
      *
      * @return void
      */
-    protected function markActioned($inboxData)
+    private function markActioned($inboxData)
     {
         $inboxId = $inboxData['inboxId'];
         $fromId = $inboxData['from']->PeopleId;
@@ -146,57 +137,186 @@ class InboxMutator
      *
      * @return void
      */
-    protected function actionNotification($inboxData, $action)
+    private function actionNotification($inboxData, $action)
     {
-        $inbox = Inbox::findOrFail($inboxData['inboxId']);
+        if ($action != PeopleProposedTypeEnum::FORWARD_DRAFT()) {
+            $inbox = Inbox::findOrFail($inboxData['inboxId']);
 
-        $peopleId = substr($inboxData['groupId'], 0, -19);
-        $dateString = substr($inboxData['groupId'], -19);
-        $date = parseDateTimeFormat($dateString, 'dmyhis');
+            $peopleId = substr($inboxData['groupId'], 0, -19);
+            $dateString = substr($inboxData['groupId'], -19);
+            $date = parseDateTimeFormat($dateString, 'dmyhis');
 
-        if ($action == PeopleProposedTypeEnum::FORWARD()) {
-            $createdBy = Inbox::where('NId', $inboxData['inboxId'])->first()->createdBy;
-            $title = '';
-            $body = $createdBy->role->rolecode->rolecode_sort . ' telah mengirimkan surat terkait dengan ' . $inbox->Hal . '. Klik disini untuk membaca dan menindaklanjuti pesan.';
-            $actionMessage = FcmNotificationActionTypeEnum::INBOX_DETAIL();
-        } elseif ($action == PeopleProposedTypeEnum::DISPOSITION()) {
-            $sender = auth()->user()->PeopleName;
-            $title = 'Disposisi Naskah';
-            $body = $sender . ' telah mendisposisikan ' . $inbox->type->JenisName . ' terkait dengan ' . $inbox->Hal . '. Klik disini untuk membaca dan menindaklanjuti pesan.';
-            $actionMessage = FcmNotificationActionTypeEnum::DISPOSITION_DETAIL();
+            if ($action == PeopleProposedTypeEnum::FORWARD()) {
+                $createdBy = Inbox::where('NId', $inboxData['inboxId'])->first()->createdBy;
+                $title = '';
+                $body = $createdBy->role->rolecode->rolecode_sort . ' telah mengirimkan surat terkait dengan ' . $inbox->Hal . '. Klik disini untuk membaca dan menindaklanjuti pesan.';
+                $actionMessage = FcmNotificationActionTypeEnum::INBOX_DETAIL();
+            } elseif ($action == PeopleProposedTypeEnum::DISPOSITION()) {
+                $sender = auth()->user()->PeopleName;
+                $title = 'Disposisi Naskah';
+                $body = $sender . ' telah mendisposisikan ' . $inbox->type->JenisName . ' terkait dengan ' . $inbox->Hal . '. Klik disini untuk membaca dan menindaklanjuti pesan.';
+                $actionMessage = FcmNotificationActionTypeEnum::DISPOSITION_DETAIL();
+            }
+
+            $messageAttribute = [
+                'notification' => [
+                    'title' => $title,
+                    'body' => $body,
+                ],
+                'data' => [
+                    'inboxId' => $inboxData['inboxId'],
+                    'groupId' => $peopleId . $date,
+                    'peopleIds' => $inboxData['receiversIds'],
+                    'action' => $actionMessage,
+                ]
+            ];
+
+            $this->setupInboxReceiverNotification($messageAttribute);
         }
-
-        $messageAttribute = [
-            'notification' => [
-                'title' => $title,
-                'body' => $body,
-            ],
-            'data' => [
-                'inboxId' => $inboxData['inboxId'],
-                'groupId' => $peopleId . $date,
-                'peopleIds' => $inboxData['receiversIds'],
-                'action' => $actionMessage,
-            ]
-        ];
-
-        $this->setupInboxReceiverNotification($messageAttribute);
     }
 
     /**
-     * @param Array $inboxData
+     * Create an inboxDisposition
+     * if the action is DISPOSITION
      *
-     * @return InboxDisposition
+     * @param Array $inboxData
+     * @param String $action
+     *
+     * @return Void
      */
-    protected function createInboxDisposition($inboxData)
+    private function createInboxDisposition($inboxData, $action)
     {
-        $inboxDisposition = [
-            'NId'       => $inboxData['inboxId'],
-            'GIR_Id'    => $inboxData['groupId'],
-            'Sifat'     => $inboxData['urgency'],
-            'Disposisi' => $inboxData['dispositionType'],
-            'RoleId'    => $inboxData['from']->PrimaryRoleId,
+        if ($action == PeopleProposedTypeEnum::DISPOSITION()) {
+            $inboxDisposition = [
+                'NId'       => $inboxData['inboxId'],
+                'GIR_Id'    => $inboxData['groupId'],
+                'Sifat'     => $inboxData['urgency'],
+                'Disposisi' => $inboxData['dispositionType'],
+                'RoleId'    => $inboxData['from']->PrimaryRoleId,
+            ];
+            InboxDisposition::create($inboxDisposition);
+        }
+    }
+
+    /**
+     * Create an inboxReceiverCorrection
+     * if the action is DRAFT_FORWARD
+     *
+     * @param Array $inboxData
+     * @param String $action
+     *
+     * @throws \Exception
+     *
+     * @return Void
+     */
+    private function createInboxReceiverCorrection($inboxData, $receiverId, $action)
+    {
+        if ($action == PeopleProposedTypeEnum::FORWARD_DRAFT()) {
+            $inboxReceiverCorrection = $this->generateInboxReceiverData($inboxData, $receiverId, $action);
+            InboxReceiverCorrection::create($inboxReceiverCorrection);
+            $this->updateOriginDraft($inboxReceiverCorrection['receiver'], $inboxReceiverCorrection['draft']);
+        }
+    }
+
+    /**
+     * Update the origin draft
+     *
+     * @param People $receiver
+     * @param Draft $draft
+     *
+     * @throws \Exception
+     *
+     * @return Void
+     */
+    private function updateOriginDraft($receiver, $draft)
+    {
+        $user = auth()->user();
+        $draft->update([
+            'RoleId_From' => $user->PrimaryRoleId,
+            'Approve_People' => $receiver->PeopleId,
+            'Nama_ttd_konsep' => $receiver->PeopleName
+        ]);
+    }
+
+    /**
+     * Generate inbox receiver data
+     * Wheter inboxReceiver or inboxReceiverCorrection
+     *
+     * @param Array $inboxData
+     * @param String $action
+     *
+     * @return Array
+     */
+    private function generateInboxReceiverData($inboxData, $receiverId, $action)
+    {
+        $receiver = People::findOrFail($receiverId);
+        $nkey = TableSetting::first()->tb_key;
+        $draft = $this->findDraft($inboxData, $action);
+        $label = $this->generateLabel($action, $draft);
+        $data = [
+            'NId'           => $inboxData['inboxId'],
+            'NKey'          => $nkey,
+            'GIR_Id'        => $inboxData['groupId'],
+            'From_Id'       => $inboxData['from']->PeopleId,
+            'RoleId_From'   => $inboxData['from']->PrimaryRoleId,
+            'To_Id'         => $receiverId,
+            'RoleId_To'     => $receiver->PrimaryRoleId,
+            'ReceiverAs'    => $label,
+            'Msg'           => $inboxData['message'],
+            'StatusReceive' => 'unread',
+            'ReceiveDate'   => $inboxData['time'],
+            'To_Id_Desc'    => $receiver->role->RoleDesc,
+            'Status'        => 0,
         ];
 
-        return InboxDisposition::create($inboxDisposition);
+        if ($action == PeopleProposedTypeEnum::FORWARD_DRAFT()) {
+            $data['draft'] = $draft;
+            $data['receiver'] = $receiver;
+        }
+
+        return $data;
+    }
+
+    /**
+     * Generate inbox label according to action type
+     * @param String $action
+     * @param Draft $draft
+     *
+     * @return String
+     */
+    private function generateLabel($action, $draft)
+    {
+        if ($action == PeopleProposedTypeEnum::DISPOSITION()) {
+            return 'cc1';
+        } elseif ($action == PeopleProposedTypeEnum::FORWARD_DRAFT()) {
+            return $this->generateDraftLabel($draft);
+        }
+        return 'to_forward';
+    }
+
+    /**
+     * Generate draft label
+     * @param Draft $draft
+     *
+     * @return String
+     */
+    private function generateDraftLabel($draft)
+    {
+        $label = match ($draft->Ket) {
+            'outboxnotadinas'       => 'to_draft_notadinas',
+            'outboxsprint'          => 'to_draft_sprint',
+            'outboxsprintgub'       => 'to_draft_sprintgub',
+            'outboxundangan'        => 'to_draft_undangan',
+            'outboxedaran'          => 'to_draft_edaran',
+            'outboxinstruksigub'    => 'to_draft_instruksi_gub',
+            'outboxsupertugas'      => 'to_draft_super_tugas',
+            'outboxkeluar'          => 'to_draft_keluar',
+            'outboxsket'            => 'to_draft_sket',
+            'outboxpengumuman'      => 'to_draft_pengumuman',
+            'outboxsuratizin'       => 'to_draft_surat_izin',
+            'outboxrekomendasi'     => 'to_draft_rekomendasi',
+            default                 => 'to_draft_nadin',
+        };
+        return $label;
     }
 }
