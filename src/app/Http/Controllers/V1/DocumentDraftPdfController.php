@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 class DocumentDraftPdfController extends Controller
 {
     use DraftTrait;
+
     /**
      * Handle the incoming request.
      *

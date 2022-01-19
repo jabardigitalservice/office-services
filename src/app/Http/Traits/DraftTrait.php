@@ -27,6 +27,9 @@ trait DraftTrait
 
         $generateQrCode = ($verifyCode) ? $this->generateQrCode($id) : null;
         $pdf = PDF::loadView($draft->document_template_name, compact('draft', 'header', 'customData', 'generateQrCode', 'verifyCode'));
+        if ($draft->Ket == 'outboxsprint') {
+            $pdf->setPaper(array(0,0,609.4488,935.433), 'portrait'); //F4 Size
+        }
         return $pdf->stream();
     }
 
@@ -52,7 +55,7 @@ trait DraftTrait
             ->logoResizeToWidth(150)
             ->build();
 
-        header('Content-Type: '.$result->getMimeType());
+        header('Content-Type: ' . $result->getMimeType());
         $fileName = $id . '.png';
         Storage::disk('local')->put($fileName, $result->getString());
 
@@ -70,6 +73,7 @@ trait DraftTrait
         $customData = match ($draft->Ket) {
             'outboxnotadinas'       => $this->setDataNotaDinas($draft),
             'outboxkeluar'          => $this->setDataSuratDinas($draft),
+            default                 => $this->setDataSuratPerintah($draft),
         };
 
         return $customData;
@@ -97,6 +101,18 @@ trait DraftTrait
     public function setDataSuratDinas($draft)
     {
         $response['carbonCopy'] = $this->getCarbonCopy($draft);
+        return $response;
+    }
+
+    /**
+     * setDataSuratPerintah
+     *
+     * @param  collection $draft
+     * @return array
+     */
+    public function setDataSuratPerintah($draft)
+    {
+        $response['receivers'] = $this->getReceivers($draft);
         return $response;
     }
 
@@ -129,7 +145,16 @@ trait DraftTrait
         $receivers = [];
         if ($draft->RoleId_To) {
             $explodeReceivers = explode(',', $draft->RoleId_To);
-            $receivers = People::whereIn('PeopleId', $explodeReceivers)->get();
+            $receivers = People::whereIn('PeopleId', $explodeReceivers);
+
+            if ($draft->Ket == 'outboxsprint') {
+                $receivers = $receivers->orderBy('GroupId', 'ASC')
+                                    ->orderBy('Golongan', 'DESC')
+                                    ->orderBy('Eselon', 'ASC')
+                                    ->orderBy('PrimaryRoleId', 'ASC');
+            }
+
+            $receivers = $receivers->get();
         }
 
         return $receivers;

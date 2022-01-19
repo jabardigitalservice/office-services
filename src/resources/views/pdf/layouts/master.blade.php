@@ -70,6 +70,14 @@
                 word-wrap: break-word;
                 word-break: break-all;
             }
+
+            .has-margin-bottom td {
+                padding-bottom: 10px;
+            }
+
+            .no-margin-bottom td {
+                padding-bottom: 0px !important;
+            }
             .mini-padding-table td {
                 padding: 1.8px;
                 margin: 1.8px;
@@ -84,6 +92,10 @@
             #body-content-section {
                 text-align: justify;
                 line-height: 17px;
+            }
+
+            .align-justify {
+                text-align: justify;
             }
 
             #body-content-section table {
@@ -119,6 +131,19 @@
 
             .attachment-list-number:after {
                 content: counter(item-counter, upper-roman) ""; /* by specifying the upper-roman as style the output would be in roman numbers */
+            }
+
+            .is-table-content-on-table table {
+                width: 100% !important;
+                border-collapse: collapse;
+                border-spacing: 0;
+            }
+
+            .is-table-content-on-table td {
+                vertical-align: top;
+                word-wrap: break-word;
+                word-break: break-all;
+                text-align: justify;
             }
         </style>
     </head>
