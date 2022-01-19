@@ -90,24 +90,11 @@ class InboxMutator
     private function createInboxReceiver($inboxData, $receiverId, $action)
     {
         $inboxReceiver = $this->generateInboxReceiverData($inboxData, $receiverId, $action);
-        return InboxReceiver::create($inboxReceiver);
-    }
-
-    /**
-     * Find draft
-     * if the action is FORWARD_DRAFT
-     *
-     * @param String $action
-     *
-     * @throws \Exception
-     *
-     * @return Draft
-     */
-    private function findDraft($inboxData, $action)
-    {
-        if ($action == PeopleProposedTypeEnum::FORWARD_DRAFT()) {
-            return Draft::where('NId_Temp', $inboxData['inboxId'])->firstOrFail();
+        $inboxReceiver['ReceiverAs'] = $this->generateLabel($action);
+        if (array_key_exists('draft', $inboxReceiver)) {
+            $inboxReceiver['ReceiverAs'] = $this->generateDraftLabel($inboxReceiver['draft']);
         }
+        return InboxReceiver::create($inboxReceiver);
     }
 
     /**
@@ -139,7 +126,7 @@ class InboxMutator
      */
     private function actionNotification($inboxData, $action)
     {
-        if ($action != PeopleProposedTypeEnum::FORWARD_DRAFT()) {
+        if (!$this->isDraftScope($action)) {
             $inbox = Inbox::findOrFail($inboxData['inboxId']);
 
             $peopleId = substr($inboxData['groupId'], 0, -19);
@@ -211,10 +198,15 @@ class InboxMutator
      */
     private function createInboxReceiverCorrection($inboxData, $receiverId, $action)
     {
-        if ($action == PeopleProposedTypeEnum::FORWARD_DRAFT()) {
+        if ($this->isDraftScope($action)) {
             $inboxReceiverCorrection = $this->generateInboxReceiverData($inboxData, $receiverId, $action);
+            $inboxReceiverCorrection['ReceiverAs'] = $this->generateLabel($action);
             InboxReceiverCorrection::create($inboxReceiverCorrection);
-            $this->updateOriginDraft($inboxReceiverCorrection['receiver'], $inboxReceiverCorrection['draft']);
+            $this->updateOriginDraft(
+                $inboxReceiverCorrection['receiver'],
+                $inboxReceiverCorrection['draft'],
+                $action
+            );
         }
     }
 
@@ -223,19 +215,23 @@ class InboxMutator
      *
      * @param People $receiver
      * @param Draft $draft
+     * @param String $action
      *
      * @throws \Exception
      *
      * @return Void
      */
-    private function updateOriginDraft($receiver, $draft)
+    private function updateOriginDraft($receiver, $draft, $action)
     {
         $user = auth()->user();
-        $draft->update([
+        $updatedDraft = [
             'RoleId_From' => $user->PrimaryRoleId,
-            'Approve_People' => $receiver->PeopleId,
-            'Nama_ttd_konsep' => $receiver->PeopleName
-        ]);
+            'Approve_People' => $receiver->PeopleId
+        ];
+        if ($action == PeopleProposedTypeEnum::FORWARD_DRAFT()) {
+            $updatedDraft['Nama_ttd_konsep'] = $receiver->PeopleName;
+        }
+        $draft->update($updatedDraft);
     }
 
     /**
@@ -252,7 +248,6 @@ class InboxMutator
         $receiver = People::findOrFail($receiverId);
         $nkey = TableSetting::first()->tb_key;
         $draft = $this->findDraft($inboxData, $action);
-        $label = $this->generateLabel($action, $draft);
         $data = [
             'NId'           => $inboxData['inboxId'],
             'NKey'          => $nkey,
@@ -261,7 +256,6 @@ class InboxMutator
             'RoleId_From'   => $inboxData['from']->PrimaryRoleId,
             'To_Id'         => $receiverId,
             'RoleId_To'     => $receiver->PrimaryRoleId,
-            'ReceiverAs'    => $label,
             'Msg'           => $inboxData['message'],
             'StatusReceive' => 'unread',
             'ReceiveDate'   => $inboxData['time'],
@@ -269,12 +263,29 @@ class InboxMutator
             'Status'        => 0,
         ];
 
-        if ($action == PeopleProposedTypeEnum::FORWARD_DRAFT()) {
+        if ($draft) {
             $data['draft'] = $draft;
             $data['receiver'] = $receiver;
         }
 
         return $data;
+    }
+
+    /**
+     * Find draft
+     * if the action is FORWARD_DRAFT
+     *
+     * @param String $action
+     *
+     * @throws \Exception
+     *
+     * @return Draft
+     */
+    private function findDraft($inboxData, $action)
+    {
+        if ($this->isDraftScope($action)) {
+            return Draft::where('NId_Temp', $inboxData['inboxId'])->firstOrFail();
+        }
     }
 
     /**
@@ -284,14 +295,16 @@ class InboxMutator
      *
      * @return String
      */
-    private function generateLabel($action, $draft)
+    private function generateLabel($action)
     {
-        if ($action == PeopleProposedTypeEnum::DISPOSITION()) {
-            return 'cc1';
-        } elseif ($action == PeopleProposedTypeEnum::FORWARD_DRAFT()) {
-            return $this->generateDraftLabel($draft);
-        }
-        return 'to_forward';
+        $label = match ($action) {
+            PeopleProposedTypeEnum::DISPOSITION()->value    => 'cc1',
+            PeopleProposedTypeEnum::FORWARD_DRAFT()->value  => 'meneruskan',
+            PeopleProposedTypeEnum::NUMBERING_UK()->value,
+            PeopleProposedTypeEnum::NUMBERING_TU()->value   => 'Meminta Nomber Surat',
+            default                                         => 'to_forward'
+        };
+        return $label;
     }
 
     /**
@@ -318,5 +331,21 @@ class InboxMutator
             default                 => 'to_draft_nadin',
         };
         return $label;
+    }
+
+    /**
+     * Check if the action is on Draft scope
+     * @param String $action
+     *
+     * @return Boolean
+     */
+    private function isDraftScope($action)
+    {
+        return match ($action) {
+            PeopleProposedTypeEnum::FORWARD_DRAFT()->value,
+            PeopleProposedTypeEnum::NUMBERING_UK()->value,
+            PeopleProposedTypeEnum::NUMBERING_TU()->value   => true,
+            default                                         => false
+        };
     }
 }
