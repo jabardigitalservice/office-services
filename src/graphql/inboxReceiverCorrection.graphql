@@ -7,6 +7,7 @@ type InboxReceiverCorrection {
     toId: String @rename(attribute: "To_Id")
     message: String @rename(attribute: "Msg")
     receiverAs: String @rename(attribute: "ReceiverAs")
+    receiverAsLabel: String @rename(attribute: "receiver_as_label")
     receiveStatus: String @rename(attribute: "StatusReceive")
     toIdDesc: String @rename(attribute: "To_Id_Desc")
     isReturned: Int @rename(attribute: "Status")
