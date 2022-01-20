@@ -29,6 +29,7 @@ input FilterInput {
     forwarded: String
     folder: String
     receiverTypes: String
+    followedUp: String
     scope: ScopeType
 }
 
