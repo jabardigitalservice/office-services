@@ -1,15 +1,29 @@
 
 @php
-    $fontSizeInBox = '10px;';
-    $fontSizeOutBox = '12px;';
-    $boxSignature = '0px;';
-    $imageOnBoxSignature = '45px;';
-    $signatureBoxSize = '300px';
-    if ($draft->Ket == 'outboxnotadinas') {
-        $signatureBoxSize = '310px;';
-        $fontSizeInBox = '11px;';
-        $boxSignature = '-62px;';
-        $imageOnBoxSignature = '80px;';
+    switch ($draft->Ket) {
+        case 'outboxnotadinas':
+            $signatureBoxSize = '310px;';
+            $fontSizeInBox = '11px;';
+            $boxSignature = '-62px;';
+            $imageOnBoxSignature = '80px;';
+            $reviewTitle = true;
+            break;
+
+        case 'outboxsprint':
+            $signatureBoxSize = '350px';
+            $fontSizeInBox = '13px;';
+            $boxSignature = '0px;';
+            $imageOnBoxSignature = '65px;';
+            $reviewTitle = false;
+            break;
+
+        default:
+            $signatureBoxSize = '300px';
+            $fontSizeInBox = '10px;';
+            $boxSignature = '0px;';
+            $imageOnBoxSignature = '45px;';
+            $reviewTitle = true;
+            break;
     }
 @endphp
 @if ($draft->Ket == 'outboxnotadinas')
@@ -21,7 +35,13 @@
 @endif
 <section class="signature-content-section">
     <div style="float:right; width: {{ $signatureBoxSize }} position: relative; left: {{ $boxSignature; }}">
-        <p style="text-align: center; font-size: 12px;">
+        @if ($draft->Ket == 'outboxsprint')
+            <p style="text-align: center; font-size:16px;">
+                Ditetapkan di {{ ($generateQrCode) ? $draft->lokasi : ".............."  }} <br>
+                Pada Tanggal {{ ($generateQrCode) ? parseSetLocaleDate($draft->TglNaskah, 'id', 'd F Y') : ".............."  }}
+            </p>
+        @endif
+        <p style="text-align: center; font-size: {{ ($draft->Ket == 'outboxsprint') ? '16px; margin-bottom: 0;' : '12px;' }}">
             @if ($draft->TtdText == 'PLT')
                 Plt. {!! $draft->reviewer->role->RoleName !!},
             @elseif ($draft->TtdText == 'PLH')
@@ -37,10 +57,10 @@
                 {!! $draft->reviewer->role->RoleName !!},
             @endif
         </p>
-        @if (!$generateQrCode)
+        @if (!$generateQrCode && $reviewTitle == true)
             <p style="text-align: center;">PEMERIKSA</p>
         @endif
-        <div style="border: 1px solid #000000; font-size: {{ $fontSizeInBox; }}; margin: 0px 6px 0px 20px;">
+        <div style="border: 1px solid #000000; font-size: {{ $fontSizeInBox; }};">
             <table class="table-collapse no-padding-table signature-table">
                 <tr>
                     <td rowspan="4" style="vertical-align: middle; text-align:center">

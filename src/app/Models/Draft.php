@@ -111,7 +111,7 @@ class Draft extends Model
     {
         $label = match ($this->Ket) {
             'outboxnotadinas'       => 'pdf.nota_dinas',
-            'outboxsprint'          => 'pdf.sprint',
+            'outboxsprint'          => 'pdf.surat_perintah',
             'outboxsprintgub'       => 'pdf.sprintgub',
             'outboxundangan'        => 'pdf.undangan',
             'outboxedaran'          => 'pdf.surat_edaran',
