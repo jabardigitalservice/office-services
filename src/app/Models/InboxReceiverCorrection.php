@@ -223,6 +223,19 @@ class InboxReceiverCorrection extends Model
         ];
     }
 
+    public function getReceiverAsLabelAttribute()
+    {
+        $label = match ($this->ReceiverAs) {
+            'approvenaskah'         => 'TTE Naskah',
+            'meneruskan'            => 'Review Naskah',
+            'Meminta Nomber Surat'  => 'Penomoran Naskah',
+            'koreksi'               => 'Perbaiki Naskah',
+            default                 => 'Review Naskah'
+        };
+
+        return $label;
+    }
+
     public function history($query, $draftId)
     {
         return $query->where('NId', $draftId);
