@@ -126,40 +126,56 @@ class InboxMutator
      */
     private function actionNotification($inboxData, $action)
     {
-        if (!$this->isDraftScope($action)) {
-            $inbox = Inbox::findOrFail($inboxData['inboxId']);
+        $inbox = $this->definePrimaryModel($action, $inboxData['inboxId']);
+        $dept = $inbox->createdBy->role->rolecode->rolecode_sort;
+        $sender = auth()->user()->PeopleName;
+        $title = '';
+        $body = $dept . ' telah mengirimkan surat terkait dengan ' . $inbox->Hal . '. Klik disini untuk membaca dan menindaklanjuti pesan.';
 
-            $peopleId = substr($inboxData['groupId'], 0, -19);
-            $dateString = substr($inboxData['groupId'], -19);
-            $date = parseDateTimeFormat($dateString, 'dmyhis');
-
-            if ($action == PeopleProposedTypeEnum::FORWARD()) {
-                $createdBy = Inbox::where('NId', $inboxData['inboxId'])->first()->createdBy;
-                $title = '';
-                $body = $createdBy->role->rolecode->rolecode_sort . ' telah mengirimkan surat terkait dengan ' . $inbox->Hal . '. Klik disini untuk membaca dan menindaklanjuti pesan.';
-                $actionMessage = FcmNotificationActionTypeEnum::INBOX_DETAIL();
-            } elseif ($action == PeopleProposedTypeEnum::DISPOSITION()) {
-                $sender = auth()->user()->PeopleName;
-                $title = 'Disposisi Naskah';
-                $body = $sender . ' telah mendisposisikan ' . $inbox->type->JenisName . ' terkait dengan ' . $inbox->Hal . '. Klik disini untuk membaca dan menindaklanjuti pesan.';
-                $actionMessage = FcmNotificationActionTypeEnum::DISPOSITION_DETAIL();
-            }
-
-            $messageAttribute = [
-                'notification' => [
-                    'title' => $title,
-                    'body' => $body,
-                ],
-                'data' => [
-                    'inboxId' => $inboxData['inboxId'],
-                    'groupId' => $peopleId . $date,
-                    'peopleIds' => $inboxData['receiversIds'],
-                    'action' => $actionMessage,
-                ]
-            ];
-
-            $this->setupInboxReceiverNotification($messageAttribute);
+        if ($action == PeopleProposedTypeEnum::FORWARD()) {
+            $actionMessage = FcmNotificationActionTypeEnum::INBOX_DETAIL();
+        } elseif ($action == PeopleProposedTypeEnum::DISPOSITION()) {
+            $title = 'Disposisi Naskah';
+            $body = $sender . ' telah mendisposisikan ' . $inbox->type->JenisName . ' terkait dengan ' . $inbox->Hal . '. Klik disini untuk membaca dan menindaklanjuti pesan.';
+            $actionMessage = FcmNotificationActionTypeEnum::DISPOSITION_DETAIL();
+        } elseif ($this->isDraftScope($action)) {
+            $actionMessage = FcmNotificationActionTypeEnum::DRAFT_DETAIL();
         }
+
+        $peopleId = substr($inboxData['groupId'], 0, -19);
+        $dateString = substr($inboxData['groupId'], -19);
+        $date = parseDateTimeFormat($dateString, 'dmyhis');
+
+        $messageAttribute = [
+            'notification' => [
+                'title' => $title,
+                'body' => $body,
+            ],
+            'data' => [
+                'inboxId' => $inboxData['inboxId'],
+                'groupId' => $peopleId . $date,
+                'peopleIds' => $inboxData['receiversIds'],
+                'action' => $actionMessage,
+            ]
+        ];
+
+        $this->setupInboxReceiverNotification($messageAttribute);
+    }
+
+    /**
+     * Define the primary table
+     * wheter Inbox or Draft Model
+     *
+     * @param String $action
+     *
+     * @return Object
+     */
+    private function definePrimaryModel($action, $inboxId)
+    {
+        if ($this->isDraftScope($action)) {
+            return Draft::findOrFail($inboxId);
+        }
+        return Inbox::findOrFail($inboxId);
     }
 
     /**
