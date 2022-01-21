@@ -60,7 +60,8 @@ class People extends Authenticatable
         $query->where('PeopleId', '<>', $user->PeopleId);
         $proposedTo = $filter["proposedTo"] ?? null;
         match ($proposedTo) {
-            PeopleProposedTypeEnum::FORWARD()->value => $this->filterForward($query),
+            PeopleProposedTypeEnum::FORWARD()->value,
+            PeopleProposedTypeEnum::FORWARD_DRAFT()->value => $this->filterForward($query),
             PeopleProposedTypeEnum::DISPOSITION()->value => $this->filterDisposition($query),
             PeopleProposedTypeEnum::FORWARD_DOC_SIGNATURE()->value => $this->filterForwardSignature($query),
             PeopleProposedTypeEnum::NUMBERING_UK()->value => $this->filterNumberingByUK($query),
