@@ -199,6 +199,23 @@ trait InboxFilterTrait
     }
 
     /**
+     * Filtering by inbox followed up status
+     *
+     * @param Object $query
+     * @param Array  $filter
+     *
+     * @return Void
+     */
+    private function filterByFollowedUpStatus($query, $filter)
+    {
+        $followedUp = $filter["followedUp"] ?? null;
+        if ($followedUp || $followedUp != null) {
+            $arrayFollowedUp = explode(", ", $followedUp);
+            $query->whereIn('TindakLanjut', $arrayFollowedUp);
+        }
+    }
+
+    /**
      * Query for filtering based on filter category.
      *
      * @param Object                $query
