@@ -11,7 +11,7 @@ class MasterDisposition extends Model
 
     protected $connection = 'sikdweb';
 
-    protected $table = "master_disposisi";
+    protected $table = 'master_disposisi';
 
     public $timestamps = false;
 

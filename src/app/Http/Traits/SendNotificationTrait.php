@@ -6,15 +6,28 @@ use App\Enums\DocumentSignatureSentNotificationTypeEnum;
 use App\Enums\FcmNotificationActionTypeEnum;
 use App\Models\DocumentSignatureSent;
 use App\Models\InboxReceiver;
-use Illuminate\Http\Response;
+use App\Models\InboxReceiverCorrection;
 use Illuminate\Support\Facades\Http;
 
+/**
+ * Send notification to mobile device using firebase cloud messaging
+ */
 trait SendNotificationTrait
 {
     public function setupInboxReceiverNotification($request)
     {
-        $inboxReceiver = InboxReceiver::whereIn('To_Id', $request['data']['peopleIds'])
-                                    ->where('NId', $request['data']['inboxId'])
+        $action = $request['data']['action'];
+        switch ($action) {
+            case FcmNotificationActionTypeEnum::DRAFT_DETAIL():
+            case FcmNotificationActionTypeEnum::DRAFT_REVIEW():
+                $inboxReceiverModel = InboxReceiverCorrection::whereIn('To_Id', $request['data']['peopleIds']);
+                break;
+
+            default:
+                $inboxReceiverModel = InboxReceiver::whereIn('To_Id', $request['data']['peopleIds']);
+                break;
+        }
+        $inboxReceiver = $inboxReceiverModel->where('NId', $request['data']['inboxId'])
                                     ->where('GIR_Id', $request['data']['groupId'])
                                     ->with('personalAccessTokens')
                                     ->get();
@@ -24,7 +37,7 @@ trait SendNotificationTrait
 
         foreach ($inboxReceiver as $message) {
             $token = $message->personalAccessTokens->pluck('fcm_token');
-            $messageAttribute = $this->setNotificationAttribute($token, $request['notification'], $message->id, $request['data']['action']);
+            $messageAttribute = $this->setNotificationAttribute($token, $request, $message, $action);
             $this->sendNotification($messageAttribute);
         }
 
@@ -45,7 +58,12 @@ trait SendNotificationTrait
             return false;
         }
 
-        $messageAttribute = $this->setNotificationAttribute($token, $request['notification'], $data->id, FcmNotificationActionTypeEnum::DOC_SIGNATURE_DETAIL());
+        $messageAttribute = $this->setNotificationAttribute(
+            $token,
+            $request,
+            $data,
+            FcmNotificationActionTypeEnum::DOC_SIGNATURE_DETAIL()
+        );
         $send = $this->sendNotification($messageAttribute);
 
         return true;
@@ -89,21 +107,35 @@ trait SendNotificationTrait
      * setNotificationAttribute
      *
      * @param  array $token
-     * @param  array $notification
-     * @param  string $id
+     * @param  array $request
+     * @param  object $record
      * @param  enum $action
      * @return array
      */
-    public function setNotificationAttribute($token, $notification, $id, $action)
+    public function setNotificationAttribute($token, $request, $record, $action)
     {
         $messageAttribute = [
             'registration_ids' => $token,
-            'notification' => $notification,
+            'notification' => $request['notification'],
             'data' => [
-                'id' => $id,
+                'id' => $record->id,
                 'action' => $action
             ]
         ];
+
+        if (
+            $action == FcmNotificationActionTypeEnum::DRAFT_DETAIL() ||
+            $action == FcmNotificationActionTypeEnum::DRAFT_REVIEW()
+        ) {
+            $messageAttribute['data'] = [
+                'draftId' => $record->NId,
+                'groupId' => $record->GIR_Id,
+                'receiverAs' => $record->ReceiverAs,
+                'letterNumber' => $record->draftDetail->nosurat,
+                'draftStatus' => $record->draftDetail->Konsep,
+                'action' => $action
+            ];
+        }
 
         return $messageAttribute;
     }

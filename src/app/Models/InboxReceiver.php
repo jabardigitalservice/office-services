@@ -2,18 +2,20 @@
 
 namespace App\Models;
 
-use App\Enums\InboxReceiverScopeType;
+use App\Enums\ListTypeEnum;
 use App\Enums\PeopleGroupTypeEnum;
+use App\Http\Traits\InboxFilterTrait;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Hoyvoy\CrossDatabase\Eloquent\Model;
 
 class InboxReceiver extends Model
 {
     use HasFactory;
+    use InboxFilterTrait;
 
     protected $connection = 'sikdweb';
 
-    protected $table = "inbox_receiver";
+    protected $table = 'inbox_receiver';
 
     public $timestamps = false;
 
@@ -32,7 +34,8 @@ class InboxReceiver extends Model
         'StatusReceive',
         'ReceiveDate',
         'To_Id_Desc',
-        'Status'
+        'Status',
+        'TindakLanjut'
     ];
 
     public function inboxDetail()
@@ -43,11 +46,14 @@ class InboxReceiver extends Model
     public function history($query, $NId)
     {
         return $query->where('NId', $NId)
-                    ->where(function($query) use ($NId) {
-                        $query->where('NId', $NId);
-                        $query->orwhere('RoleId_To', 'like', auth()->user()->PrimaryRoleId . '%');
-                        $query->orWhere('RoleId_From', 'like', auth()->user()->PrimaryRoleId . '%');
-                    })->groupBy('GIR_Id');
+            ->where(function ($query) {
+                $query->whereIn('GIR_Id', function ($query) {
+                    $query->select('GIR_Id')
+                        ->from('inbox_receiver')
+                        ->where('RoleId_To', 'like', auth()->user()->PrimaryRoleId . '%');
+                })
+                ->orWhere('RoleId_From', 'like', auth()->user()->PrimaryRoleId . '%');
+            });
     }
 
     public function sender()
@@ -85,102 +91,15 @@ class InboxReceiver extends Model
 
     public function filter($query, $filter)
     {
-        $sources = $filter["sources"] ?? null;
-        $statuses = $filter["statuses"] ?? null;
-        $types = $filter["types"] ?? null;
-        $urgencies = $filter["urgencies"] ?? null;
-        $forwarded = $filter["forwarded"] ?? null;
-        $folder = $filter["folder"] ?? null;
-        $receiverTypes = $filter["receiverTypes"] ?? null;
-        $scope = $filter["scope"] ?? null;
-
-        if ($statuses) {
-            $arrayStatuses = explode(", ", $statuses);
-            $query->whereIn('StatusReceive', $arrayStatuses);
-        }
-
-        if ($sources) {
-            $arraySources = explode(", ", $sources);
-            $query->whereIn('NId', function ($inboxQuery) use ($arraySources) {
-                $inboxQuery->select('NId')
-                ->from('inbox')
-                ->whereIn('Pengirim', $arraySources);
-            });
-        }
-
-        if ($types) {
-            $arrayTypes = explode(", ", $types);
-            $query->whereIn('NId', function ($inboxQuery) use ($arrayTypes) {
-                $inboxQuery->select('NId')
-                ->from('inbox')
-                ->whereIn('JenisId', function ($docQuery) use ($arrayTypes) {
-                    $docQuery->select('JenisId')
-                    ->from('master_jnaskah')
-                    ->whereIn('JenisId', $arrayTypes);
-                });
-            });
-        }
-
-        if ($urgencies) {
-            $arrayUrgencies = explode(", ", $urgencies);
-            $query->whereIn('NId', function ($inboxQuery) use ($arrayUrgencies) {
-                $inboxQuery->select('NId')
-                ->from('inbox')
-                ->whereIn('UrgensiId', function ($urgencyQuery) use ($arrayUrgencies) {
-                    $urgencyQuery->select('UrgensiId')
-                    ->from('master_urgensi')
-                    ->whereIn('UrgensiName', $arrayUrgencies);
-                });
-            });
-        }
-
-        if ($folder) {
-            $arrayFolders = explode(", ", $folder);
-            $query->whereIn('NId', function ($inboxQuery) use ($arrayFolders) {
-                $inboxQuery->select('NId')
-                ->from('inbox')
-                ->whereIn('NTipe', $arrayFolders);
-            });
-            $query->where('ReceiverAs', 'to');
-        }
-
-        if ($forwarded || $forwarded == '0') {
-            $arrayForwarded = explode(", ", $forwarded);
-            $query->whereIn('Status', $arrayForwarded);
-        }
-
-        if ($receiverTypes) {
-            $arrayReceiverTypes = explode(", ", $receiverTypes);
-            $query->whereIn('ReceiverAs', $arrayReceiverTypes);
-        }
-
-        if ($scope) {
-            $departmentId = $this->generateDeptId(auth()->user()->PrimaryRoleId);
-            $comparison = '';
-            switch ($scope) {
-                case InboxReceiverScopeType::REGIONAL():
-                    $comparison = 'NOT LIKE';
-                    break;
-
-                case InboxReceiverScopeType::INTERNAL():
-                    $comparison = 'LIKE';
-                    break;
-            }
-            $query->where('RoleId_From', $comparison, $departmentId . '%');
-        }
-
+        $this->filterByResource($query, $filter);
+        $this->filterByStatus($query, $filter);
+        $this->filterByType($query, $filter, ListTypeEnum::INBOX_LIST());
+        $this->filterByUrgency($query, $filter, ListTypeEnum::INBOX_LIST());
+        $this->filterByFolder($query, $filter);
+        $this->filterByForwardStatus($query, $filter);
+        $this->filterByReceiverTypes($query, $filter);
+        $this->filterByScope($query, $filter);
         return $query;
-    }
-
-    private function generateDeptId($roleId) {
-        // If the user is not uk.setda
-        if ($roleId != 'uk.1.1.1.1.1') {
-            $arrayRoleId = explode(".", $roleId);
-            $arrayDepartmentId = array_slice($arrayRoleId, 0, 3);
-            $departmentId = join(".", $arrayDepartmentId);
-            return $departmentId;
-        }
-        return $roleId;
     }
 
     public function search($query, $search)
@@ -221,91 +140,34 @@ class InboxReceiver extends Model
 
     public function setReceiveDateAttribute($value)
     {
-        $this->attributes['ReceiveDate'] = $value->addHours(7);
+        $this->attributes['ReceiveDate'] = $value->copy()->addHours(7);
     }
 
     public function getReceiverAsLabelAttribute()
     {
-        switch ($this->ReceiverAs) {
-            case 'to':
-                return "Naskah Masuk";
-                break;
+        $label = match ($this->ReceiverAs) {
+            'to'                    => 'Naskah Masuk',
+            'to_undangan'           => 'Undangan',
+            'to_sprint'             => 'Perintah',
+            'to_notadinas'          => 'Nota Dinas',
+            'to_reply'              => 'Naskah Dinas',
+            'to_usul'               => 'Jawaban Nota Dinas',
+            'to_forward'            => 'Teruskan',
+            'cc1'                   => 'Disposisi',
+            'to_keluar'             => 'Surat Dinas Keluar',
+            'to_nadin'              => 'Naskah Dinas Lainnya',
+            'to_konsep'             => 'Konsep Naskah',
+            'to_memo'               => 'Memo',
+            'to_draft_notadinas'    => 'Konsep Nota Dinas',
+            'to_draft_sprint'       => 'Konsep Surat Perintah',
+            'to_draft_undangan'     => 'Konsep Undangan',
+            'to_draft_keluar'       => 'Konsep surat Dinas',
+            'to_draft_sket'         => 'Konsep surat Keterangan',
+            'to_draft_pengumuman'   => 'Konsep Pengumuman',
+            'to_draft_rekomendasi'  => 'Konsep Surat Rekomendasi',
+            default                 => 'Konsep Naskah Dinas Lainnya'
+        };
 
-            case 'to_undangan':
-                return "Undangan";
-                break;
-
-            case 'to_sprint':
-                return "Surat Perintah";
-                break;
-
-            case 'to_notadinas':
-                return "Nota Dinas";
-                break;
-
-            case 'to_reply':
-                return "Nota Dinas";
-                break;
-
-            case 'to_usul':
-                return "Jawaban Nota Dinas";
-                break;
-
-            case 'to_forward':
-                return "Teruskan";
-                break;
-
-            case 'cc1':
-                return "Disposisi";
-                break;
-
-            case 'to_keluar':
-                return "Surat Dinas Keluar";
-                break;
-
-            case 'to_nadin':
-                return "Naskah Dinas Lainnya";
-                break;
-
-            case 'to_konsep':
-                return "Konsep Naskah";
-                break;
-
-            case 'to_memo':
-                return "Memo";
-                break;
-
-            case 'to_draft_notadinas':
-                return "Konsep Nota Dinas";
-                break;
-
-            case 'to_draft_sprint':
-                return "Konsep Surat Perintah";
-                break;
-
-            case 'to_draft_undangan':
-                return "Konsep Undangan";
-                break;
-
-            case 'to_draft_keluar':
-                return "Konsep surat Dinas";
-                break;
-
-            case 'to_draft_sket':
-                return "Konsep surat Keterangan";
-                break;
-
-            case 'to_draft_pengumuman':
-                return "Konsep Pengumuman";
-                break;
-
-            case 'to_draft_rekomendasi':
-                return "Konsep Surat Rekomendasi";
-                break;
-
-            default:
-                return "Konsep Naskah Dinas Lainnya";
-                break;
-        }
+        return $label;
     }
 }

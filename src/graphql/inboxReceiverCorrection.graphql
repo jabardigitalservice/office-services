@@ -1,0 +1,55 @@
+type InboxReceiverCorrection {
+    id: ID!
+    draftId: String! @rename(attribute: "NId")
+    groupId: String! @rename(attribute: "GIR_Id")
+    date: DateTime! @rename(attribute: "ReceiveDate")
+    fromId: Int @rename(attribute: "From_Id")
+    toId: String @rename(attribute: "To_Id")
+    message: String @rename(attribute: "Msg")
+    receiverAs: String @rename(attribute: "ReceiverAs")
+    receiverAsLabel: String @rename(attribute: "receiver_as_label")
+    receiveStatus: String @rename(attribute: "StatusReceive")
+    toIdDesc: String @rename(attribute: "To_Id_Desc")
+    isReturned: Int @rename(attribute: "Status")
+    correctionId: String @rename(attribute: "id_koreksi")
+    draftDetail: Draft @belongsTo
+    sender: People @belongsTo
+    receiver: People @belongsTo
+    correction: InboxCorrection @belongsTo
+    isActioned: Boolean @field(resolver: "App\\GraphQL\\Types\\InboxReceiverCorrectionType@isActioned")
+    senderRequestSignature: People @field(resolver: "App\\GraphQL\\Types\\InboxReceiverCorrectionType@senderSignatureRequest")
+}
+
+enum TimelineType {
+    CORRECTION @enum(value: "meneruskan")
+}
+
+input DraftTimelineInput {
+    draftId: String!
+    type: TimelineType
+}
+
+input DraftFilterInput {
+    types: String
+    urgencies: String
+    statuses: String
+    receiverTypes: String
+}
+
+input DraftReturnInput {
+    id: ID!
+    options: String
+    drafterId: Int!
+    message: String
+}
+
+enum DraftObjectiveType {
+    IN
+    OUT
+    REVISE
+}
+
+#import draft.graphql
+#import people.graphql
+#import inboxCorrection.graphql
+

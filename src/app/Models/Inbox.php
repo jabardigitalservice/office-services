@@ -11,7 +11,7 @@ class Inbox extends Model
 
     protected $connection = 'sikdweb';
 
-    protected $table = "inbox";
+    protected $table = 'inbox';
 
     protected $keyType = 'string';
 
@@ -40,5 +40,10 @@ class Inbox extends Model
     public function createdBy()
     {
         return $this->belongsTo(People::class, 'CreatedBy', 'PeopleId');
+    }
+
+    public function setNTglRegAttribute($value)
+    {
+        $this->attributes['NTglReg'] = $value->copy()->addHours(7);
     }
 }

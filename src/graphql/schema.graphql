@@ -44,6 +44,10 @@ type Query {
         @paginate(type: CONNECTION)
         @guard
 
+    inboxUnreadCount: UnreadCount!
+        @field(resolver: "InboxQuery@unreadCount")
+        @guard
+
     me: People @auth
 
     peopleList(
@@ -90,6 +94,41 @@ type Query {
     ): DocumentSignatureSentHistory
         @field(resolver: "DocumentSignatureHistoryQuery@history")
         @guard
+
+    drafts(
+        filter: DraftFilterInput @builder(method: "App\\Models\\InboxReceiverCorrection@filter")
+        objective: DraftObjectiveType @builder(method: "App\\Models\\InboxReceiverCorrection@objective")
+        grouping: Boolean @builder(method: "App\\Models\\InboxReceiverCorrection@grouping")
+        search: String @builder(method: "App\\Models\\InboxReceiverCorrection@search")
+    ): [InboxReceiverCorrection!]!
+        @whereAuth(relation: "receiver")
+        @orderBy(column: "ReceiveDate", direction: DESC)
+        @paginate(type: CONNECTION)
+        @guard
+
+    draft(
+        draftId: String!
+        groupId: String!
+    ): InboxReceiverCorrection
+        @field(resolver: "DraftQuery@detail")
+        @guard
+
+    draftTimeline(
+        filter: DraftTimelineInput @builder(method: "App\\Models\\InboxReceiverCorrection@timeline")
+    ): [InboxReceiverCorrection!]!
+        @field(resolver: "DraftQuery@timeline")
+        @guard
+
+    draftHistory(
+        draftId: String @builder(method: "App\\Models\\InboxReceiverCorrection@history")
+    ): [InboxReceiverCorrection!]!
+        @all
+        @orderBy(column: "ReceiveDate", direction: DESC)
+        @guard
+
+    correctionOptions: [MasterCorrectionOption!]!
+        @paginate(type: CONNECTION)
+        @guard
 }
 
 type Mutation {
@@ -98,18 +137,31 @@ type Mutation {
 
     inboxForward(input: ForwardInput!): [InboxReceiver]
         @field(resolver: "InboxMutator@forward")
+        @guard
 
     endInboxForward(inboxId: String!): String
         @field(resolver: "InboxMutator@endForward")
+        @guard
 
     documentSignature(input: DocumentSignatureInput): DocumentSignatureSent
         @field(resolver: "DocumentSignatureMutator@signature")
+        @guard
+
+    draftSignature(input: DraftSignatureInput): Draft
+        @field(resolver: "DraftSignatureMutator@signature")
+        @guard
 
     documentSignatureReject(input: DocumentSignaturRejectInput): DocumentSignatureSent
         @field(resolver: "DocumentSignatureRejectMutator@reject")
+        @guard
 
     documentSignatureForward(input: DocumentSignatureForwardInput): [DocumentSignatureForward!]
         @field(resolver: "DocumentSignatureForwardMutator@forward")
+        @guard
+
+    draftReturn(input: DraftReturnInput): InboxReceiverCorrection!
+        @field(resolver: "InboxReceiverCorrectionMutator@backToDrafter")
+        @guard
 }
 
 #import auth.graphql
@@ -120,3 +172,5 @@ type Mutation {
 #import documentSignature.graphql
 #import documentSignatureForward.graphql
 #import masterDisposition.graphql
+#import inboxReceiverCorrection.graphql
+#import masterCorrectionOption.graphql

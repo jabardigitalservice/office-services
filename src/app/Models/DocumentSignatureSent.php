@@ -52,7 +52,9 @@ class DocumentSignatureSent extends Model
 
     public function documentSignatureSentRead()
     {
-        return $this->belongsTo(DocumentSignatureSentRead::class, 'id', 'document_signature_sent_id');
+        return $this->belongsTo(DocumentSignatureSentRead::class, 'id', 'document_signature_sent_id')->where(function ($query) {
+            $query->where('people_id', auth()->user()->PeopleId);
+        });
     }
 
     public function documentSignature()
@@ -92,18 +94,21 @@ class DocumentSignatureSent extends Model
         if ($read || $unread) {
             $readId = DB::connection('mysql')->table('document_signature_sent_reads')
             ->select('document_signature_sent_id')
-            ->pluck('document_signature_sent_id');
+            ->where('people_id', auth()->user()->PeopleId)
+            ->pluck('document_signature_sent_id')
+            ->toArray();
         }
 
         if ($read && !$unread) {
-            $documentSignatureSentIds = array_intersect($documentSignatureSentIds, $readId->toArray());
+            $documentSignatureSentIds = array_intersect($documentSignatureSentIds, $readId);
         }
-
-        $query->whereIn('id', $documentSignatureSentIds);
 
         if (!$read && $unread) {
-            $query->whereNotIn('id', $readId);
+            $documentSignatureSentIds = array_diff($documentSignatureSentIds, $readId);
         }
+
+
+        $query->whereIn('id', $documentSignatureSentIds);
 
         if ($statuses  || $statuses == '0') {
             $arrayStatuses = explode(", ", $statuses);
@@ -130,10 +135,25 @@ class DocumentSignatureSent extends Model
     {
         $documentSignatureId = $filter['documentSignatureId'] ?? null;
         $sort = $filter['sort'] ?? null;
+        $status = $filter['status'] ?? null;
 
         $query->where('ttd_id', $documentSignatureId)
-            ->where('urutan', '<', $sort)
-            ->where('status', SignatureStatusTypeEnum::SUCCESS()->value);
+            ->where('urutan', '<', $sort);
+
+        if ($status) {
+            if ($status == SignatureStatusTypeEnum::SIGNED()) {
+                $query->where('status', SignatureStatusTypeEnum::SUCCESS()->value);
+            }
+            if ($status == SignatureStatusTypeEnum::UNSIGNED()) {
+                $query->whereIn(
+                    'status',
+                    [
+                        SignatureStatusTypeEnum::WAITING()->value,
+                        SignatureStatusTypeEnum::REJECT()->value
+                    ]
+                );
+            }
+        }
 
         return $query;
     }

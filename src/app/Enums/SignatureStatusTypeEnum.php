@@ -8,6 +8,8 @@ use Spatie\Enum\Enum;
  * @method static self WAITING()
  * @method static self SUCCESS()
  * @method static self REJECT()
+ * @method static self SIGNED()
+ * @method static self UNSIGNED()
  */
 
 class SignatureStatusTypeEnum extends Enum

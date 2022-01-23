@@ -5,10 +5,10 @@ namespace App\GraphQL\Mutations;
 use App\Enums\DocumentSignatureSentNotificationTypeEnum;
 use App\Enums\SignatureStatusTypeEnum;
 use App\Http\Traits\SendNotificationTrait;
+use App\Http\Traits\SignatureTrait;
 use App\Exceptions\CustomException;
 use App\Models\DocumentSignature;
 use App\Models\DocumentSignatureSent;
-use App\Models\PassphraseSession;
 use Carbon\Carbon;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Http;
@@ -17,6 +17,7 @@ use Illuminate\Support\Facades\Storage;
 class DocumentSignatureMutator
 {
     use SendNotificationTrait;
+    use SignatureTrait;
 
     /**
      * @param $rootValue
@@ -34,6 +35,14 @@ class DocumentSignatureMutator
 
         if ($documentSignatureSent->status != SignatureStatusTypeEnum::WAITING()->value) {
             throw new CustomException('User already signed this document', 'Status of this document is already signed');
+        }
+
+        $checkParent = DocumentSignatureSent::where('ttd_id', $documentSignatureSent->ttd_id)
+            ->where('urutan', $documentSignatureSent->urutan - 1)
+            ->first();
+
+        if ($checkParent && $checkParent->status != SignatureStatusTypeEnum::SUCCESS()->value) {
+            throw new CustomException('Parent user is not already signed this document', 'Parent user of list signature assign is not already signed');
         }
 
         $setupConfig = $this->setupConfigSignature();
@@ -70,19 +79,21 @@ class DocumentSignatureMutator
             'Authorization' => 'Basic ' . $setupConfig['auth'],
             'Cookie' => 'JSESSIONID=' . $setupConfig['cookies'],
         ])->attach(
-            'file', file_get_contents($data->documentSignature->url), $data->documentSignature->file
+            'file',
+            file_get_contents($data->documentSignature->url),
+            $data->documentSignature->file
         )->post($url, [
-            'nik' => $setupConfig['nik'],
-            'passphrase' => $passphrase,
-            'tampilan' => 'visible',
-            'page' => '1',
-            'image' => 'false',
-            'imageTTD' => '',
-            'linkQR'=>$linkQR,
-            'xAxis'=>10,
-            'yAxis'=>10,
-            'width'=>80,
-            'height'=>80
+            'nik'           => $setupConfig['nik'],
+            'passphrase'    => $passphrase,
+            'tampilan'      => 'visible',
+            'page'          => '1',
+            'image'         => 'false',
+            'imageTTD'      => '',
+            'linkQR'        => $linkQR,
+            'xAxis'         => 10,
+            'yAxis'         => 10,
+            'width'         => 80,
+            'height'        => 80
         ]);
 
         if ($response->status() != 200) {
@@ -98,72 +109,15 @@ class DocumentSignatureMutator
     }
 
     /**
-     * checkUserSignature
-     *
-     * @param  array $setupConfig
-     * @return string
-     */
-    protected function checkUserSignature($setupConfig)
-    {
-        $checkUrl = $setupConfig['url'] . '/api/user/status/' . $setupConfig['nik'];
-        $response = Http::withHeaders([
-            'Authorization' => 'Basic ' . $setupConfig['auth'],
-            'Cookie' => 'JSESSIONID=' . $setupConfig['cookies'],
-        ])->get($checkUrl);
-
-        return $response->body();
-    }
-
-    /**
-     * setupConfigSignature
-     *
-     * @return array
-     */
-    protected function setupConfigSignature()
-    {
-        $setup = [
-            'nik' => (config('sikd.enable_sign_with_nik')) ? auth()->user()->NIK : config('sikd.signature_nik'),
-            'url' => config('sikd.signature_url'),
-            'auth' => config('sikd.signature_auth'),
-            'cookies' => config('sikd.signature_cookies'),
-        ];
-
-        return $setup;
-    }
-
-    /**
      * fileExist
      *
      * @param  mixed $url
      * @return void
      */
-    public function fileExist($url){
-        $headers = get_headers($url);
-        return stripos($headers[0],"200 OK") ? true : false;
-    }
-
-    /**
-     * createPassphraseSessionLog
-     *
-     * @param  mixed $response
-     * @return void
-     */
-    protected function createPassphraseSessionLog($response)
+    public function fileExist($url)
     {
-        $passphraseSession = new PassphraseSession();
-        $passphraseSession->nama_lengkap    = auth()->user()->PeopleName;
-        $passphraseSession->jam_akses       = Carbon::now();
-        $passphraseSession->keterangan      = 'Insert Passphrase Berhasil, Data disimpan';
-        $passphraseSession->log_desc        = 'sukses';
-
-        if ($response->status() != 200) {
-            $passphraseSession->keterangan      = 'Insert Passphrase Gagal, Data failed';
-            $passphraseSession->log_desc        = 'gagal';
-        }
-
-        $passphraseSession->save();
-
-        return $passphraseSession;
+        $headers = get_headers($url);
+        return stripos($headers[0], "200 OK") ? true : false;
     }
 
     /**
@@ -183,7 +137,9 @@ class DocumentSignatureMutator
         $response = Http::withHeaders([
             'Secret' => config('sikd.webhook_secret'),
         ])->attach(
-            'file', $fileSignatured, $newFileName
+            'signature',
+            $fileSignatured,
+            $newFileName
         )->post(config('sikd.webhook_url'));
 
         if ($response->status() != 200) {
@@ -229,7 +185,7 @@ class DocumentSignatureMutator
             ]);
 
             //Send notification to next people
-            $this->doSendNotification($data->sender->PeopleName, $nextDocumentSent->id);
+            $this->doSendNotification($nextDocumentSent->id);
         }
 
         return $updateDocumentSent;
@@ -241,12 +197,12 @@ class DocumentSignatureMutator
      * @param  object $data
      * @return void
      */
-    protected function doSendNotification($name, $nextDocumentSentId)
+    protected function doSendNotification($nextDocumentSentId)
     {
         $messageAttribute = [
             'notification' => [
                 'title' => 'TTE Naskah',
-                'body' => 'Ada naskah masuk dari ' . $name . ' yang harus segera di tandatangani. Silakan cek disini.'
+                'body' => 'Terdapat naskah masuk untuk segera Anda tanda tangani secara digital. Klik disini untuk membaca dan menindaklanjuti pesan.'
             ],
             'data' => [
                 'documentSignatureSentId' => $nextDocumentSentId,

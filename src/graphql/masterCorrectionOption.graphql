@@ -1,0 +1,4 @@
+type MasterCorrectionOption {
+    id: ID! @rename(attribute: "KoreksiId")
+    name: String @rename(attribute: "KoreksiName")
+}

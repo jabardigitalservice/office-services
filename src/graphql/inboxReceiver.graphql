@@ -11,6 +11,7 @@ type InboxReceiver {
     receiveStatus: String @rename(attribute: "StatusReceive")
     toIdMessage: String @rename(attribute: "To_Id_Message")
     isForwarded: Int @rename(attribute: "Status")
+    isFollowUp: Int @rename(attribute: "TindakLanjut")
     message: String @rename(attribute: "Msg")
     inboxDetail: Inbox @belongsTo
     sender: People @belongsTo
@@ -28,6 +29,7 @@ input FilterInput {
     forwarded: String
     folder: String
     receiverTypes: String
+    followedUp: String
     scope: ScopeType
 }
 
