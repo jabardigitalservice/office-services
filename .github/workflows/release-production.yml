@@ -49,5 +49,5 @@ jobs:
 
     - name: Deploy to production
       run: |
-        export $DOCKER_IMAGE=${{ secrets.DOCKER_IMAGENAME }}:${{ steps.vars.outputs.sha_short }}
+        export DOCKER_IMAGE=${{ secrets.DOCKER_IMAGENAME }}:${{ steps.vars.outputs.sha_short }}
         gcloud compute ssh sikdweb-production --zone asia-southeast2-a --command "sudo yq e -i '.services.web.image=\"$DOCKER_IMAGE\"' /home/mobile-api/mobile-api-stack.yml"
