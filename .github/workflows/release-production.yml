@@ -60,5 +60,5 @@ jobs:
 
     - name: Run database migration
       run: |
-        gcloud compute ssh ${{ secrets.SERVER_SSH_HOST_PRODUCTION }} --zone asia-southeast2-a --command "sudo docker exec \$(sudo docker container ls  | grep ${{ secrets.DOCKER_STACK_NAME }} | awk '{print \$1}') php artisan migrate"
+        gcloud compute ssh ${{ secrets.SERVER_SSH_HOST_PRODUCTION }} --zone asia-southeast2-a --command "sudo docker exec \$(sudo docker container ls  | grep ${{ secrets.DOCKER_STACK_NAME }} | awk '{print \$1}') php artisan migrate --force"
         gcloud compute ssh ${{ secrets.SERVER_SSH_HOST_PRODUCTION }} --zone asia-southeast2-a --command "sudo docker exec \$(sudo docker container ls  | grep ${{ secrets.DOCKER_STACK_NAME }} | awk '{print \$1}') php artisan lighthouse:cache"
