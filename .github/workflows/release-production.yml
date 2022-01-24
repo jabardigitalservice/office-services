@@ -52,5 +52,5 @@ jobs:
         export DOCKER_IMAGE=${{ secrets.DOCKER_IMAGENAME }}:${{ steps.vars.outputs.sha_short }}
         gcloud compute ssh ${{ secrets.SERVER_SSH_HOST_PRODUCTION }} --zone asia-southeast2-a --command "sudo yq e -i '.services.mobile_api.image=\"$DOCKER_IMAGE\"' /home/mobile-api/mobile-api-stack.yml"
         gcloud compute ssh ${{ secrets.SERVER_SSH_HOST_PRODUCTION }} --zone asia-southeast2-a --command "sudo docker stack deploy --with-registry-auth -c /home/mobile-api/mobile-api-stack.yml ${{ secrets.DOCKER_STACK_NAME }}"
-        gcloud compute ssh ${{ secrets.SERVER_SSH_HOST_PRODUCTION }} --zone asia-southeast2-a --command "sudo docker exec \$(docker container ls  | grep ${{ secrets.DOCKER_STACK_NAME }} | awk '{print \$1}') php artisan migrate"
-        gcloud compute ssh ${{ secrets.SERVER_SSH_HOST_PRODUCTION }} --zone asia-southeast2-a --command "sudo docker exec \$(docker container ls  | grep ${{ secrets.DOCKER_STACK_NAME }} | awk '{print \$1}') php artisan lighthouse:cache"
+        gcloud compute ssh ${{ secrets.SERVER_SSH_HOST_PRODUCTION }} --zone asia-southeast2-a --command "sudo docker exec \$(sudo docker container ls  | grep ${{ secrets.DOCKER_STACK_NAME }} | awk '{print \$1}') php artisan migrate"
+        gcloud compute ssh ${{ secrets.SERVER_SSH_HOST_PRODUCTION }} --zone asia-southeast2-a --command "sudo docker exec \$(sudo docker container ls  | grep ${{ secrets.DOCKER_STACK_NAME }} | awk '{print \$1}') php artisan lighthouse:cache"
