@@ -86,6 +86,11 @@ class Draft extends Model
         return $file;
     }
 
+    public function getHalAttribute($value)
+    {
+        return strip_tags($value);
+    }
+
     public function getDocumentFileNameAttribute()
     {
         $label = match ($this->Ket) {

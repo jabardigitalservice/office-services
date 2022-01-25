@@ -68,7 +68,10 @@ trait InboxFilterTrait
                 ->from('inbox')
                 ->whereIn('NTipe', $arrayFolders);
             });
-            $query->where('ReceiverAs', 'to');
+            $receiverTypes = $filter["receiverTypes"] ?? null;
+            if (!$receiverTypes) {
+                $query->where('ReceiverAs', 'to');
+            }
         }
     }
 
