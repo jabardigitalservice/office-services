@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 class LogUserActivityController extends Controller
 {
     use LogUserActivityTrait;
+
     /**
      * Handle the incoming request.
      *
@@ -17,7 +18,7 @@ class LogUserActivityController extends Controller
      */
     public function __invoke(Request $request)
     {
-        $addLog = $this->saveLogActivity($request->people_id, $request->device);
+        $addLog = $this->saveLogActivity($request);
 
         if (!$addLog) {
             return response()->json([
