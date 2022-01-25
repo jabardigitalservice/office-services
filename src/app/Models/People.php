@@ -175,7 +175,8 @@ class People extends Authenticatable
      */
     private function filterNumberingByTU($query)
     {
-        $query->where('GroupId', PeopleGroupTypeEnum::TU());
+        $query->where('GroupId', PeopleGroupTypeEnum::TU())
+            ->where('RoleAtasan', auth()->user()->PrimaryRoleId);
         $this->filterNumbering($query);
     }
 
