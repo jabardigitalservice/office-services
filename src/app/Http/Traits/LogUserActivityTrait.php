@@ -22,7 +22,6 @@ trait LogUserActivityTrait
             $action = explode('{', $request['action']);
             $action = explode('(', (($methodTemp == '{') ? $action[0] : $action[1]));
             $action = trim($action[0]);
-            //join word into a single string
             $request['action'] = json_encode([
                 'method' => $method,
                 'action' => $action,
@@ -37,7 +36,6 @@ trait LogUserActivityTrait
             $log->device    = $request['device'];
             $log->query     = $request['action'];
             $log->save();
-
             return $log;
         }
 
