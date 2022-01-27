@@ -68,7 +68,10 @@ trait InboxFilterTrait
                 ->from('inbox')
                 ->whereIn('NTipe', $arrayFolders);
             });
-            $query->where('ReceiverAs', 'to');
+            $receiverTypes = $filter["receiverTypes"] ?? null;
+            if (!$receiverTypes) {
+                $query->where('ReceiverAs', 'to');
+            }
         }
     }
 
@@ -195,6 +198,23 @@ trait InboxFilterTrait
                 $listType,
                 InboxFilterTypeEnum::URGENCIES()
             );
+        }
+    }
+
+    /**
+     * Filtering by inbox followed up status
+     *
+     * @param Object $query
+     * @param Array  $filter
+     *
+     * @return Void
+     */
+    private function filterByFollowedUpStatus($query, $filter)
+    {
+        $followedUp = $filter["followedUp"] ?? null;
+        if ($followedUp || $followedUp != null) {
+            $arrayFollowedUp = explode(", ", $followedUp);
+            $query->whereIn('TindakLanjut', $arrayFollowedUp);
         }
     }
 

@@ -14,7 +14,8 @@ use Laravel\Sanctum\NewAccessToken;
 
 class People extends Authenticatable
 {
-    use HasApiTokens, HasFactory;
+    use HasApiTokens;
+    use HasFactory;
 
     protected $connection = 'sikdweb';
 
@@ -58,19 +59,14 @@ class People extends Authenticatable
         $user = auth()->user();
         $query->where('PeopleId', '<>', $user->PeopleId);
         $proposedTo = $filter["proposedTo"] ?? null;
-        switch ($proposedTo) {
-            case PeopleProposedTypeEnum::FORWARD():
-                $this->filterForward($query);
-                break;
-
-            case PeopleProposedTypeEnum::DISPOSITION():
-                $this->filterDisposition($query);
-                break;
-
-            case PeopleProposedTypeEnum::FORWARD_DOC_SIGNATURE():
-                $this->filterForwardSignature($query);
-                break;
-        }
+        match ($proposedTo) {
+            PeopleProposedTypeEnum::FORWARD()->value,
+            PeopleProposedTypeEnum::FORWARD_DRAFT()->value => $this->filterForward($query),
+            PeopleProposedTypeEnum::DISPOSITION()->value => $this->filterDisposition($query),
+            PeopleProposedTypeEnum::FORWARD_DOC_SIGNATURE()->value => $this->filterForwardSignature($query),
+            PeopleProposedTypeEnum::NUMBERING_UK()->value => $this->filterNumberingByUK($query),
+            PeopleProposedTypeEnum::NUMBERING_TU()->value => $this->filterNumberingByTU($query)
+        };
     }
 
     /**
@@ -154,6 +150,48 @@ class People extends Authenticatable
 
         $peopleIds = Arr::collapse([$peopleTu, $peopleUk]);
         $query->whereIn('PeopleId', $peopleIds);
+    }
+
+
+    /**
+     * Filter people for numbering by archiver (UK).
+     *
+     * @param  Object  $query
+     *
+     * @return Void
+     */
+    private function filterNumberingByUK($query)
+    {
+        $query->where('GroupId', PeopleGroupTypeEnum::UK());
+        $this->filterNumbering($query);
+    }
+
+    /**
+     * Filter people for numbering by administration (TU).
+     *
+     * @param  Object  $query
+     *
+     * @return Void
+     */
+    private function filterNumberingByTU($query)
+    {
+        $query->where('GroupId', PeopleGroupTypeEnum::TU())
+            ->where('RoleAtasan', auth()->user()->PrimaryRoleId);
+        $this->filterNumbering($query);
+    }
+
+    /**
+     * Filter people for numbering proposed.
+     *
+     * @param  Object  $query
+     *
+     * @return Void
+     */
+    private function filterNumbering($query)
+    {
+        $query->whereIn('PrimaryRoleId', fn($query) => $query->select('RoleId')
+            ->from('role')
+            ->where('GRoleId', auth()->user()->role->GRoleId));
     }
 
     /**

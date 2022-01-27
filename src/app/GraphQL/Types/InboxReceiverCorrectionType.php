@@ -63,23 +63,27 @@ class InboxReceiverCorrectionType
             return null;
         }
 
-        $getUKReceiver = InboxReceiverCorrection::where('NId', $rootValue->NId)
-            ->where('ReceiverAs', InboxReceiverCorrectionTypeEnum::NUMBERING()->value) // data from existing
-            ->first();
+        try {
+            $getUKReceiver = InboxReceiverCorrection::where('NId', $rootValue->NId)
+                ->where('ReceiverAs', InboxReceiverCorrectionTypeEnum::NUMBERING()->value) // data from existing
+                ->first();
 
-        $getLatestReceiver = InboxReceiverCorrection::where('NId', $rootValue->NId)
-            ->where('From_Id', $getUKReceiver->To_Id)
-            ->first();
+            $getLatestReceiver = InboxReceiverCorrection::where('NId', $rootValue->NId)
+                ->where('From_Id', $getUKReceiver->To_Id)
+                ->first();
 
-        if ($getLatestReceiver->To_Id == $getUKReceiver->From_Id) {
-            $getByToId = InboxReceiverCorrection::where('NId', $rootValue->NId)
-                ->where('To_Id', $getLatestReceiver->To_Id)
-                ->where('GIR_Id', '<>', $getLatestReceiver->GIR_Id)
-                ->get();
+            if ($getLatestReceiver->To_Id == $getUKReceiver->From_Id) {
+                $getByToId = InboxReceiverCorrection::where('NId', $rootValue->NId)
+                    ->where('To_Id', $getLatestReceiver->To_Id)
+                    ->where('GIR_Id', '<>', $getLatestReceiver->GIR_Id)
+                    ->get();
 
-            return $getByToId->last()->sender;
-        } else {
-            return $getUKReceiver->sender;
+                return $getByToId->last()->sender;
+            } else {
+                return $getUKReceiver->sender;
+            }
+        } catch (\Throwable $th) {
+            return null;
         }
     }
 }
