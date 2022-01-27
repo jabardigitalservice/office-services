@@ -214,7 +214,26 @@ trait InboxFilterTrait
         $followedUp = $filter["followedUp"] ?? null;
         if ($followedUp || $followedUp != null) {
             $arrayFollowedUp = explode(", ", $followedUp);
-            $query->whereIn('TindakLanjut', $arrayFollowedUp);
+            $this->determineFollowedUpStatus($query, $arrayFollowedUp);
+        }
+    }
+
+    /**
+     * Followed up status filter determination
+     *
+     * @param Object $query
+     * @param Array  $filterValue
+     *
+     * @return Void
+     */
+    private function determineFollowedUpStatus($query, $filterValue)
+    {
+        if (count($filterValue) == 1) {
+            if (in_array('1', $filterValue)) {
+                $query->whereIn('TindakLanjut', $filterValue);
+            } elseif (in_array('0', $filterValue)) {
+                $query->whereNull('TindakLanjut');
+            }
         }
     }
 
