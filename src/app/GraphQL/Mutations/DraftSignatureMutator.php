@@ -125,7 +125,7 @@ class DraftSignatureMutator
         $QrCode = fopen(Storage::path($draft->NId_Temp . '.png'), 'r');
         $response = Http::withHeaders([
             'Secret' => config('sikd.webhook_secret'),
-        ])->attach('draft', $fileSignatured)->post(config('sikd.webhook_url'));
+        ])->attach('draft', $fileSignatured)->attach('qrcode', $QrCode)->post(config('sikd.webhook_url'));
 
         return $response;
     }
