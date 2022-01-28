@@ -162,8 +162,9 @@ class People extends Authenticatable
      */
     private function filterNumberingByUK($query)
     {
-        $query->where('GroupId', PeopleGroupTypeEnum::UK());
         $this->filterNumbering($query);
+        $query->where('GroupId', PeopleGroupTypeEnum::UK())
+            ->where('PeoplePosition', 'like', "UNIT KEARSIPAN%");
     }
 
     /**
@@ -175,9 +176,29 @@ class People extends Authenticatable
      */
     private function filterNumberingByTU($query)
     {
-        $query->where('GroupId', PeopleGroupTypeEnum::TU())
-            ->where('RoleAtasan', auth()->user()->PrimaryRoleId);
         $this->filterNumbering($query);
+        $query->where('GroupId', PeopleGroupTypeEnum::TU());
+        if (!$this->isALeader()) {
+            $query->where('RoleAtasan', auth()->user()->PrimaryRoleId);
+        }
+    }
+
+    /**
+     * Is a leader position checking.
+     *
+     * @return Boolean
+     */
+    private function isALeader()
+    {
+        $positions = config('constants.peoplePositionGroups');
+        $leadersPositions = array_merge($positions[1], $positions[3]);
+        $userPosition = auth()->user()->PeoplePosition;
+        foreach ($leadersPositions as $position) {
+            if (strpos($userPosition, $position) !== false) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**

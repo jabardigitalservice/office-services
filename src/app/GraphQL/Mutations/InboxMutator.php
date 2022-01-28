@@ -106,16 +106,9 @@ class InboxMutator
     {
         $inboxId = $inboxData['inboxId'];
         $fromId = $inboxData['from']->PeopleId;
-
-        $inbox = InboxReceiver::where('NId', $inboxId)
+        InboxReceiver::where('NId', $inboxId)
             ->where('To_Id', strval($fromId))
-            ->firstOrFail();
-
-        if ($inbox->Status != 1) {
-            InboxReceiver::where('NId', $inboxId)
-                ->where('To_Id', strval($fromId))
-                ->update(['Status' => 1]);
-        }
+            ->update(['Status' => 1]);
     }
 
     /**
