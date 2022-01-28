@@ -156,32 +156,6 @@
                 display: table;
                 clear: both;
             }
-
-            .divTable{
-                display: table;
-                width: 100%;
-            }
-            .divTableRow {
-                display: table-row;
-            }
-            .divTableHeading {
-                background-color: #EEE;
-                display: table-header-group;
-            }
-            .divTableCell, .divTableHead {
-                display: table-cell;
-            }
-            .divTableHeading {
-                display: table-header-group;
-                font-weight: bold;
-            }
-            .divTableFoot {
-                display: table-footer-group;
-                font-weight: bold;
-            }
-            .divTableBody {
-                display: table-row-group;
-            }
         </style>
     </head>
     <body>
