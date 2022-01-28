@@ -186,8 +186,6 @@ class People extends Authenticatable
     /**
      * Is a leader position checking.
      *
-     * @param  Object  $query
-     *
      * @return Boolean
      */
     private function isALeader()
