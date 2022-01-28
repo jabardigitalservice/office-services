@@ -88,7 +88,7 @@ class Draft extends Model
 
     public function getAboutAttribute()
     {
-        return strip_tags($this->Hal);
+        return str_replace('&nbsp;', ' ', strip_tags($this->Hal));
     }
 
     public function getDocumentFileNameAttribute()

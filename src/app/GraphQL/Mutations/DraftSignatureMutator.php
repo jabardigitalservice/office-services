@@ -64,7 +64,7 @@ class DraftSignatureMutator
     protected function doSignature($setupConfig, $draft, $passphrase)
     {
         $url = $setupConfig['url'] . '/api/sign/pdf';
-        $verifyCode = substr(sha1(uniqid(mt_rand(), TRUE)), 0, 10);
+        $verifyCode = substr(sha1(uniqid(mt_rand(), true)), 0, 10);
         $response = Http::withHeaders([
             'Authorization' => 'Basic ' . $setupConfig['auth'],
             'Cookie' => 'JSESSIONID=' . $setupConfig['cookies'],
