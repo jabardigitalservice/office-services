@@ -6,14 +6,14 @@
             font-size: 16px;
         }
     </style>
-    <div style="page-break-after: never;">
+    <div style="page-break-after: auto; page-break-inside: auto !important;">
         <section id="header-section">
             <img style="width: 100%" src="{{ config('sikd.base_path_file') . 'kop/' . $header->Header }}">
         </section>
         <div style="margin-top: 84px"> <!-- Custom condition header for gubernur level -->
             <p style="text-align: center; font-size: 16px;">
                 SURAT PERINTAH<br>
-                @if (!$draft->nosurat != null)
+                @if ($draft->nosurat != null)
                     {{ $draft->nosurat }}
                 @else
                     NOMOR : .........../{{ $draft->classification->ClCode; }}/{{ $draft->RoleCode; }}
@@ -21,70 +21,71 @@
             </p>
         </div>
         <div style="margin-top: 18px;">
-            <table class="table-collapse has-margin-bottom" width="100%">
-                <tr>
-                    <td valign="top" style="width: 100px">DASAR</td>
-                    <td valign="top" style="width: 8px">:</td>
-                    <td valign="top" class="align-justify">
-                        {!! $draft->Hal !!}
-                    </td>
-                </tr>
-                <tr>
-                    <td valign="top" colspan="3" style="width: 100px; text-align:center;">MEMERINTAHKAN</td>
-                </tr>
-                <tr>
-                    <td valign="top" style="width: 100px">Kepada</td>
-                    <td valign="top" style="width: 8px">:</td>
-                    <td valign="top" class="align-justify">
-                        @php $totalReceivers = count($customData['receivers']) @endphp
-                        @forelse ($customData['receivers'] as $index => $value)
-                            @php $index++; @endphp
-                            <table class="table-collapse no-margin-bottom" width="100%">
-                                <tr>
-                                    <td rowspan="4" valign="top" style="width: 22px">{{ $index }}.</td>
-                                    <td valign="top" style="width: 150px">Nama</td>
-                                    <td valign="top" style="width: 8px">:</td>
-                                    <td valign="top">{{ $value->PeopleName }}</td>
-                                </tr>
-                                <tr>
-                                    <td valign="top" style="width: 150px">Pangkat/Golongan</td>
-                                    <td valign="top" style="width: 8px">:</td>
-                                    <td valign="top">{{ $value->Pangkat . ' / ' . $value->Golongan }}</td>
-                                </tr>
-                                <tr>
-                                    <td valign="top" style="width: 150px">NIP</td>
-                                    <td valign="top" style="width: 8px">:</td>
-                                    <td valign="top">{{ $value->NIP }}</td>
-                                </tr>
-                                <tr>
-                                    <td valign="top" style="width: 150px">Jabatan</td>
-                                    <td valign="top" style="width: 8px">:</td>
-                                    <td valign="top">
-                                        @php
-                                            $str = str_replace('Dan', 'dan', $value->PeoplePosition);
-                                            $str = str_replace('Uptd', 'UPTD', $str);
-                                            $str = str_replace('Dprd', 'DPRD', $str);
-                                        @endphp
-                                        {{ Str::title($str) }}
-                                    </td>
-                                </tr>
-                            </table>
-                        @empty
-                            -
-                        @endforelse
-                    </td>
-                </tr>
-                <tr>
-                    <td valign="top" style="width: 100px">Untuk</td>
-                    <td valign="top" style="width: 8px">:</td>
-                    <td valign="top" class="align-justify is-table-content-on-table">
-                        {!! $draft->Konten !!}
-                    </td>
-                </tr>
-            </table>
+            <div class="row has-margin-bottom">
+                <div class="column" style="width: 100px">DASAR</div>
+                <div class="column" style="width: 13px">:</div>
+                <div class="column align-justify" style="width: 490px;">{!! $draft->Hal !!}</div>
+            </div>
+            <div class="row has-margin-bottom">
+                <div class="column" style="width: 100%; text-align: center;">MEMERINTAHKAH</div>
+            </div>
+            <div class="row has-margin-bottom">
+                <div class="column" style="width: 100px">Kepada</div>
+                <div class="column" style="width: 13px">:</div>
+                <div class="column align-justify" style="width: 490px;">
+                </div>
+                <div class="align-justify" style="position: relative; left: 120px; width: 490px;">
+                    @php $totalReceivers = count($customData['receivers']) @endphp
+                    @forelse ($customData['receivers'] as $index => $value)
+                        @php $index++; @endphp
+                        <table class="table-collapse no-margin-bottom" width="100%">
+                            <tr>
+                                <td valign="top" style="width: 22px">{{ $index }}.</td>
+                                <td valign="top" style="width: 150px">Nama</td>
+                                <td valign="top" style="width: 13px">:</td>
+                                <td class="align-justify" valign="top">{{ $value->PeopleName }}</td>
+                            </tr>
+                            <tr>
+                                <td style="width: 22px">&nbsp;</td>
+                                <td valign="top" style="width: 150px">Pangkat/Golongan</td>
+                                <td valign="top" style="width: 13px">:</td>
+                                <td class="align-justify" valign="top">{{ $value->Pangkat . ' / ' . $value->Golongan }}</td>
+                            </tr>
+                            <tr>
+                                <td style="width: 22px">&nbsp;</td>
+                                <td valign="top" style="width: 150px">NIP</td>
+                                <td valign="top" style="width: 13px">:</td>
+                                <td class="align-justify" valign="top">{{ $value->NIP }}</td>
+                            </tr>
+                            <tr>
+                                <td style="width: 22px">&nbsp;</td>
+                                <td valign="top" style="width: 150px">Jabatan</td>
+                                <td valign="top" style="width: 13px">:</td>
+                                <td class="align-justify" valign="top">
+                                    @php
+                                        $str = str_replace('Dan', 'dan', $value->PeoplePosition);
+                                        $str = str_replace('Uptd', 'UPTD', $str);
+                                        $str = str_replace('Dprd', 'DPRD', $str);
+                                    @endphp
+                                    {{ Str::title($str) }}
+                                </td>
+                            </tr>
+                        </table>
+                    @empty
+                        -
+                    @endforelse
+                </div>
+            </div>
+            <div class="row has-margin-bottom">
+                <div class="column" style="width: 100px">Untuk</div>
+                <div class="column" style="width: 13px">:</div>
+                <div class="column align-justify is-table-content-on-table" style="width: 490px;">
+                    {!! $draft->Konten !!}
+                </div>
+            </div>
         </div>
     </div>
-    <div style="margin: 0px 5px;">
+    <div style="margin: 70px 5px 0px 5px;">
         @include('pdf.layouts.signature')
     </div>
 @endsection

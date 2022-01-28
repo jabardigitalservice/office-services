@@ -1,4 +1,5 @@
 <html>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <head>
         <style>
             /** Define the margins of your page **/
@@ -71,7 +72,7 @@
                 word-break: break-all;
             }
 
-            .has-margin-bottom td {
+            .has-margin-bottom {
                 padding-bottom: 10px;
             }
 
@@ -144,6 +145,16 @@
                 word-wrap: break-word;
                 word-break: break-all;
                 text-align: justify;
+            }
+
+            .column {
+                float: left;
+            }
+
+            .row:after {
+                content: "";
+                display: table;
+                clear: both;
             }
         </style>
     </head>

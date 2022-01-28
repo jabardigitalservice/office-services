@@ -38,7 +38,7 @@
         @if ($draft->Ket == 'outboxsprint')
             <p style="text-align: center; font-size:16px;">
                 Ditetapkan di {{ ($generateQrCode) ? $draft->lokasi : ".............."  }} <br>
-                Pada Tanggal {{ ($generateQrCode) ? parseSetLocaleDate($draft->TglNaskah, 'id', 'd F Y') : ".............."  }}
+                Pada tanggal {{ ($generateQrCode) ? parseSetLocaleDate($draft->TglNaskah, 'id', 'd F Y') : ".............."  }}
             </p>
         @endif
         <p style="text-align: center; font-size: {{ ($draft->Ket == 'outboxsprint') ? '16px; margin-bottom: 0;' : '12px;' }}">

@@ -86,9 +86,9 @@ class Draft extends Model
         return $file;
     }
 
-    public function getHalAttribute($value)
+    public function getAboutAttribute()
     {
-        return strip_tags($value);
+        return strip_tags($this->Hal);
     }
 
     public function getDocumentFileNameAttribute()
