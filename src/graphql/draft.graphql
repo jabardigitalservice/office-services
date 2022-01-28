@@ -5,7 +5,7 @@ type Draft {
     number: Int @rename(attribute: "Number")
     letterNumber: String @rename(attribute: "nosurat")
     draftStatus: String @rename(attribute: "Konsep")
-    about: String @rename(attribute: "Hal")
+    about: String
     moreAbout: String @rename(attribute: "Hal_pengantar")
     location: String @rename(attribute: "lokasi")
     address: String @rename(attribute: "Alamat")
