@@ -64,7 +64,7 @@ class DraftSignatureMutator
     protected function doSignature($setupConfig, $draft, $passphrase)
     {
         $url = $setupConfig['url'] . '/api/sign/pdf';
-        $verifyCode = substr(sha1(uniqid(mt_rand(), TRUE)), 0, 10);
+        $verifyCode = substr(sha1(uniqid(mt_rand(), true)), 0, 10);
         $response = Http::withHeaders([
             'Authorization' => 'Basic ' . $setupConfig['auth'],
             'Cookie' => 'JSESSIONID=' . $setupConfig['cookies'],
@@ -125,7 +125,7 @@ class DraftSignatureMutator
         $QrCode = fopen(Storage::path($draft->NId_Temp . '.png'), 'r');
         $response = Http::withHeaders([
             'Secret' => config('sikd.webhook_secret'),
-        ])->attach('draft', $fileSignatured)->attach('qrcode', $QrCode)->post(config('sikd.webhook_url'));
+        ])->attach('draft', $fileSignatured)->post(config('sikd.webhook_url'));
 
         return $response;
     }
