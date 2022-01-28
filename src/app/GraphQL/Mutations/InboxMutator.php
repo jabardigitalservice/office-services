@@ -255,7 +255,6 @@ class InboxMutator
     private function generateInboxReceiverData($inboxData, $receiverId, $action)
     {
         $receiver = People::findOrFail($receiverId);
-        dd(123);
         $nkey = TableSetting::first()->tb_key;
         $draft = $this->findDraft($inboxData, $action);
         $data = [
