@@ -23,7 +23,7 @@ trait LogUserActivityTrait
             $action = explode('(', (($methodTemp == '{') ? $action[0] : $action[1]));
             $action = trim($action[0]);
             $action = str_replace('__typename\n  ', '', $action); //handle for mobile
-            $request['query']   = $method;
+            $request['type']    = $method;
             $request['action']  = $action;
             if ($action == '__schema') { //handle for playground graphql
                 $doLogging = false;
@@ -33,7 +33,7 @@ trait LogUserActivityTrait
             $log            = new LogUserActivity();
             $log->people_id = $request['people_id'];
             $log->device    = $request['device'];
-            $log->query     = $request['query'] ?? null;
+            $log->type     = $request['type'] ?? null;
             $log->action    = $request['action'];
             $log->save();
             return $log;

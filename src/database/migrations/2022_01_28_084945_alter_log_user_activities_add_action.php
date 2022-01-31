@@ -15,6 +15,7 @@ class AlterLogUserActivitiesAddAction extends Migration
     {
         Schema::table('log_user_activities', function (Blueprint $table) {
             $table->string('query', 10)->change();
+            $table->renameColumn('query', 'type');
             $table->string('action', 255)->after('query');
         });
     }
@@ -28,7 +29,8 @@ class AlterLogUserActivitiesAddAction extends Migration
     {
         Schema::table('log_user_activities', function (Blueprint $table) {
             $table->dropColumn('action');
-            $table->text('query')->change();
+            $table->text('type')->change();
+            $table->renameColumn('type', 'query');
         });
     }
 }
