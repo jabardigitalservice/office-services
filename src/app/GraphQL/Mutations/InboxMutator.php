@@ -3,6 +3,7 @@
 namespace App\GraphQL\Mutations;
 
 use App\Enums\FcmNotificationActionTypeEnum;
+use App\Enums\PeopleGroupTypeEnum;
 use App\Enums\PeopleProposedTypeEnum;
 use App\Http\Traits\SendNotificationTrait;
 use App\Models\Draft;
@@ -32,6 +33,10 @@ class InboxMutator
         // Forward is the default action
         $action = Arr::get($args, 'input.action') ?? PeopleProposedTypeEnum::FORWARD();
         $stringReceiversIds = Arr::get($args, 'input.receiversIds');
+        if (!$stringReceiversIds) {
+            $stringReceiversIds = strval($this->getDefaultReceiver()->PeopleId);
+        }
+
         $time = Carbon::now();
         $dispositionType = str_replace(", ", "|", Arr::get($args, 'input.dispositionType'));
 
@@ -106,16 +111,9 @@ class InboxMutator
     {
         $inboxId = $inboxData['inboxId'];
         $fromId = $inboxData['from']->PeopleId;
-
-        $inbox = InboxReceiver::where('NId', $inboxId)
+        InboxReceiver::where('NId', $inboxId)
             ->where('To_Id', strval($fromId))
-            ->firstOrFail();
-
-        if ($inbox->Status != 1) {
-            InboxReceiver::where('NId', $inboxId)
-                ->where('To_Id', strval($fromId))
-                ->update(['Status' => 1]);
-        }
+            ->update(['Status' => 1]);
     }
 
     /**
@@ -285,6 +283,22 @@ class InboxMutator
         }
 
         return $data;
+    }
+
+    /**
+     * Get default receiver
+     * The default receiver is an UK
+     *
+     * @return People
+     */
+    private function getDefaultReceiver()
+    {
+        return People::where('GroupId', PeopleGroupTypeEnum::UK())
+            ->where('PeoplePosition', 'like', "UNIT KEARSIPAN%")
+            ->whereIn('PrimaryRoleId', fn($query) => $query->select('RoleId')
+                ->from('role')
+                ->where('GRoleId', auth()->user()->role->GRoleId))
+            ->first();
     }
 
     /**

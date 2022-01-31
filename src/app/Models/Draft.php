@@ -86,6 +86,11 @@ class Draft extends Model
         return $file;
     }
 
+    public function getAboutAttribute()
+    {
+        return str_replace('&nbsp;', ' ', strip_tags($this->Hal));
+    }
+
     public function getDocumentFileNameAttribute()
     {
         $label = match ($this->Ket) {

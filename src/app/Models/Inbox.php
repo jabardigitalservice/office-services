@@ -17,6 +17,8 @@ class Inbox extends Model
 
     protected $primaryKey = 'NId';
 
+    public $timestamps = false;
+
     public function type()
     {
         return $this->belongsTo(DocumentType::class, 'JenisId', 'JenisId');
