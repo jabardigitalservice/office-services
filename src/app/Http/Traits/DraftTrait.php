@@ -45,7 +45,7 @@ trait DraftTrait
         $result = Builder::create()
             ->writer(new PngWriter())
             ->writerOptions([])
-            ->data($id)
+            ->data(config('sikd.url') . 'administrator/anri_mail_tl/log_naskah_masuk_pdf/' . $id)
             ->encoding(new Encoding('UTF-8'))
             ->errorCorrectionLevel(new ErrorCorrectionLevelHigh())
             ->size(500)
