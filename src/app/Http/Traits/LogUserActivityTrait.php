@@ -21,8 +21,7 @@ trait LogUserActivityTrait
             //identify field in schema
             $action = explode('{', $request['action']);
             $action = explode('(', (($methodTemp == '{') ? $action[0] : $action[1]));
-            $action = trim($action[0]);
-            $action = str_replace('__typename\n  ', '', $action); //handle for mobile
+            $action = trim(str_replace('\r\n', '', str_replace('__typename', '', trim($action[0]))));
             $request['type']    = $method;
             $request['action']  = $action;
             if ($action == '__schema') { //handle for playground graphql
@@ -33,7 +32,7 @@ trait LogUserActivityTrait
             $log            = new LogUserActivity();
             $log->people_id = $request['people_id'];
             $log->device    = $request['device'];
-            $log->type     = $request['type'] ?? null;
+            $log->type      = $request['type'] ?? null;
             $log->action    = $request['action'];
             $log->save();
             return $log;
