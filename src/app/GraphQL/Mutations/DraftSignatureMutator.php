@@ -3,6 +3,7 @@
 namespace App\GraphQL\Mutations;
 
 use App\Enums\DraftConceptStatusTypeEnum;
+use App\Enums\InboxReceiverCorrectionTypeEnum;
 use App\Enums\PeopleGroupTypeEnum;
 use App\Exceptions\CustomException;
 use App\Http\Traits\DraftTrait;
@@ -33,9 +34,10 @@ class DraftSignatureMutator
     {
         $draftId    = Arr::get($args, 'input.draftId');
         $passphrase = Arr::get($args, 'input.passphrase');
-        $draft      = Draft::where('NId_temp', $draftId)->first();
+        $draftHistory = InboxReceiverCorrection::where('NId', $draftId)
+                        ->where('ReceiverAs', InboxReceiverCorrectionTypeEnum::SIGNED()->value)->first();
 
-        if ($draft->Konsep == DraftConceptStatusTypeEnum::APPROVED()->value) {
+        if ($draftHistory) {
             throw new CustomException('Document already signed', 'Status of this document is already signed');
         }
 
@@ -44,7 +46,7 @@ class DraftSignatureMutator
         if ($checkUser->status_code != 1111) {
             throw new CustomException('Invalid user', 'Invalid credential user, please check your passphrase again');
         }
-
+        $draft     = Draft::where('NId_temp', $draftId)->first();
         $signature = $this->doSignature($setupConfig, $draft, $passphrase);
 
         $draft->Konsep = DraftConceptStatusTypeEnum::SENT()->value;
@@ -206,53 +208,21 @@ class DraftSignatureMutator
      */
     protected function doSaveInboxReceiverCorrection($draft)
     {
-        list($toId, $toRoleId, $toRoleDesc) = $this->getReceiverPeople($draft);
-
         $InboxReceiverCorrection = new InboxReceiverCorrection();
         $InboxReceiverCorrection->NId           = $draft->NId_Temp;
         $InboxReceiverCorrection->NKey          = TableSetting::first()->tb_key;
         $InboxReceiverCorrection->GIR_Id        = auth()->user()->PeopleId . Carbon::now();
         $InboxReceiverCorrection->From_Id       = auth()->user()->PeopleId;
         $InboxReceiverCorrection->RoleId_From   = auth()->user()->PrimaryRoleId;
-        $InboxReceiverCorrection->To_Id         = $toId;
-        $InboxReceiverCorrection->RoleId_To     = $toRoleId;
+        $InboxReceiverCorrection->To_Id         = ($draft->TtdText == 'none') ? auth()->user()->PeopleId : null;
+        $InboxReceiverCorrection->RoleId_To     = ($draft->TtdText == 'none') ? auth()->user()->PrimaryRoleId : null;
         $InboxReceiverCorrection->ReceiverAs    = 'approvenaskah';
         $InboxReceiverCorrection->StatusReceive = 'unread';
         $InboxReceiverCorrection->ReceiveDate   = Carbon::now();
-        $InboxReceiverCorrection->To_Id_Desc    = $toRoleDesc;
+        $InboxReceiverCorrection->To_Id_Desc    = ($draft->TtdText == 'none') ? auth()->user()->RoleDesc : null;
         $InboxReceiverCorrection->save();
 
         return $InboxReceiverCorrection;
-    }
-
-    /**
-     * getReceiverPeople
-     *
-     * @param  collection $draft
-     * @return array
-     */
-    protected function getReceiverPeople($draft)
-    {
-        switch ($draft->TtdText) {
-            case 'none':
-                $toId = auth()->user()->PeopleId;
-                $toRoleId = auth()->user()->PrimaryRoleId;
-                $toRoleDesc = auth()->user()->role->RoleDesc;
-                break;
-            case 'AL':
-                $parentId = People::where('PrimaryRoleId', auth()->user()->RoleAtasan)->first();
-                $toId = $parentId->PeopleId;
-                $toRoleId = $parentId->PrimaryRoleId;
-                $toRoleDesc = $parentId->role->RoleDesc;
-                break;
-            default:
-                $toId = $draft->Approve_People;
-                $toRoleId = $draft->reviewer->PrimaryRoleId;
-                $toRoleDesc = $draft->reviewer->role->RoleDesc;
-                break;
-        }
-
-        return [$toId, $toRoleId, $toRoleDesc];
     }
 
     /**
