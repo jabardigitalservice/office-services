@@ -94,19 +94,19 @@ class Draft extends Model
     public function getDocumentFileNameAttribute()
     {
         $label = match ($this->Ket) {
-            'outboxnotadinas'       => 'nota_dinas-' . $this->NId_Temp . '.pdf',
-            'outboxsprint'          => 'sprint-' . $this->NId_Temp . '.pdf',
-            'outboxsprintgub'       => 'sprintgub-' . $this->NId_Temp . '.pdf',
-            'outboxundangan'        => 'undangan-' . $this->NId_Temp . '.pdf',
-            'outboxedaran'          => 'surat_edaran-' . $this->NId_Temp . '.pdf',
-            'outboxinstruksigub'    => 'surat_instruksi-' . $this->NId_Temp . '.pdf',
-            'outboxsupertugas'      => 'surat_supertugas-' . $this->NId_Temp . '.pdf',
-            'outboxkeluar'          => 'surat_dinas-' . $this->NId_Temp . '.pdf',
-            'outboxsket'            => 'surat_keterangan-' . $this->NId_Temp . '.pdf',
-            'outboxpengumuman'      => 'pengumuman-' . $this->NId_Temp . '.pdf',
-            'outboxsuratizin'       => 'surat_izin-' . $this->NId_Temp . '.pdf',
-            'outboxrekomendasi'     => 'rekomendasi-' . $this->NId_Temp . '.pdf',
-            default                 => 'nadin_lain-' . $this->NId_Temp . '.pdf',
+            'outboxnotadinas'       => 'Nota Dinas',
+            'outboxsprint'          => 'Surat Perintah Perangkat Daerah',
+            'outboxsprintgub'       => 'Surat Perintah Gubernur',
+            'outboxundangan'        => 'Surat Undangan',
+            'outboxedaran'          => 'Surat Edaran',
+            'outboxinstruksigub'    => 'Surat Instruksi Gubernur',
+            'outboxsupertugas'      => 'Surat Pernyataan Melaksanakan Tugas',
+            'outboxkeluar'          => 'Surat Dinas',
+            'outboxsket'            => 'Surat Keterangan',
+            'outboxpengumuman'      => 'Pengumuman',
+            'outboxsuratizin'       => 'Surat Izin',
+            'outboxrekomendasi'     => 'Surat Rekomendasi',
+            default                 => 'Nadin Lain',
         };
 
         return $label;
