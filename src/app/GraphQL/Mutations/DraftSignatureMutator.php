@@ -101,7 +101,7 @@ class DraftSignatureMutator
     protected function saveNewFile($pdf, $draft, $verifyCode)
     {
         //save signed data
-        Storage::disk('local')->put($draft->document_file_name . '_' . $draft->about . '_' . parseDateTimeFormat(Carbon::now(), 'dmY')  . '_signed.pdf', $pdf->body());
+        Storage::disk('local')->put($draft->document_file_name, $pdf->body());
         //transfer to existing service
         $response = $this->doTransferFile($draft);
         if ($response->status() != 200) {
