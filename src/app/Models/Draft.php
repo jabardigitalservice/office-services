@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\URL;
@@ -93,7 +94,7 @@ class Draft extends Model
 
     public function getDocumentFileNameAttribute()
     {
-        $label = match ($this->Ket) {
+        $type = match ($this->Ket) {
             'outboxnotadinas'       => 'Nota Dinas',
             'outboxsprint'          => 'Surat Perintah Perangkat Daerah',
             'outboxsprintgub'       => 'Surat Perintah Gubernur',
@@ -109,7 +110,9 @@ class Draft extends Model
             default                 => 'Nadin Lain',
         };
 
-        return $label;
+        $pdfName = $type  . '_' . $this->about . '_' . parseDateTimeFormat(Carbon::now(), 'dmY')  . '_signed.pdf';
+
+        return $pdfName;
     }
 
     public function getDocumentTemplateNameAttribute()
