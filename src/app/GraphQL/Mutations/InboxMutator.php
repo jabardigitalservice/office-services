@@ -80,7 +80,7 @@ class InboxMutator
         InboxReceiver::where('NId', $inboxId)
             ->where('To_Id', strval($peopleId))
             ->firstOrFail()
-            ->update(['Status' => 1, 'TindakLanjut' => 1]);
+            ->update(['TindakLanjut' => 1]);
 
         return 'status updated';
     }
