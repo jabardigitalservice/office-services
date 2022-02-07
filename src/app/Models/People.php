@@ -162,9 +162,28 @@ class People extends Authenticatable
      */
     private function filterNumberingByUK($query)
     {
-        $this->filterNumbering($query);
+        $userRole = auth()->user()->role->RoleName;
+        if ($userRole == 'GUBERNUR JAWA BARAT' || $userRole == 'WAKIL GUBERNUR JAWA BARAT') {
+            $this->governorNumberingByUK($query);
+        } else {
+            $this->filterNumbering($query);
+        }
         $query->where('GroupId', PeopleGroupTypeEnum::UK())
             ->where('PeoplePosition', 'like', "UNIT KEARSIPAN%");
+    }
+
+    /**
+     * Numbering by archiver (UK) for the governor.
+     *
+     * @param  Object  $query
+     *
+     * @return Void
+     */
+    private function governorNumberingByUK($query)
+    {
+        $query->whereIn('PrimaryRoleId', fn($query) => $query->select('RoleId')
+            ->from('role')
+            ->where('Code_Tu', 'uk.setda'));
     }
 
     /**
