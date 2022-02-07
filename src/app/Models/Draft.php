@@ -95,22 +95,22 @@ class Draft extends Model
     public function getDocumentFileNameAttribute()
     {
         $type = match ($this->Ket) {
-            'outboxnotadinas'       => 'Nota Dinas',
-            'outboxsprint'          => 'Surat Perintah Perangkat Daerah',
-            'outboxsprintgub'       => 'Surat Perintah Gubernur',
-            'outboxundangan'        => 'Surat Undangan',
-            'outboxedaran'          => 'Surat Edaran',
-            'outboxinstruksigub'    => 'Surat Instruksi Gubernur',
-            'outboxsupertugas'      => 'Surat Pernyataan Melaksanakan Tugas',
-            'outboxkeluar'          => 'Surat Dinas',
-            'outboxsket'            => 'Surat Keterangan',
+            'outboxnotadinas'       => 'Nota_Dinas',
+            'outboxsprint'          => 'Surat_Perintah_Perangkat_Daerah',
+            'outboxsprintgub'       => 'Surat_Perintah_Gubernur',
+            'outboxundangan'        => 'Surat_Undangan',
+            'outboxedaran'          => 'Surat_Edaran',
+            'outboxinstruksigub'    => 'Surat_Instruksi_Gubernur',
+            'outboxsupertugas'      => 'Surat_Pernyataan_Melaksanakan_Tugas',
+            'outboxkeluar'          => 'Surat_Dinas',
+            'outboxsket'            => 'Surat_Keterangan',
             'outboxpengumuman'      => 'Pengumuman',
-            'outboxsuratizin'       => 'Surat Izin',
-            'outboxrekomendasi'     => 'Surat Rekomendasi',
-            default                 => 'Nadin Lain',
+            'outboxsuratizin'       => 'Surat_Izin',
+            'outboxrekomendasi'     => 'Surat_Rekomendasi',
+            default                 => 'Nadin_Lain',
         };
 
-        $pdfName = $type  . '_' . $this->about . '_' . parseDateTimeFormat(Carbon::now(), 'dmY')  . '_signed.pdf';
+        $pdfName = $type  . '_' . str_replace(' ', '_', $this->about) . '_' . parseDateTimeFormat(Carbon::now(), 'dmY')  . '_signed.pdf';
 
         return $pdfName;
     }
