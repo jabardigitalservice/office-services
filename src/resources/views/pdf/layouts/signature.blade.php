@@ -65,7 +65,7 @@
                 <tr>
                     <td rowspan="4" style="vertical-align: middle; text-align:center">
                         @if ($generateQrCode)
-                            <img src="{{ public_path('/images/logo-jabar.jpg') }}" width="55px">
+                            <img src="{{ public_path('/images/new-specimen-signature.svg') }}" width="55px">
                         @else
                             <img src="{{ public_path('/images/logo-empty.jpg') }}" width="{{ $imageOnBoxSignature }}">
                         @endif
