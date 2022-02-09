@@ -110,7 +110,10 @@ trait InboxFilterTrait
     }
 
     /**
-     * Filtering list by scope types
+     * Filtering list by scope types.
+     * If the RoleId_From from the governor (uk.1)
+     * or vice governor (uk.1.1.1)
+     * then should be included on IINTERNAL scope
      *
      * @param Object $query
      * @param Array $filter
@@ -122,17 +125,21 @@ trait InboxFilterTrait
         $scope = $filter["scope"] ?? null;
         if ($scope) {
             $departmentId = $this->generateDeptId(auth()->user()->PrimaryRoleId);
-            $comparison = '';
             switch ($scope) {
                 case InboxReceiverScopeType::REGIONAL():
-                    $comparison = 'NOT LIKE';
+                    $query->where('RoleId_From', '!=', 'uk.1')
+                        ->where('RoleId_From', '!=', 'uk.1.1.1')
+                        ->where('RoleId_From', 'NOT LIKE', $departmentId . '%');
                     break;
 
                 case InboxReceiverScopeType::INTERNAL():
-                    $comparison = 'LIKE';
+                    $query->where(
+                        fn($query) => $query->where('RoleId_From', 'LIKE', $departmentId . '%')
+                            ->orWhere('RoleId_From', '=', 'uk.1')
+                            ->orWhere('RoleId_From', '=', 'uk.1.1.1')
+                    );
                     break;
             }
-            $query->where('RoleId_From', $comparison, $departmentId . '%');
         }
     }
 
