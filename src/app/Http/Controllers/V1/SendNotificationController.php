@@ -20,53 +20,56 @@ class SendNotificationController extends Controller
      */
     public function __invoke(Request $request)
     {
-        $messageAttribute = [
-            'notification' => [
-                'title' => $request->title,
-                'body' => $request->body,
-            ]
-        ];
+        $senderId = auth()->user()->PeopleId;
+        if (!in_array($senderId, $request->peopleIds)) {
+            $messageAttribute = [
+                'notification' => [
+                    'title' => $request->title,
+                    'body' => $request->body,
+                ]
+            ];
 
-        switch ($request->action) {
-            case FcmNotificationActionTypeEnum::INBOX_DETAIL():
-            case FcmNotificationActionTypeEnum::DISPOSITION_DETAIL():
-                $messageAttribute['data'] = [
-                    'inboxId' => $request->inboxId,
-                    'groupId' => $request->groupId,
-                    'peopleIds' => $request->peopleIds,
-                    'action' => $request->action,
-                ];
+            switch ($request->action) {
+                case FcmNotificationActionTypeEnum::INBOX_DETAIL():
+                case FcmNotificationActionTypeEnum::DISPOSITION_DETAIL():
+                    $messageAttribute['data'] = [
+                        'inboxId' => $request->inboxId,
+                        'groupId' => $request->groupId,
+                        'peopleIds' => $request->peopleIds,
+                        'action' => $request->action,
+                    ];
 
-                $doNotification = $this->setupInboxReceiverNotification($messageAttribute);
-                break;
+                    $doNotification = $this->setupInboxReceiverNotification($messageAttribute);
+                    break;
 
-            case FcmNotificationActionTypeEnum::DOC_SIGNATURE_DETAIL():
-                $messageAttribute['data'] = [
-                    'documentSignatureSentId' => $request['documentSignatureSentId'],
-                    'target' => $request['target']
-                ];
+                case FcmNotificationActionTypeEnum::DOC_SIGNATURE_DETAIL():
+                    $messageAttribute['data'] = [
+                        'documentSignatureSentId' => $request['documentSignatureSentId'],
+                        'target' => $request['target']
+                    ];
 
-                $doNotification = $this->setupDocumentSignatureSentNotification($messageAttribute);
-                break;
+                    $doNotification = $this->setupDocumentSignatureSentNotification($messageAttribute);
+                    break;
 
-            case FcmNotificationActionTypeEnum::DRAFT_DETAIL():
-            case FcmNotificationActionTypeEnum::DRAFT_REVIEW():
-                $messageAttribute['data'] = [
-                    'inboxId' => $request->inboxId,
-                    'groupId' => $request->groupId,
-                    'receiverAs' => $request->receiverAs,
-                    'peopleIds' => $request->peopleIds,
-                    'action' => $request->action,
-                ];
+                case FcmNotificationActionTypeEnum::DRAFT_DETAIL():
+                case FcmNotificationActionTypeEnum::DRAFT_REVIEW():
+                    $messageAttribute['data'] = [
+                        'inboxId' => $request->inboxId,
+                        'groupId' => $request->groupId,
+                        'receiverAs' => $request->receiverAs,
+                        'peopleIds' => $request->peopleIds,
+                        'action' => $request->action,
+                    ];
 
-                $doNotification = $this->setupInboxReceiverNotification($messageAttribute);
-                break;
+                    $doNotification = $this->setupInboxReceiverNotification($messageAttribute);
+                    break;
 
-            default:
-                return response()->json(['message' => 'Action undefined'], Response::HTTP_INTERNAL_SERVER_ERROR);
-                break;
+                default:
+                    return response()->json(['message' => 'Action undefined'], Response::HTTP_INTERNAL_SERVER_ERROR);
+                    break;
+            }
+
+            return $doNotification;
         }
-
-        return $doNotification;
     }
 }
