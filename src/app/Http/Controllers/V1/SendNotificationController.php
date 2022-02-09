@@ -23,7 +23,7 @@ class SendNotificationController extends Controller
         $messageAttribute = [
             'notification' => [
                 'title' => $request->title,
-                'body' => $request->body,
+                'body' => str_replace('&nbsp;', ' ', strip_tags($request->body)),
             ]
         ];
 
