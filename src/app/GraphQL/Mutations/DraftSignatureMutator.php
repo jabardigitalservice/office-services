@@ -47,6 +47,7 @@ class DraftSignatureMutator
             throw new CustomException('Invalid user', 'Invalid credential user, please check your passphrase again');
         }
         $draft     = Draft::where('NId_temp', $draftId)->first();
+        dd($this->getTargetInboxReceiver($draft));
         $signature = $this->doSignature($setupConfig, $draft, $passphrase);
 
         $draft->Konsep = DraftConceptStatusTypeEnum::SENT()->value;
@@ -270,7 +271,7 @@ class DraftSignatureMutator
             $InboxReceiver = new InboxReceiver();
             $InboxReceiver->NId           = $draft->NId_Temp;
             $InboxReceiver->NKey          = TableSetting::first()->tb_key;
-            $InboxReceiver->GIR_Id        = $draft->GIR_Id;
+            $InboxReceiver->GIR_Id        = $draft->CreatedBy . Carbon::now();
             $InboxReceiver->From_Id       = auth()->user()->PeopleId;
             $InboxReceiver->RoleId_From   = auth()->user()->PrimaryRoleId;
             $InboxReceiver->To_Id         = $value->PeopleId;
