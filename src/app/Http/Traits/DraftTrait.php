@@ -28,7 +28,7 @@ trait DraftTrait
         $customData = $this->customData($draft);
 
         $response = Http::get(config('sikd.base_path_file') . 'kop/' . $header->Header);
-        if ($response->successful()) {
+        if ($response->status() != 200) {
             throw new CustomException('Invalid generate PDF', 'Invalid generate PDF because file not found');
         }
 
