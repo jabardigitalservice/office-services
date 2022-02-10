@@ -110,7 +110,11 @@ class Draft extends Model
             default                 => 'Nadin_Lain',
         };
 
-        $pdfName = $type  . '_' . str_replace(' ', '_', $this->about) . '_' . parseDateTimeFormat(Carbon::now(), 'dmY')  . '_signed.pdf';
+        /* we need to get title value with rule
+         * max length 180 character, remove the unused character and change space with underscore
+         */
+        $title = str_replace(' ', '_', trim(preg_replace('/[^a-zA-Z0-9_ -]/s', '', substr($this->about, 0, 180))));
+        $pdfName = $type  . '_' . $title . '_' . parseDateTimeFormat(Carbon::now(), 'dmY')  . '_signed.pdf';
 
         return $pdfName;
     }

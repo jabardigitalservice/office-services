@@ -33,8 +33,8 @@
         }
     </style>
 @endif
-<section class="signature-content-section">
-    <div style="float:right; width: {{ $signatureBoxSize }} position: relative; left: {{ $boxSignature; }}">
+<section class="signature-content-section" style="position: relative; left: 255px; width: {{ $signatureBoxSize }}">
+    <div style="width: {{ $signatureBoxSize }} position: relative; left: {{ $boxSignature; }}">
         @if ($draft->Ket == 'outboxsprint')
             <p style="text-align: center; font-size:16px;">
                 Ditetapkan di {{ ($generateQrCode) ? $draft->lokasi : ".............."  }} <br>
