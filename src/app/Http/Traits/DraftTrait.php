@@ -27,9 +27,7 @@ trait DraftTrait
         $draft  = Draft::where('NId_Temp', $id)->firstOrFail();
         $header = MasterDraftHeader::where('GRoleId', $draft->createdBy->role->GRoleId)->first();
         $customData = $this->customData($draft);
-
-        $response = Http::get(config('sikd.base_path_file') . 'kop/' . $header->Header);
-        if ($response->status() != Response::HTTP_OK) {
+        if (getimagesize(config('sikd.base_path_file') . 'kop/' . $header->Header) === false) {
             throw new CustomException('Invalid generate PDF', 'Invalid generate PDF because file not found');
         }
 
