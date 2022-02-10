@@ -270,7 +270,7 @@ class DraftSignatureMutator
             $InboxReceiver = new InboxReceiver();
             $InboxReceiver->NId           = $draft->NId_Temp;
             $InboxReceiver->NKey          = TableSetting::first()->tb_key;
-            $InboxReceiver->GIR_Id        = $draft->GIR_Id;
+            $InboxReceiver->GIR_Id        = $draft->CreatedBy . Carbon::now();
             $InboxReceiver->From_Id       = auth()->user()->PeopleId;
             $InboxReceiver->RoleId_From   = auth()->user()->PrimaryRoleId;
             $InboxReceiver->To_Id         = $value->PeopleId;
@@ -296,13 +296,10 @@ class DraftSignatureMutator
     protected function getTargetInboxReceiver($draft)
     {
         if ($draft->Ket === 'outboxnotadinas') {
-            // After signed draft, the document with 'nota dinas' will be forwarded to Receiver People Ids and TU People Ids
+            // After signed draft, the document with 'nota dinas' will be forwarded to Receiver & CC People Ids
             $peopleToIds = People::whereIn('PeopleId', explode(',', $draft->RoleId_To))->get();
-            $peopleTUIds = People::whereHas('role', function ($role) use ($peopleToIds) {
-                $role->whereIn('RoleCode', $peopleToIds->pluck('role.RoleCode')->toArray());
-                $role->whereIn('Code_Tu', $peopleToIds->pluck('role.Code_Tu')->toArray());
-            })->where('GroupId', PeopleGroupTypeEnum::TU()->value)->get();
-            $peopleIds = $peopleToIds->merge($peopleTUIds);
+            $peopleCCIds = People::whereIn('PeopleId', explode(',', $draft->RoleId_Cc))->get();
+            $peopleIds = $peopleToIds->merge($peopleCCIds);
         } else {
             $peopleIds = People::whereHas('role', function ($role) {
                 $role->where('RoleCode', auth()->user()->role->RoleCode);

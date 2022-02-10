@@ -14,7 +14,7 @@
             <p style="text-align: center; font-size: 16px;">
                 SURAT PERINTAH<br>
                 @if ($draft->nosurat != null)
-                    {{ $draft->nosurat }}
+                    NOMOR : {{ $draft->nosurat }}
                 @else
                     NOMOR : .........../{{ $draft->classification->ClCode; }}/{{ $draft->RoleCode; }}
                 @endif

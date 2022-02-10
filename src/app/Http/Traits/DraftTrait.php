@@ -2,6 +2,7 @@
 
 namespace App\Http\Traits;
 
+use App\Exceptions\CustomException;
 use App\Models\Draft;
 use App\Models\MasterDraftHeader;
 use App\Models\People;
@@ -11,6 +12,7 @@ use Endroid\QrCode\Encoding\Encoding;
 use Endroid\QrCode\ErrorCorrectionLevel\ErrorCorrectionLevelHigh;
 use Endroid\QrCode\RoundBlockSizeMode\RoundBlockSizeModeMargin;
 use Endroid\QrCode\Writer\PngWriter;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
 use PDF;
 
@@ -24,6 +26,11 @@ trait DraftTrait
         $draft  = Draft::where('NId_Temp', $id)->firstOrFail();
         $header = MasterDraftHeader::where('GRoleId', $draft->createdBy->role->GRoleId)->first();
         $customData = $this->customData($draft);
+
+        $response = Http::get(config('sikd.base_path_file') . 'kop/' . $header->Header);
+        if ($response->successful()) {
+            throw new CustomException('Invalid generate PDF', 'Invalid generate PDF because file not found');
+        }
 
         $generateQrCode = ($verifyCode) ? $this->generateQrCode($id) : null;
         $pdf = PDF::loadView($draft->document_template_name, compact('draft', 'header', 'customData', 'generateQrCode', 'verifyCode'));
