@@ -17,6 +17,7 @@ use App\Models\People;
 use App\Models\Signature;
 use App\Models\TableSetting;
 use Carbon\Carbon;
+use Illuminate\Http\Response;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
@@ -78,7 +79,7 @@ class DraftSignatureMutator
             'image'         => 'false',
         ]);
 
-        if ($response->status() != 200) {
+        if ($response->status() != Response::HTTP_OK) {
             throw new CustomException('Document failed', 'Signature failed, check your file again');
         } else {
             //Save new file & update status
@@ -104,7 +105,7 @@ class DraftSignatureMutator
         Storage::disk('local')->put($draft->document_file_name, $pdf->body());
         //transfer to existing service
         $response = $this->doTransferFile($draft);
-        if ($response->status() != 200) {
+        if ($response->status() != Response::HTTP_OK) {
             throw new CustomException('Webhook failed', json_decode($response));
         }
         $this->doSaveSignature($draft, $verifyCode);
