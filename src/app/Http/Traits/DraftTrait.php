@@ -12,6 +12,7 @@ use Endroid\QrCode\Encoding\Encoding;
 use Endroid\QrCode\ErrorCorrectionLevel\ErrorCorrectionLevelHigh;
 use Endroid\QrCode\RoundBlockSizeMode\RoundBlockSizeModeMargin;
 use Endroid\QrCode\Writer\PngWriter;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
 use PDF;
@@ -28,7 +29,7 @@ trait DraftTrait
         $customData = $this->customData($draft);
 
         $response = Http::get(config('sikd.base_path_file') . 'kop/' . $header->Header);
-        if ($response->successful()) {
+        if ($response->status() != Response::HTTP_OK) {
             throw new CustomException('Invalid generate PDF', 'Invalid generate PDF because file not found');
         }
 

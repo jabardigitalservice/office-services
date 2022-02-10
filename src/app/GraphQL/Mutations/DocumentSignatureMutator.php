@@ -10,6 +10,7 @@ use App\Exceptions\CustomException;
 use App\Models\DocumentSignature;
 use App\Models\DocumentSignatureSent;
 use Carbon\Carbon;
+use Illuminate\Http\Response;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
@@ -96,7 +97,7 @@ class DocumentSignatureMutator
             'height'        => 80
         ]);
 
-        if ($response->status() != 200) {
+        if ($response->status() != Response::HTTP_OK) {
             throw new CustomException('Document failed', 'Signature failed, check your file again');
         } else {
             //Save new file & update status
@@ -142,7 +143,7 @@ class DocumentSignatureMutator
             $newFileName
         )->post(config('sikd.webhook_url'));
 
-        if ($response->status() != 200) {
+        if ($response->status() != Response::HTTP_OK) {
             throw new CustomException('Webhook failed', json_decode($response));
         } else {
             $data = $this->updateDocumentSentStatus($data, $newFileName);
