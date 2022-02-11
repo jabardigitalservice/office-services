@@ -266,7 +266,26 @@ class DraftSignatureMutator
     protected function forwardToInboxReceiver($draft)
     {
         $receiver = $this->getTargetInboxReceiver($draft);
+        $this->doForwardToInboxReceiver($draft, $receiver, 'to_forward');
 
+        if ($draft->RoleId_Cc != null) {
+            $peopleCCIds = People::whereIn('PrimaryRoleId', explode(',', $draft->RoleId_Cc))->get();
+            $this->doForwardToInboxReceiver($draft, $peopleCCIds, 'bcc');
+        }
+
+        return $receiver;
+    }
+
+    /**
+     * doForwardToInboxReceiver
+     *
+     * @param  mixed $draft
+     * @param  mixed $receiver
+     * @param  mixed $receiverAs
+     * @return void
+     */
+    protected function doForwardToInboxReceiver($draft, $receiver, $receiverAs)
+    {
         foreach ($receiver as $key => $value) {
             $InboxReceiver = new InboxReceiver();
             $InboxReceiver->NId           = $draft->NId_Temp;
@@ -276,7 +295,7 @@ class DraftSignatureMutator
             $InboxReceiver->RoleId_From   = auth()->user()->PrimaryRoleId;
             $InboxReceiver->To_Id         = $value->PeopleId;
             $InboxReceiver->RoleId_To     = $value->PrimaryRoleId;
-            $InboxReceiver->ReceiverAs    = 'to_forward';
+            $InboxReceiver->ReceiverAs    = $receiverAs;
             $InboxReceiver->StatusReceive = 'unread';
             $InboxReceiver->ReceiveDate   = Carbon::now();
             $InboxReceiver->To_Id_Desc    = auth()->user()->role->RoleDesc;
@@ -284,7 +303,7 @@ class DraftSignatureMutator
             $InboxReceiver->save();
         }
 
-        return $receiver;
+        return true;
     }
 
     /**
@@ -297,10 +316,7 @@ class DraftSignatureMutator
     protected function getTargetInboxReceiver($draft)
     {
         if ($draft->Ket === 'outboxnotadinas') {
-            // After signed draft, the document with 'nota dinas' will be forwarded to Receiver & CC People Ids
-            $peopleToIds = People::whereIn('PeopleId', explode(',', $draft->RoleId_To))->get();
-            $peopleCCIds = People::whereIn('PeopleId', explode(',', $draft->RoleId_Cc))->get();
-            $peopleIds = $peopleToIds->merge($peopleCCIds);
+            $peopleIds = People::whereIn('PeopleId', explode(',', $draft->RoleId_To))->get();
         } else {
             $peopleIds = People::whereHas('role', function ($role) {
                 $role->where('RoleCode', auth()->user()->role->RoleCode);
