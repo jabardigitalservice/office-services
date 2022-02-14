@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Enums\ArchiverIdUnitTypeEnum;
 use App\Enums\PeopleGroupTypeEnum;
 use App\Enums\PeopleProposedTypeEnum;
+use App\Enums\PeopleRoleIdTypeEnum;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Support\Arr;
@@ -95,7 +96,7 @@ class People extends Authenticatable
     {
         $this->groupExceptionQuery($query);
         $roleId = auth()->user()->PrimaryRoleId;
-        if ($roleId == 'uk.1.1.1.1.1') {
+        if ($roleId == PeopleRoleIdTypeEnum::UKSETDA()->value) {
             $query->whereIn('PrimaryRoleId', fn($query) => $query->select('RoleId')
                 ->from('role')
                 ->whereRaw('LENGTH(PrimaryRoleId) >= 4 AND LENGTH(PrimaryRoleId) <= 18')
