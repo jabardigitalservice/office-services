@@ -293,12 +293,21 @@ class InboxMutator
      */
     private function getDefaultReceiver()
     {
-        return People::where('GroupId', PeopleGroupTypeEnum::UK())
-            ->where('PeoplePosition', 'like', "UNIT KEARSIPAN%")
-            ->whereIn('PrimaryRoleId', fn($query) => $query->select('RoleId')
+        $receiver = People::where('GroupId', PeopleGroupTypeEnum::UK())
+            ->where('PeoplePosition', 'like', "UNIT KEARSIPAN%");
+
+        $userRole = auth()->user()->role->RoleName;
+        if ($userRole == 'GUBERNUR JAWA BARAT' || $userRole == 'WAKIL GUBERNUR JAWA BARAT') {
+            return $receiver->whereIn('PrimaryRoleId', fn($query) => $query->select('RoleId')
                 ->from('role')
-                ->where('GRoleId', auth()->user()->role->GRoleId))
+                ->where('Code_Tu', 'uk.setda'))
             ->first();
+        }
+
+        return $receiver->whereIn('PrimaryRoleId', fn($query) => $query->select('RoleId')
+            ->from('role')
+            ->where('GRoleId', auth()->user()->role->GRoleId))
+        ->first();
     }
 
     /**
