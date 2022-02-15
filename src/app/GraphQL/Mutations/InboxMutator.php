@@ -150,7 +150,7 @@ class InboxMutator
         $messageAttribute = [
             'notification' => [
                 'title' => $title,
-                'body' => $body,
+                'body' => str_replace('&nbsp;', ' ', strip_tags($body))
             ],
             'data' => [
                 'inboxId' => $inboxData['inboxId'],
