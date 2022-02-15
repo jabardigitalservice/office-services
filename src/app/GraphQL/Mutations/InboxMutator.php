@@ -128,18 +128,21 @@ class InboxMutator
         $dept = $inbox->createdBy->role->rolecode->rolecode_sort;
         $sender = auth()->user()->PeopleName;
         $title = '';
-        $body = $dept . ' telah mengirimkan surat terkait dengan ' . $inbox->Hal . '. Klik disini untuk membaca dan menindaklanjuti pesan.';
+        $body = $dept . ' telah mengirimkan surat terkait dengan ' . $inbox->Hal;
 
         if ($action == PeopleProposedTypeEnum::FORWARD()) {
             $actionMessage = FcmNotificationActionTypeEnum::INBOX_DETAIL();
         } elseif ($action == PeopleProposedTypeEnum::DISPOSITION()) {
             $title = 'Disposisi Naskah';
-            $body = $sender . ' telah mendisposisikan ' . $inbox->type->JenisName . ' terkait dengan ' . $inbox->Hal . '. Klik disini untuk membaca dan menindaklanjuti pesan.';
+            $body = $sender . ' telah mendisposisikan ' . $inbox->type->JenisName . ' terkait dengan ' . $inbox->Hal;
             $actionMessage = FcmNotificationActionTypeEnum::DISPOSITION_DETAIL();
         } elseif ($this->isDraftScope($action)) {
+            $title = 'Review Naskah';
+            $body = 'Terdapat ' . $inbox->type->JenisName . ' terkait dengan ' . $inbox->Hal . ' yang harus segera Anda periksa';
             $actionMessage = FcmNotificationActionTypeEnum::DRAFT_DETAIL();
         }
 
+        $body = $body . '. Klik disini untuk membaca dan menindaklanjuti pesan.';
         $peopleId = substr($inboxData['groupId'], 0, -19);
         $dateString = substr($inboxData['groupId'], -19);
         $date = parseDateTimeFormat($dateString, 'dmyhis');
