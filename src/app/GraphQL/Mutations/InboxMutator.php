@@ -63,7 +63,7 @@ class InboxMutator
 
         // TEMPORARY: NUMBERING_UK/TU will not get the notification
         if (
-            $action != PeopleProposedTypeEnum::NUMBERING_UK() ||
+            $action != PeopleProposedTypeEnum::NUMBERING_UK() &&
             $action != PeopleProposedTypeEnum::NUMBERING_TU()
         ) {
             $this->actionNotification($inboxData, $action);
