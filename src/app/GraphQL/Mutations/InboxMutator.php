@@ -60,7 +60,14 @@ class InboxMutator
 
         $this->createInboxDisposition($inboxData, $action);
         $this->markActioned($inboxData);
-        $this->actionNotification($inboxData, $action);
+
+        // TEMPORARY: NUMBERING_UK/TU will not get the notification
+        if (
+            $action != PeopleProposedTypeEnum::NUMBERING_UK() ||
+            $action != PeopleProposedTypeEnum::NUMBERING_TU()
+        ) {
+            $this->actionNotification($inboxData, $action);
+        }
         return $inboxReceivers;
     }
 
