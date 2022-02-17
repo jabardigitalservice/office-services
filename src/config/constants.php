@@ -34,6 +34,11 @@ return [
             'KEPALA UNIT PELAKSANA TEKNIS DAERAH',
             'DIREKTUR'
         )
-    ]
+    ],
+
+    'sekdaRoleIdGroups' => [
+        'XxJyPn38Yh.3',
+        'XxJyPn38Yh.40'
+    ],
 
 ];

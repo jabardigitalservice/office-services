@@ -124,22 +124,57 @@ trait InboxFilterTrait
     {
         $scope = $filter["scope"] ?? null;
         if ($scope) {
+            $userGroupRole = auth()->user()->role->GRoleId;
             $departmentId = $this->generateDeptId(auth()->user()->PrimaryRoleId);
             switch ($scope) {
                 case InboxReceiverScopeType::REGIONAL():
-                    $query->where('RoleId_From', '!=', 'uk.1')
-                        ->where('RoleId_From', '!=', 'uk.1.1.1')
-                        ->where('RoleId_From', 'NOT LIKE', $departmentId . '%');
+                    $this->queryRegionalScope($query, $userGroupRole, $departmentId);
                     break;
 
                 case InboxReceiverScopeType::INTERNAL():
-                    $query->where(
-                        fn($query) => $query->where('RoleId_From', 'LIKE', $departmentId . '%')
-                            ->orWhere('RoleId_From', '=', 'uk.1')
-                            ->orWhere('RoleId_From', '=', 'uk.1.1.1')
-                    );
+                    $this->queryInternalScope($query, $userGroupRole, $departmentId);
                     break;
             }
+        }
+    }
+
+    /**
+     * Query REGIONAL scope filter
+     *
+     * @param Object $query
+     * @param String $groupRole
+     * @param String $deptId
+     *
+     * @return Void
+     */
+    private function queryRegionalScope($query, $groupRole, $deptId)
+    {
+        if (in_array($groupRole, config('constants.sekdaRoleIdGroups'))) {
+            $query->where('RoleId_From', '!=', 'uk.1')
+                ->where('RoleId_From', '!=', 'uk.1.1.1');
+        };
+        $query->where('RoleId_From', 'NOT LIKE', $deptId . '%');
+    }
+
+    /**
+     * Query INTERNAL scope filter
+     *
+     * @param Object $query
+     * @param String $groupRole
+     * @param String $deptId
+     *
+     * @return Void
+     */
+    private function queryInternalScope($query, $groupRole, $deptId)
+    {
+        if (in_array($groupRole, config('constants.sekdaRoleIdGroups'))) {
+            $query->where(
+                fn($query) => $query->where('RoleId_From', 'LIKE', $deptId . '%')
+                    ->orWhere('RoleId_From', '=', 'uk.1')
+                    ->orWhere('RoleId_From', '=', 'uk.1.1.1')
+            );
+        } else {
+            $query->where('RoleId_From', 'LIKE', $deptId . '%');
         }
     }
 
