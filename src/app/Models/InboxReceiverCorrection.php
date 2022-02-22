@@ -238,6 +238,7 @@ class InboxReceiverCorrection extends Model
 
     public function history($query, $draftId)
     {
-        return $query->where('NId', $draftId);
+        return $query->where('ReceiverAs', '!=', 'to_koreksi')
+            ->where('NId', $draftId);
     }
 }
