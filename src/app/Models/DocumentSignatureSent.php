@@ -12,6 +12,8 @@ class DocumentSignatureSent extends Model
 {
     use HasFactory;
 
+    use \Awobaz\Compoships\Compoships;
+
     protected $connection = 'sikdweb';
 
     protected $table = 'm_ttd_kirim';
@@ -52,9 +54,7 @@ class DocumentSignatureSent extends Model
 
     public function documentSignatureSentRead()
     {
-        return $this->belongsTo(DocumentSignatureSentRead::class, 'id', 'document_signature_sent_id')->where(function ($query) {
-            $query->where('people_id', auth()->user()->PeopleId);
-        });
+        return $this->belongsTo(DocumentSignatureSentRead::class, ['id', 'PeopleIDTujuan'], ['document_signature_sent_id', 'people_id']);
     }
 
     public function documentSignature()
