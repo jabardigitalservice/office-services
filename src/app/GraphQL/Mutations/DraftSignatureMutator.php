@@ -157,7 +157,9 @@ class DraftSignatureMutator
         //Forward the document to TU / UK
         $this->forwardToInbox($draft);
         $this->forwardToInboxReceiver($draft);
-
+        if ($draft->Ket !== 'outboxnotadinas') {
+            $this->forwardSaveInboxReceiverCorrection($draft);
+        }
         return $signature;
     }
 
@@ -298,7 +300,7 @@ class DraftSignatureMutator
             $InboxReceiver->ReceiverAs    = $receiverAs;
             $InboxReceiver->StatusReceive = 'unread';
             $InboxReceiver->ReceiveDate   = Carbon::now();
-            $InboxReceiver->To_Id_Desc    = auth()->user()->role->RoleDesc;
+            $InboxReceiver->To_Id_Desc    = $value->role->RoleDesc;
             $InboxReceiver->Status        = '0';
             $InboxReceiver->save();
         }
@@ -325,5 +327,32 @@ class DraftSignatureMutator
         }
 
         return $peopleIds;
+    }
+
+    /**
+     * forwardSaveInboxReceiverCorrection
+     *
+     * @param  mixed $draft
+     * @return void
+     */
+    protected function forwardSaveInboxReceiverCorrection($draft)
+    {
+        $receiver = $this->getTargetInboxReceiver($draft);
+        foreach ($receiver as $key => $value) {
+            $InboxReceiverCorrection = new InboxReceiverCorrection();
+            $InboxReceiverCorrection->NId           = $draft->NId_Temp;
+            $InboxReceiverCorrection->NKey          = TableSetting::first()->tb_key;
+            $InboxReceiverCorrection->GIR_Id        = auth()->user()->PeopleId . Carbon::now();
+            $InboxReceiverCorrection->From_Id       = auth()->user()->PeopleId;
+            $InboxReceiverCorrection->RoleId_From   = auth()->user()->PrimaryRoleId;
+            $InboxReceiverCorrection->To_Id         = $value->PeopleId;
+            $InboxReceiverCorrection->RoleId_To     = $value->PrimaryRoleId;
+            $InboxReceiverCorrection->ReceiverAs    = 'meneruskan';
+            $InboxReceiverCorrection->StatusReceive = 'unread';
+            $InboxReceiverCorrection->ReceiveDate   = Carbon::now();
+            $InboxReceiverCorrection->To_Id_Desc    = $value->role->RoleDesc;
+            $InboxReceiverCorrection->save();
+        }
+        return $InboxReceiverCorrection;
     }
 }
