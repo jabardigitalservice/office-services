@@ -155,11 +155,13 @@ class InboxReceiverCorrection extends Model
 
     private function receiverReviewQuery($query, $receiverTypes)
     {
-        $query->where(fn($query) => $query->whereIn('ReceiverAs', $receiverTypes)
+        $query->whereIn('NId', fn($query) => $query->select('NId_Temp')
+            ->from('konsep_naskah')
+            ->whereNotIn('Konsep', ['0', '2']))
+            ->where(fn($query) => $query->whereIn('ReceiverAs', $receiverTypes)
             ->orWhere(fn($query) => $query->where('ReceiverAs', 'meneruskan')
                 ->whereIn('NId', fn($query) => $query->select('NId_Temp')
                     ->from('konsep_naskah')
-                    ->where('Konsep', '!=', '0')
                     ->where(fn($query) => $query->where('nosurat', '=', null)
                         ->orWhere('nosurat', '!=', null)
                         ->where('Approve_People', '!=', auth()->user()->PeopleId)))));
@@ -167,27 +169,25 @@ class InboxReceiverCorrection extends Model
 
     private function receiverSignQuery($query, $receiverTypes)
     {
-        $operator = $this->signedOperatorSelect($receiverTypes);
-        if ($operator) {
-            $query->whereIn('NId', fn($query) => $query->select('NId_Temp')
-                ->from('konsep_naskah')
-                ->where('Konsep', $operator, '0')
-                ->where('nosurat', '!=', null));
-        }
-
+        $this->signedOperatorSelect($query, $receiverTypes);
         if (in_array(CustomReceiverTypeEnum::SIGN_REQUEST(), $receiverTypes)) {
             $query->whereIn('NId', fn($query) => $query->select('NId_Temp')
                 ->from('konsep_naskah')
+                ->where('nosurat', '!=', null)
                 ->where('Approve_People', '=', auth()->user()->PeopleId));
         }
     }
 
-    private function signedOperatorSelect($receiverTypes)
+    private function signedOperatorSelect($query, $receiverTypes)
     {
         if (in_array(CustomReceiverTypeEnum::SIGNED(), $receiverTypes)) {
-            return '=';
+            $query->whereIn('NId', fn($query) => $query->select('NId_Temp')
+                ->from('konsep_naskah')
+                ->whereIn('Konsep', ['0', '2']));
         } elseif (in_array(CustomReceiverTypeEnum::SIGN_REQUEST(), $receiverTypes)) {
-            return'!=';
+            $query->whereIn('NId', fn($query) => $query->select('NId_Temp')
+                ->from('konsep_naskah')
+                ->whereNotIn('Konsep', ['0', '2']));
         }
     }
 
