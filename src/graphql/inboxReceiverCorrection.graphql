@@ -20,6 +20,11 @@ type InboxReceiverCorrection {
     senderRequestSignature: People @field(resolver: "App\\GraphQL\\Types\\InboxReceiverCorrectionType@senderSignatureRequest")
 }
 
+type InboxReceiverCorrectionHistory {
+    inboxReceiver: [InboxReceiver]
+    inboxReceiverCorrection: [InboxReceiverCorrection]
+}
+
 enum TimelineType {
     CORRECTION @enum(value: "meneruskan")
 }
@@ -51,5 +56,6 @@ enum DraftObjectiveType {
 
 #import draft.graphql
 #import people.graphql
+#import inboxReceiver.graphql
 #import inboxCorrection.graphql
 

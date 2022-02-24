@@ -268,7 +268,8 @@ class DraftSignatureMutator
     protected function forwardToInboxReceiver($draft)
     {
         $receiver = $this->getTargetInboxReceiver($draft);
-        $this->doForwardToInboxReceiver($draft, $receiver, 'to_forward');
+        $labelReceiverAs = ($draft->ket === 'outboxnotadinas') ? 'to_notadinas' : 'to_forward';
+        $this->doForwardToInboxReceiver($draft, $receiver, $labelReceiverAs);
 
         if ($draft->RoleId_Cc != null) {
             $peopleCCIds = People::whereIn('PrimaryRoleId', explode(',', $draft->RoleId_Cc))->get();

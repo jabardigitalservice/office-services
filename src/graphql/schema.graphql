@@ -120,10 +120,9 @@ type Query {
         @guard
 
     draftHistory(
-        draftId: String @builder(method: "App\\Models\\InboxReceiverCorrection@history")
-    ): [InboxReceiverCorrection!]!
-        @all
-        @orderBy(column: "ReceiveDate", direction: DESC)
+        draftId: String
+    ): InboxReceiverCorrectionHistory
+        @field(resolver: "DraftHistoryQuery@history")
         @guard
 
     correctionOptions: [MasterCorrectionOption!]!
