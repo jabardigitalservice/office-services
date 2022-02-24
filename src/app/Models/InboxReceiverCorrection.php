@@ -199,7 +199,7 @@ class InboxReceiverCorrection extends Model
                 CustomReceiverTypeEnum::CORRECTION()->value    => ['koreksi'],
                 CustomReceiverTypeEnum::NUMBERING()->value     => ['Meminta Nomber Surat'],
                 CustomReceiverTypeEnum::SIGN_REQUEST()->value,
-                CustomReceiverTypeEnum::SIGNED()->value        => ['meneruskan'],
+                CustomReceiverTypeEnum::SIGNED()->value        => ['meneruskan', 'approvenaskah'],
                 default => $this->getReceiverAsReviewData()
             };
             $receiverAs = array_merge($receiverAs, $receiverType);
