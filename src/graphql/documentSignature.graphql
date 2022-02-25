@@ -18,9 +18,7 @@ input DocumentSignaturRejectInput {
 }
 
 input DocumentSignatureForwardInput {
-    documentSignatureId: String!
-    sender: String!
-    receivers: String!
+    documentSignatureSentId: String!
     note: String
 }
 
