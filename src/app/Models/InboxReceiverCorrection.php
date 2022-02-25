@@ -196,10 +196,13 @@ class InboxReceiverCorrection extends Model
         $receiverAs = [];
         foreach ($arrayReceiverTypes as $receiverType) {
             $receiverType = match ($receiverType) {
-                CustomReceiverTypeEnum::CORRECTION()->value    => ['koreksi'],
-                CustomReceiverTypeEnum::NUMBERING()->value     => ['Meminta Nomber Surat'],
+                CustomReceiverTypeEnum::CORRECTION()->value    => array('koreksi'),
+                CustomReceiverTypeEnum::NUMBERING()->value     => array('Meminta Nomber Surat'),
                 CustomReceiverTypeEnum::SIGN_REQUEST()->value,
-                CustomReceiverTypeEnum::SIGNED()->value        => ['meneruskan', 'approvenaskah'],
+                CustomReceiverTypeEnum::SIGNED()->value        => array_merge(
+                    array('meneruskan', 'approvenaskah'),
+                    $this->getReceiverAsReviewData()
+                ),
                 default => $this->getReceiverAsReviewData()
             };
             $receiverAs = array_merge($receiverAs, $receiverType);
