@@ -106,6 +106,12 @@ type Query {
         @paginate(type: CONNECTION)
         @guard
 
+    outboxDrafts: [InboxReceiverCorrection!]!
+        @whereAuth(relation: "sender")
+        @orderBy(column: "ReceiveDate", direction: DESC)
+        @paginate(type: CONNECTION)
+        @guard
+
     draft(
         draftId: String!
         groupId: String!
