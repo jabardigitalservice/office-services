@@ -72,6 +72,12 @@ type Query {
         @paginate(type: CONNECTION)
         @guard
 
+    outboxDocumentSignatureSents: [DocumentSignatureSent!]!
+        @whereAuth(relation: "sender")
+        @orderBy(column: "tgl", direction: DESC)
+        @paginate(type: CONNECTION)
+        @guard
+
     documentSignatureSent(
         id: ID @eq
     ): DocumentSignatureSent!
