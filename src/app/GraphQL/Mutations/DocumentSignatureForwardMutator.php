@@ -115,17 +115,21 @@ class DocumentSignatureForwardMutator
         $type = optional($documentSignatureSent->documentSignature->documentSignatureType)->document_forward_target;
         switch ($type) {
             case 'UK':
-                $receiver = People::whereHas('role', function ($role) {
-                    $role->where('RoleCode', auth()->user()->role->RoleCode);
-                    $role->where('GRoleId', auth()->user()->role->GRoleId);
-                })->where('GroupId', PeopleGroupTypeEnum::UK()->value)->pluck('PeopleId');
-                break;
-
             case 'TU':
-                $receiver = People::whereHas('role', function ($role) {
+                if ($type == 'UK') {
+                    $peopleGroupType = PeopleGroupTypeEnum::UK()->value;
+                    $whereField = 'GRoleId';
+                    $whereParams = auth()->user()->role->GRoleId;
+                }
+                if ($type == 'TU') {
+                    $peopleGroupType = PeopleGroupTypeEnum::TU()->value;
+                    $whereField = 'Code_Tu';
+                    $whereParams = auth()->user()->role->Code_Tu;
+                }
+                $receiver = People::whereHas('role', function ($role) use ($whereField, $whereParams) {
                     $role->where('RoleCode', auth()->user()->role->RoleCode);
-                    $role->where('Code_Tu', auth()->user()->role->Code_Tu);
-                })->where('GroupId', PeopleGroupTypeEnum::TU()->value)->pluck('PeopleId');
+                    $role->where($whereField, $whereParams);
+                })->where('GroupId', $peopleGroupType)->pluck('PeopleId');
                 break;
 
             default:
