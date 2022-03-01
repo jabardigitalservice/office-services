@@ -3,11 +3,13 @@
 namespace App\GraphQL\Mutations;
 
 use App\Enums\DocumentSignatureSentNotificationTypeEnum;
+use App\Enums\PeopleGroupTypeEnum;
 use App\Enums\SignatureStatusTypeEnum;
 use App\Http\Traits\SendNotificationTrait;
 use App\Exceptions\CustomException;
 use App\Models\DocumentSignatureForward;
 use App\Models\DocumentSignatureSent;
+use App\Models\People;
 use Carbon\Carbon;
 use Illuminate\Support\Arr;
 
@@ -25,10 +27,11 @@ class DocumentSignatureForwardMutator
      */
     public function forward($rootValue, array $args)
     {
-        $documentSignatureId = Arr::get($args, 'input.documentSignatureId');
-        $sender = Arr::get($args, 'input.sender');
+        $documentSignatureSentId = Arr::get($args, 'input.documentSignatureSentId');
+        $documentSignatureSent = DocumentSignatureSent::where('id', $documentSignatureSentId)
+                                    ->first();
 
-        $documentSignatureForwardIds = $this->doForward($documentSignatureId, $sender, $args);
+        $documentSignatureForwardIds = $this->doForward($documentSignatureSent, $args);
 
         if (!$documentSignatureForwardIds) {
             throw new CustomException(
@@ -37,11 +40,7 @@ class DocumentSignatureForwardMutator
             );
         }
 
-        $data = DocumentSignatureSent::where('ttd_id', $documentSignatureId)
-                                    ->where('PeopleIDTujuan', $sender)
-                                    ->first();
-
-        $this->doSendNotification($data->id, $data->receiver->PeopleName);
+        $this->doSendNotification($documentSignatureSent->id, $documentSignatureSent->receiver->PeopleName);
 
         return $documentSignatureForwardIds;
     }
@@ -72,33 +71,72 @@ class DocumentSignatureForwardMutator
     /**
      * doForward
      *
-     * @param  string $documentSignatureId
+     * @param  object $documentSignatureSentId
      * @param  string $sender
      * @param  mixed $args
      * @return array
      */
-    public function doForward($documentSignatureId, $sender, $args)
+    public function doForward($documentSignatureSent, $args)
     {
-        $receivers = Arr::get($args, 'input.receivers');
-        $arrayReceivers = explode(", ", $receivers);
         $note = Arr::get($args, 'input.note');
         $ids = array();
+        $receiver = $this->forwardReceiver($documentSignatureSent);
 
-        foreach ($arrayReceivers as $key => $receiver) {
-            $key++;
-            $documentSignatureForward = DocumentSignatureForward::create([
-                'ttd_id' => $documentSignatureId,
-                'catatan' => $note,
-                'tgl' => Carbon::now(),
-                'PeopleID' => $sender,
-                'PeopleIDTujuan' => $receiver,
-                'urutan' => $key,
-                'status' => SignatureStatusTypeEnum::WAITING()->value,
-            ]);
+        if ($receiver != null) {
+            foreach ($receiver as $key => $receiver) {
+                $key++;
+                $documentSignatureForward = DocumentSignatureForward::create([
+                    'ttd_id' => $documentSignatureSent->ttd_id,
+                    'catatan' => $note,
+                    'tgl' => Carbon::now(),
+                    'PeopleID' => $documentSignatureSent->PeopleIDTujuan,
+                    'PeopleIDTujuan' => $receiver,
+                    'urutan' => $key,
+                    'status' => SignatureStatusTypeEnum::WAITING()->value,
+                ]);
 
-            array_push($ids, $documentSignatureForward);
+                array_push($ids, $documentSignatureForward);
+            }
+
+            return $ids;
         }
 
-        return $ids;
+        return false;
+    }
+
+    /**
+     * forwardReceiver
+     *
+     * @param  mixed $type
+     * @return mixed
+     */
+    public function forwardReceiver($documentSignatureSent)
+    {
+        $type = optional($documentSignatureSent->documentSignature->documentSignatureType)->document_forward_target;
+        switch ($type) {
+            case 'UK':
+            case 'TU':
+                if ($type == 'UK') {
+                    $peopleGroupType = PeopleGroupTypeEnum::UK()->value;
+                    $whereField = 'GRoleId';
+                    $whereParams = auth()->user()->role->GRoleId;
+                }
+                if ($type == 'TU') {
+                    $peopleGroupType = PeopleGroupTypeEnum::TU()->value;
+                    $whereField = 'Code_Tu';
+                    $whereParams = auth()->user()->role->Code_Tu;
+                }
+                $receiver = People::whereHas('role', function ($role) use ($whereField, $whereParams) {
+                    $role->where('RoleCode', auth()->user()->role->RoleCode);
+                    $role->where($whereField, $whereParams);
+                })->where('GroupId', $peopleGroupType)->pluck('PeopleId');
+                break;
+
+            default:
+                $receiver = null;
+                break;
+        }
+
+        return $receiver;
     }
 }

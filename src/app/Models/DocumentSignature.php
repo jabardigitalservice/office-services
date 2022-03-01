@@ -38,4 +38,9 @@ class DocumentSignature extends Model
     {
         return $this->belongsTo(InboxFile::class, 'file', 'FileName_real');
     }
+
+    public function documentSignatureType()
+    {
+        return $this->belongsTo(DocumentSignatureType::class, 'type_id', 'id');
+    }
 }
