@@ -13,5 +13,6 @@ return [
     'signature_cookies' => env('SIKD_SIGNATURE_COOKIES'),
     'base_path_file' => env('SIKD_BASE_PATH_FILE'),
     'base_path_file_letter' => env('SIKD_BASE_PATH_FILE_LETTER'),
-    'timezone_server' => env('SIKD_TIMEZONE_SERVER')
+    'timezone_server' => env('SIKD_TIMEZONE_SERVER'),
+    'add_footer_url' => env('SIKD_ADD_FOOTER_URL')
 ];
