@@ -73,35 +73,28 @@ class DocumentSignatureMutator
     protected function doSignature($setupConfig, $data, $passphrase)
     {
         $url = $setupConfig['url'] . '/api/sign/pdf';
-        //flagging for easy define by mobile
-        $linkQR = 'document_direct_upload-' . $data->ttd_id;
+        $newFileName = str_replace(' ', '_', $data->documentSignature->nama_file) . '_' . parseDateTimeFormat(Carbon::now(), 'dmY')  . '_signed.pdf';
+        $addFooter = $this->addFooterDocument($data, $newFileName);
 
         $response = Http::withHeaders([
             'Authorization' => 'Basic ' . $setupConfig['auth'],
             'Cookie' => 'JSESSIONID=' . $setupConfig['cookies'],
         ])->attach(
             'file',
-            file_get_contents($data->documentSignature->url),
+            $addFooter,
             $data->documentSignature->file
         )->post($url, [
             'nik'           => $setupConfig['nik'],
             'passphrase'    => $passphrase,
-            'tampilan'      => 'visible',
-            'page'          => '1',
+            'tampilan'      => 'invisible',
             'image'         => 'false',
-            'imageTTD'      => '',
-            'linkQR'        => $linkQR,
-            'xAxis'         => 10,
-            'yAxis'         => 10,
-            'width'         => 80,
-            'height'        => 80
         ]);
 
         if ($response->status() != Response::HTTP_OK) {
             throw new CustomException('Document failed', 'Signature failed, check your file again');
         } else {
             //Save new file & update status
-            $data = $this->saveNewFile($response, $data);
+            $data = $this->saveNewFile($response, $data, $newFileName);
             //Save log
             $this->createPassphraseSessionLog($response);
         }
@@ -128,10 +121,9 @@ class DocumentSignatureMutator
      * @param  collection $data
      * @return collection
      */
-    protected function saveNewFile($pdf, $data)
+    protected function saveNewFile($pdf, $data, $newFileName)
     {
         //save to storage path for temporary file
-        $newFileName = str_replace(' ', '_', $data->documentSignature->nama_file) . '_' . parseDateTimeFormat(Carbon::now(), 'dmY')  . '_signed.pdf';
         Storage::disk('local')->put($newFileName, $pdf->body());
 
         $fileSignatured = fopen(Storage::path($newFileName), 'r');
@@ -212,5 +204,24 @@ class DocumentSignatureMutator
         ];
 
         $this->setupDocumentSignatureSentNotification($messageAttribute);
+    }
+
+    /**
+     * addFooterDocument
+     *
+     * @param  mixed $data
+     * @param  mixed $newFileName
+     * @return void
+     */
+    protected function addFooterDocument($data, $newFileName)
+    {
+        $addFooter = Http::post(config('sikd.add_footer_url'), [
+            'pdf' => $data->documentSignature->url,
+            'qrcode' => config('sikd.url') . '/FilesUploaded/ttd/sudah_ttd/' . $newFileName,
+            'category' => $data->documentSignature->documentSignatureType->document_paper_type,
+            'code' => strtoupper(substr(sha1(uniqid(mt_rand(), true)), 0, 10))
+        ]);
+
+        return $addFooter;
     }
 }

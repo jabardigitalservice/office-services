@@ -75,7 +75,6 @@ class DraftSignatureMutator
             'nik'           => $setupConfig['nik'],
             'passphrase'    => $passphrase,
             'tampilan'      => 'invisible',
-            'page'          => '1',
             'image'         => 'false',
         ]);
 
