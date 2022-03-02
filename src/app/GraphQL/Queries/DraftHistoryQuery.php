@@ -24,7 +24,7 @@ class DraftHistoryQuery
     {
         $inboxReceiverCorrection = InboxReceiverCorrection::where('NId', $args['draftId'])
                                                         ->where('ReceiverAs', '!=', 'to_koreksi')
-                                                        ->orderBy('ReceiveDate', 'DESC')
+                                                        ->orderBy('id', 'DESC')
                                                         ->get();
 
         if (!$inboxReceiverCorrection) {
@@ -40,7 +40,7 @@ class DraftHistoryQuery
             $inboxReceiver = InboxReceiver::where('NId', $args['draftId'])
                                     ->where('ReceiverAs', 'LIKE', '%to%')
                                     ->where('ReceiverAS', 'NOT LIKE', 'to_draft%')
-                                    ->orderBy('ReceiveDate', 'DESC')
+                                    ->orderBy('id', 'DESC')
                                     ->get();
         }
 
