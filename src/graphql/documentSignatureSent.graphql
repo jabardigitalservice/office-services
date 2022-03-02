@@ -30,6 +30,10 @@ input documentSignatureSentsInput {
     withReceiver: Boolean
 }
 
+input outboxDocumentSignatureSentsInput {
+    statuses: String
+}
+
 input documentSignatureSentTimelineInput {
     documentSignatureId: String!
     sort: String!
