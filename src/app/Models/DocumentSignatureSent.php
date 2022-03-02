@@ -107,14 +107,9 @@ class DocumentSignatureSent extends Model
             $documentSignatureSentIds = array_diff($documentSignatureSentIds, $readId);
         }
 
-
         $query->whereIn('id', $documentSignatureSentIds);
 
-        if ($statuses  || $statuses == '0') {
-            $arrayStatuses = explode(", ", $statuses);
-            $query->whereIn('status', $arrayStatuses);
-        }
-
+        $this->filterByStatus($query, $filter);
         return $query;
     }
 
@@ -161,5 +156,20 @@ class DocumentSignatureSent extends Model
     public function getUrutanParentAttribute()
     {
         return $this->urutan - 1;
+    }
+
+    public function outboxFilter($query, $filter)
+    {
+        $this->filterByStatus($query, $filter);
+        return $query;
+    }
+
+    private function filterByStatus($query, $filter)
+    {
+        $statuses = $filter['statuses'] ?? null;
+        if ($statuses || $statuses == '0') {
+            $arrayStatuses = explode(", ", $statuses);
+            $query->whereIn('status', $arrayStatuses);
+        }
     }
 }
