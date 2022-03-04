@@ -115,7 +115,11 @@ type Query {
         @paginate(type: CONNECTION)
         @guard
 
-    outboxDrafts: [InboxReceiverCorrection!]!
+    outboxDrafts(
+        filter: DraftFilterInput @builder(method: "App\\Models\\InboxReceiverCorrection@filter")
+        objective: DraftObjectiveType @builder(method: "App\\Models\\InboxReceiverCorrection@objective")
+        search: String @builder(method: "App\\Models\\InboxReceiverCorrection@search")
+    ): [InboxReceiverCorrection!]!
         @whereAuth(relation: "sender")
         @orderBy(column: "ReceiveDate", direction: DESC)
         @paginate(type: CONNECTION)
