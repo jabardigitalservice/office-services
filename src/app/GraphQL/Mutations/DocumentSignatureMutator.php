@@ -74,14 +74,18 @@ class DocumentSignatureMutator
     {
         $url = $setupConfig['url'] . '/api/sign/pdf';
         $newFileName = str_replace(' ', '_', $data->documentSignature->nama_file) . '_' . parseDateTimeFormat(Carbon::now(), 'dmY')  . '_signed.pdf';
-        $addFooter = $this->addFooterDocument($data, $newFileName);
+        if ($data->urutan == 1) {
+            $pdfFile = $this->addFooterDocument($data, $newFileName);
+        } else {
+            $pdfFile = file_get_contents($data->documentSignature->url);
+        }
 
         $response = Http::withHeaders([
             'Authorization' => 'Basic ' . $setupConfig['auth'],
             'Cookie' => 'JSESSIONID=' . $setupConfig['cookies'],
         ])->attach(
             'file',
-            $addFooter,
+            $pdfFile,
             $data->documentSignature->file
         )->post($url, [
             'nik'           => $setupConfig['nik'],
