@@ -18,11 +18,17 @@ type Query {
         @paginate(type: CONNECTION)
         @guard
 
-    inboxFile(
-        id: ID! @builder(method: "App\\Models\\InboxFile@find")
-    ): InboxFile
-        @find
+    ValidationDocument(
+        filter: ValidationDocumentFilterInput!
+    ): ValidationDocument
+        @field(resolver: "ValidationDocumentQuery")
         @guard
+
+    # inboxFile(
+    #     id: ID! @builder(method: "App\\Models\\InboxFile@find")
+    # ): InboxFile
+    #     @find
+    #     @guard
 
     outboxes(
         search: String @builder(method: "App\\Models\\InboxReceiver@search")
@@ -87,9 +93,9 @@ type Query {
         @field(resolver: "DocumentSignatureQuery@detail")
         @guard
 
-    documentSignature(id: ID@eq): DocumentSignature!
-        @find
-        @guard
+    # documentSignature(id: ID@eq): DocumentSignature!
+    #     @find
+    #     @guard
 
     documentSignatureSentTimeline(
         filter: documentSignatureSentTimelineInput @builder(method: "App\\Models\\DocumentSignatureSent@filterTimeline")
@@ -192,3 +198,4 @@ type Mutation {
 #import masterDisposition.graphql
 #import inboxReceiverCorrection.graphql
 #import masterCorrectionOption.graphql
+#import validation.graphql
