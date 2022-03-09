@@ -24,12 +24,6 @@ type Query {
         @field(resolver: "ValidationDocumentQuery")
         @guard
 
-    # inboxFile(
-    #     id: ID! @builder(method: "App\\Models\\InboxFile@find")
-    # ): InboxFile
-    #     @find
-    #     @guard
-
     outboxes(
         search: String @builder(method: "App\\Models\\InboxReceiver@search")
         filter: FilterInput @builder(method: "App\\Models\\InboxReceiver@filter")
@@ -92,10 +86,6 @@ type Query {
     ): DocumentSignatureSent!
         @field(resolver: "DocumentSignatureQuery@detail")
         @guard
-
-    # documentSignature(id: ID@eq): DocumentSignature!
-    #     @find
-    #     @guard
 
     documentSignatureSentTimeline(
         filter: documentSignatureSentTimelineInput @builder(method: "App\\Models\\DocumentSignatureSent@filterTimeline")
