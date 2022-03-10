@@ -33,6 +33,12 @@ class ValidationDocumentQuery
         }
     }
 
+    /**
+     * getValidationByQRCode
+     *
+     * @param  array $args
+     * @return array
+     */
     private function getValidationByQRCode($args)
     {
         $splitValue = explode('/', $args['filter']['value']);
