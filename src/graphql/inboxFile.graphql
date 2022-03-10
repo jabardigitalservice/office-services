@@ -5,5 +5,3 @@ type InboxFile {
     inboxReceivers: [InboxReceiver] @hasMany
     validation: Validation @field(resolver: "App\\GraphQL\\Types\\InboxFileType@validate")
 }
-
-#import validation.graphql

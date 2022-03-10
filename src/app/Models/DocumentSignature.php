@@ -21,7 +21,7 @@ class DocumentSignature extends Model
         $path = config('sikd.base_path_file');
         $file = $path . 'ttd/sudah_ttd/' . $this->file;
         $headers = @get_headers($file);
-        if ($headers && strpos($headers[4], 'application/pdf')) {
+        if ($headers && in_array('Content-Type: application/pdf', $headers)) {
             $file = $file;
         } else {
             $file = $path . 'ttd/blm_ttd/' . $this->file;
