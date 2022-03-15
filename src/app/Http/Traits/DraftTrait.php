@@ -22,7 +22,7 @@ use PDF;
  */
 trait DraftTrait
 {
-    public function setDraftDocumentPdf($id, $verifyCode = null)
+    public function setDraftDocumentPdf($request, $id)
     {
         $draft  = Draft::where('NId_Temp', $id)->firstOrFail();
         $header = MasterDraftHeader::where('GRoleId', $draft->createdBy->role->GRoleId)->first();
@@ -31,41 +31,15 @@ trait DraftTrait
             throw new CustomException('Invalid generate PDF', 'Invalid generate PDF because file not found');
         }
 
-        $generateQrCode = ($verifyCode) ? $this->generateQrCode($id) : null;
-        $pdf = PDF::loadView($draft->document_template_name, compact('draft', 'header', 'customData', 'generateQrCode', 'verifyCode'));
+        $esign = null;
+        if ($request->has('esign')) {
+            $esign = true;
+        }
+        $pdf = PDF::loadView($draft->document_template_name, compact('draft', 'header', 'customData', 'esign'));
         if ($draft->Ket == 'outboxsprint') {
             $pdf->setPaper(array(0,0,609.4488,935.433), 'portrait'); //F4 Size
         }
         return $pdf->stream();
-    }
-
-    /**
-     * generateQrCode
-     *
-     * @param  mixed $id
-     * @return void
-     */
-    public function generateQrCode($id)
-    {
-        // Create QR code
-        $result = Builder::create()
-            ->writer(new PngWriter())
-            ->writerOptions([])
-            ->data(config('sikd.url') . 'administrator/anri_mail_tl/log_naskah_masuk_pdf/' . $id)
-            ->encoding(new Encoding('UTF-8'))
-            ->errorCorrectionLevel(new ErrorCorrectionLevelHigh())
-            ->size(500)
-            ->margin(0)
-            ->roundBlockSizeMode(new RoundBlockSizeModeMargin())
-            ->logoPath(public_path('images/logo-jabar.jpg'))
-            ->logoResizeToWidth(150)
-            ->build();
-
-        header('Content-Type: ' . $result->getMimeType());
-        $fileName = $id . '.png';
-        Storage::disk('local')->put($fileName, $result->getString());
-
-        return $fileName;
     }
 
     /**

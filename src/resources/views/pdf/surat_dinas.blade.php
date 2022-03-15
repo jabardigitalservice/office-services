@@ -18,7 +18,7 @@
         <section id="header-content-section">
             <div style="margin-top: {{ ($draft->createdBy->role->GRoleId == 'XxJyPn38Yh.40') ? '82px;' : '49px' }} "> <!-- Custom condition header for gubernur level -->
                 <div class="left-header">&nbsp;</div>
-                <div class="right-header"><p style="margin-bottom: 0;">{{ ($generateQrCode) ? $draft->lokasi . ', ' . parseSetLocaleDate($draft->TglReg, 'id', 'd F Y') : 'Tempat / Tanggal / Bulan / Tahun'; }}</p></div>
+                <div class="right-header"><p style="margin-bottom: 0;">{{ ($esign) ? $draft->lokasi . ', ' . parseSetLocaleDate($draft->TglReg, 'id', 'd F Y') : 'Tempat / Tanggal / Bulan / Tahun'; }}</p></div>
                 <div class="clearfix"></div>
             </div>
             <div>

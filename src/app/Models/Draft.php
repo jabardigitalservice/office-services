@@ -139,4 +139,17 @@ class Draft extends Model
 
         return $label;
     }
+
+    public function getCategoryFooterAttribute()
+    {
+        switch ($this->Ket) {
+            case 'outboxinstruksigub':
+                return 3;
+                break;
+
+            default:
+                return 1;
+                break;
+        }
+    }
 }
