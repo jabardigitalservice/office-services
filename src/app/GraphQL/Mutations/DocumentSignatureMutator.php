@@ -74,8 +74,9 @@ class DocumentSignatureMutator
     {
         $url = $setupConfig['url'] . '/api/sign/pdf';
         $newFileName = str_replace(' ', '_', $data->documentSignature->nama_file) . '_' . parseDateTimeFormat(Carbon::now(), 'dmY')  . '_signed.pdf';
+        $verifyCode = strtoupper(substr(sha1(uniqid(mt_rand(), true)), 0, 10));
         if ($data->urutan == 1) {
-            $pdfFile = $this->addFooterDocument($data, $newFileName);
+            $pdfFile = $this->addFooterDocument($data, $newFileName, $verifyCode);
         } else {
             $pdfFile = file_get_contents($data->documentSignature->url);
         }
@@ -98,7 +99,7 @@ class DocumentSignatureMutator
             throw new CustomException('Document failed', 'Signature failed, check your file again');
         } else {
             //Save new file & update status
-            $data = $this->saveNewFile($response, $data, $newFileName);
+            $data = $this->saveNewFile($response, $data, $newFileName, $verifyCode);
             //Save log
             $this->createPassphraseSessionLog($response);
         }
@@ -125,7 +126,7 @@ class DocumentSignatureMutator
      * @param  collection $data
      * @return collection
      */
-    protected function saveNewFile($pdf, $data, $newFileName)
+    protected function saveNewFile($pdf, $data, $newFileName, $verifyCode)
     {
         //save to storage path for temporary file
         Storage::disk('local')->put($newFileName, $pdf->body());
@@ -142,7 +143,7 @@ class DocumentSignatureMutator
         if ($response->status() != Response::HTTP_OK) {
             throw new CustomException('Webhook failed', json_decode($response));
         } else {
-            $data = $this->updateDocumentSentStatus($data, $newFileName);
+            $data = $this->updateDocumentSentStatus($data, $newFileName, $verifyCode);
         }
 
         Storage::disk('local')->delete($newFileName);
@@ -157,12 +158,13 @@ class DocumentSignatureMutator
      * @param  string $newFileName
      * @return collection
      */
-    protected function updateDocumentSentStatus($data, $newFileName)
+    protected function updateDocumentSentStatus($data, $newFileName, $verifyCode)
     {
         //change filename with _signed & update stastus
         $updateFileData = DocumentSignature::where('id', $data->ttd_id)->update([
             'status' => 1,
-            'file' => $newFileName
+            'file' => $newFileName,
+            'code' => $verifyCode
         ]);
 
         //update status document sent to 1 (signed)
@@ -217,13 +219,13 @@ class DocumentSignatureMutator
      * @param  mixed $newFileName
      * @return void
      */
-    protected function addFooterDocument($data, $newFileName)
+    protected function addFooterDocument($data, $newFileName, $verifyCode)
     {
         $addFooter = Http::post(config('sikd.add_footer_url'), [
             'pdf' => $data->documentSignature->url,
             'qrcode' => config('sikd.url') . '/FilesUploaded/ttd/sudah_ttd/' . $newFileName,
             'category' => $data->documentSignature->documentSignatureType->document_paper_type,
-            'code' => strtoupper(substr(sha1(uniqid(mt_rand(), true)), 0, 10))
+            'code' => $verifyCode
         ]);
 
         return $addFooter;
