@@ -2,6 +2,7 @@
 
 namespace App\GraphQL\Mutations;
 
+use App\Enums\ActionLabelTypeEnum;
 use App\Enums\FcmNotificationActionTypeEnum;
 use App\Enums\PeopleGroupTypeEnum;
 use App\Enums\PeopleProposedTypeEnum;
@@ -86,8 +87,11 @@ class InboxMutator
 
         InboxReceiver::where('NId', $inboxId)
             ->where('To_Id', strval($peopleId))
-            ->firstOrFail()
-            ->update(['Status' => 1, 'TindakLanjut' => 1]);
+            ->update([
+                'Status' => 1,
+                'TindakLanjut' => 1,
+                'action_label' => ActionLabelTypeEnum::FINISHED()
+            ]);
 
         return 'status updated';
     }
