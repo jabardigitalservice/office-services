@@ -103,7 +103,7 @@ class DraftSignatureMutator
     {
         $addFooter = Http::post(config('sikd.add_footer_url'), [
             'pdf' => $draft->draft_file . '?esign=true',
-            'qrcode' => config('sikd.base_path_file_letter') . $draft->document_file_name,
+            'qrcode' => config('sikd.url') . 'administrator/anri_mail_tl/log_naskah_masuk_pdf/' . $draft->NId_Temp,
             'category' => $draft->category_footer,
             'code' => $verifyCode
         ]);
