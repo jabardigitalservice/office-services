@@ -60,7 +60,7 @@ class InboxMutator
         }
 
         $this->createInboxDisposition($inboxData, $action);
-        $this->markActioned($inboxData);
+        $this->markActioned($inboxData, $action);
 
         // TEMPORARY: NUMBERING_UK/TU will not get the notification
         if (
@@ -118,13 +118,32 @@ class InboxMutator
      *
      * @return void
      */
-    private function markActioned($inboxData)
+    private function markActioned($inboxData, $action)
     {
         $inboxId = $inboxData['inboxId'];
         $fromId = $inboxData['from']->PeopleId;
+        $actionLabel = $this->defineActionLabel($action);
         InboxReceiver::where('NId', $inboxId)
             ->where('To_Id', strval($fromId))
-            ->update(['Status' => 1]);
+            ->update([
+                'Status' => 1,
+                'action_label' => $actionLabel
+            ]);
+    }
+
+    /**
+     * Define the action label
+     * @param String $action
+     *
+     * @return String
+     */
+    private function defineActionLabel($action)
+    {
+        $label = match ($action) {
+            PeopleProposedTypeEnum::DISPOSITION()->value    => ActionLabelTypeEnum::DISPOSITIONED(),
+            default                                         => null
+        };
+        return $label;
     }
 
     /**
