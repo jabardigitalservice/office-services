@@ -37,8 +37,8 @@
     <div style="width: {{ $signatureBoxSize }} position: relative; left: {{ $boxSignature; }}">
         @if ($draft->Ket == 'outboxsprint')
             <p style="text-align: center; font-size:16px;">
-                Ditetapkan di {{ ($generateQrCode) ? $draft->lokasi : ".............."  }} <br>
-                Pada tanggal {{ ($generateQrCode) ? parseSetLocaleDate($draft->TglNaskah, 'id', 'd F Y') : ".............."  }}
+                Ditetapkan di {{ ($esign) ? $draft->lokasi : ".............."  }} <br>
+                Pada tanggal {{ ($esign) ? parseSetLocaleDate($draft->TglNaskah, 'id', 'd F Y') : ".............."  }}
             </p>
         @endif
         <p style="text-align: center; font-size: {{ ($draft->Ket == 'outboxsprint') ? '16px; margin-bottom: 0;' : '12px;' }}">
@@ -57,14 +57,14 @@
                 {!! $draft->reviewer->role->RoleName !!},
             @endif
         </p>
-        @if (!$generateQrCode && $reviewTitle == true)
+        @if (!$esign && $reviewTitle == true)
             <p style="text-align: center;">PEMERIKSA</p>
         @endif
         <div style="border: 1px solid #000000; font-size: {{ $fontSizeInBox; }};">
             <table class="table-collapse no-padding-table signature-table">
                 <tr>
                     <td rowspan="4" style="vertical-align: middle; text-align:center">
-                        @if ($generateQrCode)
+                        @if ($esign)
                             <img src="{{ public_path('/images/new-specimen-signature.svg') }}" width="55px">
                         @else
                             <img src="{{ public_path('/images/logo-empty.jpg') }}" width="{{ $imageOnBoxSignature }}">

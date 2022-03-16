@@ -68,10 +68,12 @@ class DraftSignatureMutator
     {
         $url = $setupConfig['url'] . '/api/sign/pdf';
         $verifyCode = substr(sha1(uniqid(mt_rand(), true)), 0, 10);
+        $pdfFile = $this->addFooterDocument($draft, $verifyCode);
+
         $response = Http::withHeaders([
             'Authorization' => 'Basic ' . $setupConfig['auth'],
             'Cookie' => 'JSESSIONID=' . $setupConfig['cookies'],
-        ])->attach('file', $this->setDraftDocumentPdf($draft->NId_Temp, $verifyCode), $draft->document_file_name)->post($url, [
+        ])->attach('file', $pdfFile, $draft->document_file_name)->post($url, [
             'nik'           => $setupConfig['nik'],
             'passphrase'    => $passphrase,
             'tampilan'      => 'invisible',
@@ -88,6 +90,25 @@ class DraftSignatureMutator
         }
 
         return $draft;
+    }
+
+    /**
+     * addFooterDocument
+     *
+     * @param  mixed $data
+     * @param  mixed $newFileName
+     * @return void
+     */
+    protected function addFooterDocument($draft, $verifyCode)
+    {
+        $addFooter = Http::post(config('sikd.add_footer_url'), [
+            'pdf' => $draft->draft_file . '?esign=true',
+            'qrcode' => config('sikd.base_path_file_letter') . $draft->document_file_name,
+            'category' => $draft->category_footer,
+            'code' => $verifyCode
+        ]);
+
+        return $addFooter;
     }
 
     /**
@@ -124,10 +145,9 @@ class DraftSignatureMutator
     public function doTransferFile($draft)
     {
         $fileSignatured = fopen(Storage::path($draft->document_file_name), 'r');
-        $QrCode = fopen(Storage::path($draft->NId_Temp . '.png'), 'r');
         $response = Http::withHeaders([
             'Secret' => config('sikd.webhook_secret'),
-        ])->attach('draft', $fileSignatured)->attach('qrcode', $QrCode)->post(config('sikd.webhook_url'));
+        ])->attach('draft', $fileSignatured)->post(config('sikd.webhook_url'));
 
         return $response;
     }

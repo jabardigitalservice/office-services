@@ -20,7 +20,7 @@ class DocumentDraftPdfController extends Controller
     public function __invoke(Request $request, $id)
     {
         try {
-            return $this->setDraftDocumentPdf($id);
+            return $this->setDraftDocumentPdf($request, $id);
         } catch (\Throwable $th) {
             throw new CustomException(
                 'Document can not be generate',
