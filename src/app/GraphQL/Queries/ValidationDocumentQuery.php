@@ -42,13 +42,13 @@ class ValidationDocumentQuery
     private function getValidationByQRCode($args)
     {
         $splitValue = explode('/', $args['filter']['value']);
-        $nameFile = end($splitValue);
+        $latestSlug = end($splitValue);
 
-        $inboxFile = InboxFile::where('FileName_fake', $nameFile)->first();
-        $inboxFile = null;
+        $inboxFile = InboxFile::where('NId', $latestSlug)
+                            ->where('Id_dokumen', '<>', '')->first();
 
         if (!$inboxFile) {
-            $documentSignature = DocumentSignature::where('file', $nameFile)->first();
+            $documentSignature = DocumentSignature::where('file', $latestSlug)->first();
         }
 
         $data = collect([
