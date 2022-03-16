@@ -47,6 +47,7 @@ class ValidationDocumentQuery
         $inboxFile = InboxFile::where('NId', $latestSlug)
                             ->where('Id_dokumen', '<>', '')->first();
 
+        $documentSignature = null;
         if (!$inboxFile) {
             $documentSignature = DocumentSignature::where('file', $latestSlug)->first();
         }
@@ -70,6 +71,7 @@ class ValidationDocumentQuery
         $code = $args['filter']['value'];
 
         $inboxFile = InboxFile::where('id_dokumen', $code)->first();
+        $documentSignature = null;
 
         if (!$inboxFile) {
             $documentSignature = DocumentSignature::where('code', $code)->first();
