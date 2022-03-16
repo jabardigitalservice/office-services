@@ -35,7 +35,8 @@ class InboxReceiverCorrection extends Model
         'To_Id_Desc',
         'RoleCode',
         'JenisId',
-        'id_koreksi'
+        'id_koreksi',
+        'action_label'
     ];
 
     public function draftDetail()

@@ -13,6 +13,7 @@ type InboxReceiver {
     isForwarded: Int @rename(attribute: "Status")
     isFollowUp: Int @rename(attribute: "TindakLanjut")
     message: String @rename(attribute: "Msg")
+    actionLabel: String @rename(attribute: "action_label")
     inboxDetail: Inbox @belongsTo
     sender: People @belongsTo
     purpose: [InboxReceiver]

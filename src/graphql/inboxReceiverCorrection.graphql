@@ -12,6 +12,7 @@ type InboxReceiverCorrection {
     toIdDesc: String @rename(attribute: "To_Id_Desc")
     isReturned: Int @rename(attribute: "Status")
     correctionId: String @rename(attribute: "id_koreksi")
+    actionLabel: String @rename(attribute: "action_label")
     draftDetail: Draft @belongsTo
     sender: People @belongsTo
     receiver: People @belongsTo
