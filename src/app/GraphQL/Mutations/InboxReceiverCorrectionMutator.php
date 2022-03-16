@@ -2,6 +2,7 @@
 
 namespace App\GraphQL\Mutations;
 
+use App\Enums\ActionLabelTypeEnum;
 use App\Enums\FcmNotificationActionTypeEnum;
 use App\Http\Traits\SendNotificationTrait;
 use App\Models\Draft;
@@ -57,6 +58,7 @@ class InboxReceiverCorrectionMutator
     protected function updateInboxStatus($inbox)
     {
         $inbox->Status = 1;
+        $inbox->action_label = ActionLabelTypeEnum::REVIEWED();
         $inbox->save();
     }
 
@@ -85,6 +87,7 @@ class InboxReceiverCorrectionMutator
         $inbox->StatusReceive   = 'unread';
         $inbox->ReceiveDate     = $draftData['time'];
         $inbox->To_Id_Desc      = $drafter->role->RoleName;
+        $inbox->action_label    = ActionLabelTypeEnum::CORRECTION();
         $inbox->save();
 
         return $inbox;
