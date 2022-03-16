@@ -35,7 +35,8 @@ class InboxReceiver extends Model
         'ReceiveDate',
         'To_Id_Desc',
         'Status',
-        'TindakLanjut'
+        'TindakLanjut',
+        'action_label'
     ];
 
     public function inboxDetail()
