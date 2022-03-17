@@ -36,9 +36,7 @@ trait DraftTrait
             $esign = true;
         }
         $pdf = PDF::loadView($draft->document_template_name, compact('draft', 'header', 'customData', 'esign'));
-        if ($draft->Ket == 'outboxsprint') {
-            $pdf->setPaper(array(0,0,609.4488,935.433), 'portrait'); //F4 Size
-        }
+        $pdf->setPaper(array(0,0,609.4488,935.433), 'portrait'); //F4 Size
         return $pdf->stream();
     }
 
