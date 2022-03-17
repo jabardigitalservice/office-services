@@ -2,6 +2,7 @@
 
 namespace App\GraphQL\Mutations;
 
+use App\Enums\ActionLabelTypeEnum;
 use App\Enums\DraftConceptStatusTypeEnum;
 use App\Enums\InboxReceiverCorrectionTypeEnum;
 use App\Enums\PeopleGroupTypeEnum;
@@ -242,6 +243,7 @@ class DraftSignatureMutator
         $InboxReceiverCorrection->StatusReceive = 'unread';
         $InboxReceiverCorrection->ReceiveDate   = Carbon::now();
         $InboxReceiverCorrection->To_Id_Desc    = ($draft->TtdText == 'none') ? auth()->user()->RoleDesc : null;
+        $InboxReceiverCorrection->action_label  = ActionLabelTypeEnum::APPROVED();
         $InboxReceiverCorrection->save();
 
         return $InboxReceiverCorrection;
