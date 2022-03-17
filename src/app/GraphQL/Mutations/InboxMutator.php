@@ -137,7 +137,7 @@ class InboxMutator
     }
 
     /**
-     * Define the action label
+     * Define the action label for the updated recods
      * @param String $action
      *
      * @return String
@@ -148,6 +148,24 @@ class InboxMutator
             PeopleProposedTypeEnum::DISPOSITION()->value    => ActionLabelTypeEnum::DISPOSITIONED(),
             PeopleProposedTypeEnum::FORWARD()->value,
             PeopleProposedTypeEnum::FORWARD_DRAFT()->value  => ActionLabelTypeEnum::REVIEWED(),
+            PeopleProposedTypeEnum::NUMBERING_UK()->value,
+            PeopleProposedTypeEnum::NUMBERING_TU()->value   => ActionLabelTypeEnum::NUMBERING(),
+            default                                         => null
+        };
+        return $label;
+    }
+
+    /**
+     * Generate the action label for a new recod
+     * @param String $action
+     *
+     * @return String
+     */
+    private function generateActionLabel($action)
+    {
+        $label = match ($action) {
+            PeopleProposedTypeEnum::NUMBERING_UK()->value,
+            PeopleProposedTypeEnum::NUMBERING_TU()->value   => ActionLabelTypeEnum::NUMBERING(),
             default                                         => null
         };
         return $label;
@@ -255,6 +273,7 @@ class InboxMutator
         if ($this->isDraftScope($action)) {
             $inboxReceiverCorrection = $this->generateInboxReceiverData($inboxData, $receiverId, $action);
             $inboxReceiverCorrection['ReceiverAs'] = $this->generateLabel($action);
+            $inboxReceiverCorrection['action_label'] = $this->generateActionLabel($action);
             InboxReceiverCorrection::create($inboxReceiverCorrection);
             $this->updateOriginDraft(
                 $inboxReceiverCorrection['receiver'],
