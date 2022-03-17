@@ -39,7 +39,7 @@ input DraftFilterInput {
     types: String
     urgencies: String
     statuses: String
-    receiverTypes: String
+    actionLabels: String
 }
 
 input DraftReturnInput {

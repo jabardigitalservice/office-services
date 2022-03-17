@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use App\Enums\CustomReceiverTypeEnum;
 use App\Enums\DraftObjectiveTypeEnum;
 use App\Enums\ListTypeEnum;
 use App\Http\Traits\InboxFilterTrait;
@@ -130,85 +129,8 @@ class InboxReceiverCorrection extends Model
         $this->filterByStatus($query, $filter);
         $this->filterByType($query, $filter, ListTypeEnum::DRAFT_LIST());
         $this->filterByUrgency($query, $filter, ListTypeEnum::DRAFT_LIST());
-        $this->filterDraftByReceiverTypes($query, $filter);
+        $this->filterByActionLabel($query, $filter);
         return $query;
-    }
-
-    private function filterDraftByReceiverTypes($query, $filter)
-    {
-        $receiverTypes = $filter["receiverTypes"] ?? null;
-        if ($receiverTypes) {
-            $arrayReceiverTypes = explode(", ", $receiverTypes);
-            $receiverAs = $this->getReceiverAsData($arrayReceiverTypes);
-            if (in_array(CustomReceiverTypeEnum::REVIEW(), $arrayReceiverTypes)) {
-                $this->receiverReviewQuery($query, $receiverAs);
-            } else {
-                $this->receiverDefaultQuery($query, $receiverAs);
-                $this->receiverSignQuery($query, $arrayReceiverTypes);
-            }
-        }
-    }
-
-    private function receiverDefaultQuery($query, $receiverTypes)
-    {
-        $query->whereIn('ReceiverAs', $receiverTypes);
-    }
-
-    private function receiverReviewQuery($query, $receiverTypes)
-    {
-        $query->whereIn('NId', fn($query) => $query->select('NId_Temp')
-            ->from('konsep_naskah')
-            ->whereNotIn('Konsep', ['0', '2']))
-            ->where(fn($query) => $query->whereIn('ReceiverAs', $receiverTypes)
-            ->orWhere(fn($query) => $query->where('ReceiverAs', 'meneruskan')
-                ->whereIn('NId', fn($query) => $query->select('NId_Temp')
-                    ->from('konsep_naskah')
-                    ->where(fn($query) => $query->where('nosurat', '=', null)
-                        ->orWhere('nosurat', '!=', null)
-                        ->where('Approve_People', '!=', auth()->user()->PeopleId)))));
-    }
-
-    private function receiverSignQuery($query, $receiverTypes)
-    {
-        $this->signedOperatorSelect($query, $receiverTypes);
-        if (in_array(CustomReceiverTypeEnum::SIGN_REQUEST(), $receiverTypes)) {
-            $query->whereIn('NId', fn($query) => $query->select('NId_Temp')
-                ->from('konsep_naskah')
-                ->where('nosurat', '!=', null)
-                ->where('Approve_People', '=', auth()->user()->PeopleId));
-        }
-    }
-
-    private function signedOperatorSelect($query, $receiverTypes)
-    {
-        if (in_array(CustomReceiverTypeEnum::SIGNED(), $receiverTypes)) {
-            $query->whereIn('NId', fn($query) => $query->select('NId_Temp')
-                ->from('konsep_naskah')
-                ->whereIn('Konsep', ['0', '2']));
-        } elseif (in_array(CustomReceiverTypeEnum::SIGN_REQUEST(), $receiverTypes)) {
-            $query->whereIn('NId', fn($query) => $query->select('NId_Temp')
-                ->from('konsep_naskah')
-                ->whereNotIn('Konsep', ['0', '2']));
-        }
-    }
-
-    private function getReceiverAsData($arrayReceiverTypes)
-    {
-        $receiverAs = [];
-        foreach ($arrayReceiverTypes as $receiverType) {
-            $receiverType = match ($receiverType) {
-                CustomReceiverTypeEnum::CORRECTION()->value    => array('koreksi'),
-                CustomReceiverTypeEnum::NUMBERING()->value     => array('Meminta Nomber Surat'),
-                CustomReceiverTypeEnum::SIGN_REQUEST()->value,
-                CustomReceiverTypeEnum::SIGNED()->value        => array_merge(
-                    array('meneruskan', 'approvenaskah'),
-                    $this->getReceiverAsReviewData()
-                ),
-                default => $this->getReceiverAsReviewData()
-            };
-            $receiverAs = array_merge($receiverAs, $receiverType);
-        }
-        return $receiverAs;
     }
 
     public function getReceiverAsReviewData()

@@ -2,6 +2,7 @@
 
 namespace App\Http\Traits;
 
+use App\Enums\ActionLabelTypeEnum;
 use App\Enums\InboxFilterTypeEnum;
 use App\Enums\InboxReceiverScopeType;
 use App\Enums\ListTypeEnum;
@@ -134,6 +135,28 @@ trait InboxFilterTrait
                 case InboxReceiverScopeType::INTERNAL():
                     $this->queryInternalScope($query, $userGroupRole, $departmentId);
                     break;
+            }
+        }
+    }
+
+    /**
+     * Filtering list by action label
+     *
+     * @param Object $query
+     * @param Array $filter
+     *
+     * @return Void
+     */
+    private function filterByActionLabel($query, $filter)
+    {
+        $labels = $filter["actionLabels"] ?? null;
+        if ($labels) {
+            $arraylabels = explode(", ", $labels);
+            if (in_array(ActionLabelTypeEnum::REVIEW(), $arraylabels)) {
+                $query->where(fn($query) => $query->whereNull('action_label')
+                    ->orWhereIn('action_label', $arraylabels));
+            } else {
+                $query->where('action_label', $arraylabels);
             }
         }
     }
