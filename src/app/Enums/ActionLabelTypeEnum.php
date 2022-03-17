@@ -8,6 +8,7 @@ use Spatie\Enum\Enum;
  * @method static self REVIEWED()
  * @method static self DISPOSITIONED()
  * @method static self CORRECTION()
+ * @method static self NUMBERING()
  * @method static self FINISHED()
  * @method static self APPROVED()
  */
