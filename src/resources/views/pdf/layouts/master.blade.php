@@ -7,7 +7,7 @@
                 font-family: "Arial, Helvetica, sans-serif";
             }
             @page {
-                margin: 85px 85.5px 80px 123.1px;
+                margin: 85px 85.5px 114px 123.1px;
             }
 
             section#header-section {

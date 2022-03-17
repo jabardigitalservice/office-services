@@ -68,7 +68,7 @@ class DraftSignatureMutator
     protected function doSignature($setupConfig, $draft, $passphrase)
     {
         $url = $setupConfig['url'] . '/api/sign/pdf';
-        $verifyCode = substr(sha1(uniqid(mt_rand(), true)), 0, 10);
+        $verifyCode = strtoupper(substr(sha1(uniqid(mt_rand(), true)), 0, 10));
         $pdfFile = $this->addFooterDocument($draft, $verifyCode);
 
         $response = Http::withHeaders([
