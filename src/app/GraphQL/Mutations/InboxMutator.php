@@ -123,12 +123,17 @@ class InboxMutator
         $inboxId = $inboxData['inboxId'];
         $fromId = $inboxData['from']->PeopleId;
         $actionLabel = $this->defineActionLabel($action);
-        InboxReceiver::where('NId', $inboxId)
-            ->where('To_Id', strval($fromId))
-            ->update([
-                'Status' => 1,
-                'action_label' => $actionLabel
-            ]);
+        $currentInbox = InboxReceiver::where('NId', $inboxId)
+            ->where('To_Id', strval($fromId));
+
+        $currentInbox->update(['Status' => 1]);
+        if ($this->isDraftScope($action)) {
+            InboxReceiverCorrection::where('NId', $inboxId)
+                ->where('To_Id', strval($fromId))
+                ->update(['action_label' => $actionLabel]);
+        } else {
+            $currentInbox->update(['action_label' => $actionLabel]);
+        }
     }
 
     /**
@@ -141,6 +146,8 @@ class InboxMutator
     {
         $label = match ($action) {
             PeopleProposedTypeEnum::DISPOSITION()->value    => ActionLabelTypeEnum::DISPOSITIONED(),
+            PeopleProposedTypeEnum::FORWARD()->value,
+            PeopleProposedTypeEnum::FORWARD_DRAFT()->value  => ActionLabelTypeEnum::REVIEWED(),
             default                                         => null
         };
         return $label;
