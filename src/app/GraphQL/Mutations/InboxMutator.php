@@ -145,7 +145,7 @@ class InboxMutator
     private function defineActionLabel($action)
     {
         $label = match ($action) {
-            PeopleProposedTypeEnum::DISPOSITION()->value    => ActionLabelTypeEnum::DISPOSITIONED(),
+            PeopleProposedTypeEnum::DISPOSITION()->value    => ActionLabelTypeEnum::DISPOSED(),
             PeopleProposedTypeEnum::FORWARD()->value,
             PeopleProposedTypeEnum::FORWARD_DRAFT()->value  => ActionLabelTypeEnum::REVIEWED(),
             PeopleProposedTypeEnum::NUMBERING_UK()->value,
