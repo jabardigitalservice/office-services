@@ -10,6 +10,7 @@ use Spatie\Enum\Enum;
  * @method static self CORRECTION()
  * @method static self NUMBERING()
  * @method static self FINISHED()
+ * @method static self SIGNED()
  * @method static self APPROVED()
  */
 
