@@ -174,6 +174,7 @@ class DraftSignatureMutator
         $this->doSaveInboxFile($draft, $verifyCode);
         $this->doUpdateInboxReceiver($draft);
         $this->doSaveInboxReceiverCorrection($draft);
+        $this->doUpdateInboxReceiverCorrection($draft);
         //Forward the document to TU / UK
         $this->forwardToInbox($draft);
         $this->forwardToInboxReceiver($draft);
@@ -247,6 +248,21 @@ class DraftSignatureMutator
         $InboxReceiverCorrection->save();
 
         return $InboxReceiverCorrection;
+    }
+
+    /**
+     * doUpdateInboxReceiverCorrection
+     *
+     * @param  mixed $draft
+     * @return void
+     */
+    protected function doUpdateInboxReceiverCorrection($draft)
+    {
+        $draftId = $draft->NId_Temp;
+        $userRoleId = auth()->user()->RoleId;
+        InboxReceiverCorrection::where('NId', $draftId)
+            ->where('RoleId_To', $userRoleId)
+            ->update(['action_label' => ActionLabelTypeEnum::SIGNED()]);
     }
 
     /**
