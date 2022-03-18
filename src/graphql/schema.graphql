@@ -169,10 +169,6 @@ type Mutation {
         @field(resolver: "DocumentSignatureRejectMutator@reject")
         @guard
 
-    documentSignatureForward(input: DocumentSignatureForwardInput): [DocumentSignatureForward!]
-        @field(resolver: "DocumentSignatureForwardMutator@forward")
-        @guard
-
     draftReturn(input: DraftReturnInput): InboxReceiverCorrection!
         @field(resolver: "InboxReceiverCorrectionMutator@backToDrafter")
         @guard
