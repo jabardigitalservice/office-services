@@ -5,6 +5,7 @@ namespace App\Enums;
 use Spatie\Enum\Enum;
 
 /**
+ * @method static self REVIEW()
  * @method static self REVIEWED()
  * @method static self DISPOSED()
  * @method static self CORRECTION()
