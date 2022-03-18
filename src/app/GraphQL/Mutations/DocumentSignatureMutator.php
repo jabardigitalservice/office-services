@@ -269,7 +269,7 @@ class DocumentSignatureMutator
         $messageAttribute = [
             'notification' => [
                 'title' => 'TTE Naskah',
-                'body' => 'Naskah Anda telah di tandocumentSignatureSentngani oleh ' . $name . '. Klik disini untuk lihat naskah!',
+                'body' => 'Naskah Anda telah di tandatangani oleh ' . $name . '. Klik disini untuk lihat naskah!',
             ],
             'data' => [
                 'documentSignatureSentId' => $id,
