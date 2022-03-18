@@ -226,7 +226,7 @@ class DocumentSignatureMutator
     protected function addFooterDocument($data, $newFileName, $verifyCode)
     {
         $addFooter = Http::post(config('sikd.add_footer_url'), [
-            'pdf' => 'https://devsimanis.jabarprov.go.id/api/mobile/api/v1/draft/218180322035035',
+            'pdf' => $data->documentSignature->url,
             'qrcode' => config('sikd.url') . '/FilesUploaded/ttd/sudah_ttd/' . $newFileName,
             'category' => $data->documentSignature->documentSignatureType->document_paper_type,
             'code' => $verifyCode
