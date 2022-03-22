@@ -259,7 +259,7 @@ class DraftSignatureMutator
     protected function doUpdateInboxReceiverCorrection($draft)
     {
         $draftId = $draft->NId_Temp;
-        $userRoleId = auth()->user()->RoleId;
+        $userRoleId = auth()->user()->PrimaryRoleId;
         InboxReceiverCorrection::where('NId', $draftId)
             ->where('RoleId_To', $userRoleId)
             ->update(['action_label' => ActionLabelTypeEnum::SIGNED()]);
@@ -330,7 +330,7 @@ class DraftSignatureMutator
             $InboxReceiver = new InboxReceiver();
             $InboxReceiver->NId           = $draft->NId_Temp;
             $InboxReceiver->NKey          = TableSetting::first()->tb_key;
-            $InboxReceiver->GIR_Id        = $draft->CreatedBy . Carbon::now();
+            $InboxReceiver->GIR_Id        = auth()->user()->PeopleId . Carbon::now();
             $InboxReceiver->From_Id       = auth()->user()->PeopleId;
             $InboxReceiver->RoleId_From   = auth()->user()->PrimaryRoleId;
             $InboxReceiver->To_Id         = $value->PeopleId;
