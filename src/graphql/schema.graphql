@@ -38,7 +38,7 @@ type Query {
         @guard
 
     inboxHistory(
-        inboxId: String! @builder(method: "App\\Models\\InboxReceiver@history")
+        filter: InboxHistoryFilterInput! @builder(method: "App\\Models\\InboxReceiver@history")
     ): [InboxReceiver!]!
         @orderBy(column: "ReceiveDate", direction: DESC)
         @paginate(type: CONNECTION)
