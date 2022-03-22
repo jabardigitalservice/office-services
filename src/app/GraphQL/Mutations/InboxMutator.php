@@ -147,9 +147,9 @@ class InboxMutator
         $label = match ($action) {
             PeopleProposedTypeEnum::DISPOSITION()->value    => ActionLabelTypeEnum::DISPOSED(),
             PeopleProposedTypeEnum::FORWARD()->value,
-            PeopleProposedTypeEnum::FORWARD_DRAFT()->value  => ActionLabelTypeEnum::REVIEWED(),
+            PeopleProposedTypeEnum::FORWARD_DRAFT()->value,
             PeopleProposedTypeEnum::NUMBERING_UK()->value,
-            PeopleProposedTypeEnum::NUMBERING_TU()->value   => ActionLabelTypeEnum::NUMBERING(),
+            PeopleProposedTypeEnum::NUMBERING_TU()->value   => ActionLabelTypeEnum::REVIEWED(),
             default                                         => null
         };
         return $label;
