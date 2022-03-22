@@ -44,16 +44,18 @@ class InboxReceiver extends Model
         return $this->belongsTo(Inbox::class, 'NId', 'NId');
     }
 
-    public function history($query, $NId)
+    public function history($query, $filter)
     {
-        return $query->where('NId', $NId)
-            ->where(function ($query) {
-                $query->whereIn('GIR_Id', function ($query) {
-                    $query->select('GIR_Id')
-                        ->from('inbox_receiver')
-                        ->where('RoleId_To', 'like', auth()->user()->PrimaryRoleId . '%');
-                })
-                ->orWhere('RoleId_From', 'like', auth()->user()->PrimaryRoleId . '%');
+        return $query->where('NId', $filter['inboxId'])
+            ->where(function ($query) use ($filter) {
+                if ($filter['withAuthCheck']) {
+                    $query->whereIn('GIR_Id', function ($query) {
+                        $query->select('GIR_Id')
+                            ->from('inbox_receiver')
+                            ->where('RoleId_To', 'like', auth()->user()->PrimaryRoleId . '%');
+                    })
+                    ->orWhere('RoleId_From', 'like', auth()->user()->PrimaryRoleId . '%');
+                }
             });
     }
 

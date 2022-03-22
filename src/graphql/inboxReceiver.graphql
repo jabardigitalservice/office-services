@@ -49,6 +49,11 @@ enum ScopeType {
     INTERNAL @enum(value: "INTERNAL")
 }
 
+input InboxHistoryFilterInput {
+    inboxId: String!
+    withAuthCheck: Boolean!
+}
+
 #import inbox.graphql
 #import people.graphql
 #import inboxDisposition.graphql

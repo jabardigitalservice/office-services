@@ -2,6 +2,8 @@
 
 namespace App\GraphQL\Types;
 
+use App\Enums\InboxReceiverCorrectionTypeEnum;
+use App\Models\InboxReceiverCorrection;
 use App\Models\People;
 use Illuminate\Support\Facades\Http;
 use Nuwave\Lighthouse\Support\Contracts\GraphQLContext;
@@ -27,7 +29,7 @@ class InboxFileType
             ];
         };
 
-        $signers = $this->getSigners($signatures);
+        $signers = $this->getSigners($signatures, $rootValue);
 
         $validation = [
             'isValid' => true,
@@ -64,7 +66,7 @@ class InboxFileType
      *
      * @return Array
      */
-    protected function getSigners($signaturesDetails)
+    protected function getSigners($signaturesDetails, $draft)
     {
         $signatures = $signaturesDetails->details;
         $regex = "/=.[0-9]+/i";
@@ -78,6 +80,15 @@ class InboxFileType
         }
 
         $signers = People::whereIn('NIP', $signersIds)->get();
+
+        if ($signers->isEmpty()) {
+            $signers = People::whereIn('PeopleId', function ($inboxReceiverCorrection) use ($draft) {
+                            $inboxReceiverCorrection->select('From_Id')
+                                                    ->from('inbox_receiver_koreksi')
+                                                    ->where('Nid', $draft->NId)
+                                                    ->where('ReceiverAs', InboxReceiverCorrectionTypeEnum::SIGNED()->value);
+            })->get();
+        }
 
         return $signers;
     }
