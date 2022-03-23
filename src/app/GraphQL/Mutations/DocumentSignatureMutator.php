@@ -147,7 +147,6 @@ class DocumentSignatureMutator
             throw new CustomException('Webhook failed', json_decode($response));
         } else {
             $data = $this->updateDocumentSentStatus($data, $newFileName, $verifyCode);
-            $this->forward($data);
         }
 
         Storage::disk('local')->delete($newFileName);
@@ -186,9 +185,18 @@ class DocumentSignatureMutator
             DocumentSignatureSent::where('id', $nextDocumentSent->id)->update([
                 'next' => 1
             ]);
-
             //Send notification to next people
             $this->doSendNotification($nextDocumentSent->id);
+        } else {
+            $documentSignatureForwardIds = $this->doForward($data);
+            if (!$documentSignatureForwardIds) {
+                throw new CustomException(
+                    'Forward document failed',
+                    'Return ids is missing. Please try again.'
+                );
+            }
+            //Send notification to sender
+            $this->doSendForwardNotification($data->id, $data->receiver->PeopleName);
         }
 
         return $updateDocumentSent;
@@ -233,28 +241,6 @@ class DocumentSignatureMutator
         ]);
 
         return $addFooter;
-    }
-
-    protected function forward($documentSignatureSent)
-    {
-        $nextDocument = DocumentSignatureSent::where('id', $documentSignatureSent->id)
-                                            ->where('urutan', $documentSignatureSent->urutan + 1)
-                                            ->first();
-
-        if (!$nextDocument) {
-            $documentSignatureForwardIds = $this->doForward($documentSignatureSent);
-
-            if (!$documentSignatureForwardIds) {
-                throw new CustomException(
-                    'Forward document failed',
-                    'Return ids is missing. Please try again.'
-                );
-            }
-
-            $this->doSendForwardNotification($documentSignatureSent->id, $documentSignatureSent->receiver->PeopleName);
-        }
-
-        return $documentSignatureForwardIds;
     }
 
     /**
