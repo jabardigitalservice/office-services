@@ -2,7 +2,6 @@
 
 namespace App\Http\Traits;
 
-use App\Enums\ActionLabelTypeEnum;
 use App\Enums\InboxFilterTypeEnum;
 use App\Enums\InboxReceiverScopeType;
 use App\Enums\ListTypeEnum;
@@ -152,15 +151,7 @@ trait InboxFilterTrait
         $labels = $filter["actionLabels"] ?? null;
         if ($labels) {
             $arraylabels = explode(", ", $labels);
-            if (in_array(ActionLabelTypeEnum::REVIEW(), $arraylabels)) {
-                // 2022-03-17 is the action label date implemented
-                // this filter only return the record after the date
-                $query->whereDate('ReceiveDate', '>=', date('2022-03-17'))
-                    ->where(fn($query) => $query->whereNull('action_label')
-                        ->orWhereIn('action_label', $arraylabels));
-            } else {
-                $query->whereIn('action_label', $arraylabels);
-            }
+            $query->whereIn('action_label', $arraylabels);
         }
     }
 
