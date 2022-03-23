@@ -49,4 +49,22 @@ class DocumentSignatureSentType
 
         return null;
     }
+
+     /**
+     * @param $rootValue
+     * @param array                                                    $args
+     * @param \Nuwave\Lighthouse\Support\Contracts\GraphQLContext|null $context
+     *
+     * @return array
+     */
+    public function isRead($rootValue, array $args, GraphQLContext $context)
+    {
+        if ($rootValue->PeopleIDTujuan == auth()->user()->PeopleId) {
+            return true;
+        } elseif ($rootValue->PeopleID == auth()->user()->PeopleId) {
+            return true;
+        } else {
+            return false;
+        }
+    }
 }

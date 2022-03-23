@@ -71,29 +71,16 @@ class DocumentSignatureQuery
         }
 
         //Check the inbox is readed or not
-        $this->markAsRead($documentSignatureSent, $context);
-
-        return $documentSignatureSent;
-    }
-
-    /**
-     * markAsRead
-     *
-     * @param Object $documentSignatureSent
-     * @param Object $context
-     *
-     * @return boolean
-     */
-    public function markAsRead($documentSignatureSent, $context)
-    {
-        if (!$documentSignatureSent->documentSignatureSentRead) {
-            $data = new DocumentSignatureSentRead();
-            $data->document_signature_sent_id = $documentSignatureSent->id;
-            $data->people_id = auth()->user()->PeopleId;
-            $data->read = true;
-            $data->save();
+        if ($documentSignatureSent->PeopleIDTujuan == auth()->user()->PeopleId) {
+            $documentSignatureSent->is_receiver_read = true;
         }
 
-        return true;
+        if ($documentSignatureSent->PeopleID == auth()->user()->PeopleId) {
+            $documentSignatureSent->is_sender_read = true;
+        }
+
+        $documentSignatureSent->save();
+
+        return $documentSignatureSent;
     }
 }
