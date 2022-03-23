@@ -78,7 +78,7 @@ class DocumentSignatureMutator
         $url = $setupConfig['url'] . '/api/sign/pdf';
         $newFileName = $data->documentSignature->document_file_name;
         $verifyCode = strtoupper(substr(sha1(uniqid(mt_rand(), true)), 0, 10));
-        if ($data->urutan == 1) {
+        if ($data->documentSignature->has_footer == false) {
             $pdfFile = $this->addFooterDocument($data, $newFileName, $verifyCode);
         } else {
             $pdfFile = file_get_contents($data->documentSignature->url);
@@ -174,6 +174,7 @@ class DocumentSignatureMutator
         $updateDocumentSent = tap(DocumentSignatureSent::where('id', $data->id))->update([
             'status' => 1,
             'next' => 1,
+            'has_footer' => true,
             'tgl_ttd' => setDateTimeNowValue()
         ])->first();
 
