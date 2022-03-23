@@ -334,6 +334,7 @@ class InboxMutator
             'ReceiveDate'   => $inboxData['time'],
             'To_Id_Desc'    => $receiver->role->RoleDesc,
             'Status'        => 0,
+            'action_label'  => ActionLabelTypeEnum::REVIEW(),
         ];
 
         if ($draft) {
