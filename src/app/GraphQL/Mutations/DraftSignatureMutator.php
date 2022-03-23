@@ -340,6 +340,7 @@ class DraftSignatureMutator
             $InboxReceiver->ReceiveDate   = Carbon::now();
             $InboxReceiver->To_Id_Desc    = $value->role->RoleDesc;
             $InboxReceiver->Status        = '0';
+            $InboxReceiver->action_label  = ActionLabelTypeEnum::REVIEW();
             $InboxReceiver->save();
         }
 
@@ -389,6 +390,7 @@ class DraftSignatureMutator
             $InboxReceiverCorrection->StatusReceive = 'unread';
             $InboxReceiverCorrection->ReceiveDate   = Carbon::now();
             $InboxReceiverCorrection->To_Id_Desc    = $value->role->RoleDesc;
+            $InboxReceiverCorrection->action_label  = ActionLabelTypeEnum::REVIEW();
             $InboxReceiverCorrection->save();
         }
         return $InboxReceiverCorrection;
