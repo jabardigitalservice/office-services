@@ -5,6 +5,7 @@ type DocumentSignature {
     validation: Validation @field(resolver: "App\\GraphQL\\Types\\DocumentSignatureType@validate")
     inboxFile: InboxFile @belongsTo
     documentSignatureSents: [DocumentSignatureSent]
+    documentSignatureType: DocumenSignaturetType
 }
 
 input DocumentSignatureInput {
@@ -23,3 +24,4 @@ input DocumentSignatureForwardInput {
 }
 
 #import validation.graphql
+#import documentSignatureType.graphql

@@ -1,0 +1,6 @@
+type DocumenSignaturetType {
+    id: String
+    name: String @rename(attribute: "document_type")
+    paper: String @rename(attribute: "document_paper_type")
+    target: String @rename(attribute: "document_forward_target")
+}
