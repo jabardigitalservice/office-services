@@ -147,18 +147,8 @@ class InboxQuery
     private function unreadCountSignatureQuery($context)
     {
         $user = $context->user;
-        $readIds = DB::connection('mysql')->table('document_signature_sent_reads')
-            ->where('people_id', $user->PeopleId)
-            ->pluck('document_signature_sent_id')
-            ->toArray();
-
-        $sentIds = DocumentSignatureSent::where(fn($query) => $query->where('PeopleIDTujuan', $user->PeopleId))
-            ->orWhere(fn($query) => $query->where('PeopleId', $user->PeopleId)
-                ->where('status', '!=', SignatureStatusTypeEnum::WAITING()->value))
-            ->pluck('id')
-            ->toArray();
-
-        $query = DocumentSignatureSent::whereIn('id', array_diff($sentIds, $readIds));
+        $query = DocumentSignatureSent::where('is_receiver_read', false)
+            ->where('PeopleIDTujuan', $user->PeopleId);
 
         return $query->count();
     }
