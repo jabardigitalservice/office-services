@@ -65,18 +65,26 @@ class DocumentSignatureSent extends Model
 
         $withReceiverId = [];
         if ($withReceiver) {
-            $withReceiverId = DocumentSignatureSent::where('is_receiver_read', $read)
-            ->where('PeopleIDTujuan', auth()->user()->PeopleId)
-            ->pluck('id');
+            $withReceiverId = DocumentSignatureSent::where('PeopleIDTujuan', auth()->user()->PeopleId)
+                    ->where(function ($query) use ($read) {
+                        if (is_bool($read)) {
+                            $query->where('is_receiver_read', $read);
+                        }
+                    })
+                    ->pluck('id');
         }
 
         //show data on inbox sender if document signature is already actioned
         $withSenderId = [];
         if ($withSender) {
-            $withSenderId = DocumentSignatureSent::where('is_sender_read', $read)
-            ->where('PeopleID', auth()->user()->PeopleId)
-            ->where('status', '!=', SignatureStatusTypeEnum::WAITING()->value)
-            ->pluck('id');
+            $withSenderId = DocumentSignatureSent::where('PeopleID', auth()->user()->PeopleId)
+                    ->where('status', '!=', SignatureStatusTypeEnum::WAITING()->value)
+                    ->where(function ($query) use ($read) {
+                        if (is_bool($read)) {
+                            $query->where('is_sender_read', $read);
+                        }
+                    })
+                    ->pluck('id');
         }
 
         $query->whereIn('id', Arr::collapse([$withReceiverId, $withSenderId]));
