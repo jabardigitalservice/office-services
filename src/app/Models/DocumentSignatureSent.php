@@ -4,15 +4,13 @@ namespace App\Models;
 
 use App\Enums\SignatureStatusTypeEnum;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Hoyvoy\CrossDatabase\Eloquent\Model;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
 
 class DocumentSignatureSent extends Model
 {
     use HasFactory;
-
-    use \Awobaz\Compoships\Compoships;
 
     protected $connection = 'sikdweb';
 
@@ -29,7 +27,9 @@ class DocumentSignatureSent extends Model
     protected $fillable = [
         'status',
         'next',
-        'tgl_ttd'
+        'tgl_ttd',
+        'is_sender_read',
+        'is_receiver_read'
     ];
 
     public function receiver()
@@ -52,11 +52,6 @@ class DocumentSignatureSent extends Model
         return $this->hasMany(PersonalAccessToken::class, 'tokenable_id', 'PeopleID');
     }
 
-    public function documentSignatureSentRead()
-    {
-        return $this->belongsTo(DocumentSignatureSentRead::class, ['id', 'PeopleIDTujuan'], ['document_signature_sent_id', 'people_id']);
-    }
-
     public function documentSignature()
     {
         return $this->belongsTo(DocumentSignature::class, 'ttd_id', 'id');
@@ -64,50 +59,27 @@ class DocumentSignatureSent extends Model
 
     public function filter($query, $filter)
     {
-        $statuses = $filter['statuses'] ?? null;
         $read = $filter['read'] ?? null;
-        $unread = $filter['unread'] ?? null;
         $withSender = $filter['withSender'] ?? null;
         $withReceiver = $filter['withReceiver'] ?? null;
-        $readId = [];
 
         $withReceiverId = [];
         if ($withReceiver) {
-            $withReceiverId = DB::connection('sikdweb')->table('m_ttd_kirim')
-            ->select('id')
+            $withReceiverId = DocumentSignatureSent::where('is_receiver_read', $read)
             ->where('PeopleIDTujuan', auth()->user()->PeopleId)
             ->pluck('id');
         }
 
-        //get data by sender if data has success/reject status value
+        //show data on inbox sender if document signature is already actioned
         $withSenderId = [];
         if ($withSender) {
-            $withSenderId = DB::connection('sikdweb')->table('m_ttd_kirim')
-            ->select('id')
+            $withSenderId = DocumentSignatureSent::where('is_sender_read', $read)
             ->where('PeopleID', auth()->user()->PeopleId)
             ->where('status', '!=', SignatureStatusTypeEnum::WAITING()->value)
             ->pluck('id');
         }
 
-        $documentSignatureSentIds = Arr::collapse([$withReceiverId, $withSenderId]);
-
-        if ($read || $unread) {
-            $readId = DB::connection('mysql')->table('document_signature_sent_reads')
-            ->select('document_signature_sent_id')
-            ->where('people_id', auth()->user()->PeopleId)
-            ->pluck('document_signature_sent_id')
-            ->toArray();
-        }
-
-        if ($read && !$unread) {
-            $documentSignatureSentIds = array_intersect($documentSignatureSentIds, $readId);
-        }
-
-        if (!$read && $unread) {
-            $documentSignatureSentIds = array_diff($documentSignatureSentIds, $readId);
-        }
-
-        $query->whereIn('id', $documentSignatureSentIds);
+        $query->whereIn('id', Arr::collapse([$withReceiverId, $withSenderId]));
 
         $this->filterByStatus($query, $filter);
         return $query;

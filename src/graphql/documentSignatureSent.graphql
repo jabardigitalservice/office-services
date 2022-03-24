@@ -11,7 +11,7 @@ type DocumentSignatureSent {
     next: String
     sender: People!
     receiver: People!
-    read: Boolean @belongsTo(relation: "documentSignatureSentRead")
+    read: Boolean @field(resolver: "App\\GraphQL\\Types\\DocumentSignatureSentType@isRead")
     isLastSigned: Boolean @field(resolver: "App\\GraphQL\\Types\\DocumentSignatureSentType@isLastSigned")
     parent: DocumentSignatureSent @field(resolver: "App\\GraphQL\\Types\\DocumentSignatureSentType@parent")
     documentSignature: DocumentSignature @belongsTo
@@ -25,7 +25,6 @@ type DocumentSignatureSentHistory {
 input documentSignatureSentsInput {
     statuses: String
     read: Boolean
-    unread: Boolean
     withSender: Boolean
     withReceiver: Boolean
 }
