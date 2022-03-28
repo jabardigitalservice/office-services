@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\CustomReceiverTypeEnum;
 use App\Enums\DraftObjectiveTypeEnum;
 use App\Enums\ListTypeEnum;
 use App\Http\Traits\InboxFilterTrait;
@@ -131,7 +132,28 @@ class InboxReceiverCorrection extends Model
         $this->filterByType($query, $filter, ListTypeEnum::DRAFT_LIST());
         $this->filterByUrgency($query, $filter, ListTypeEnum::DRAFT_LIST());
         $this->filterByActionLabel($query, $filter);
+        $this->filterByReceiverLabel($query, $filter);
         return $query;
+    }
+
+    /**
+     * Filtering list by receiver types
+     *
+     * @param Object $query
+     * @param Array $filter
+     *
+     * @return Void
+     */
+    private function filterByReceiverLabel($query, $filter)
+    {
+        $receiverTypes = $filter["receiverTypes"] ?? null;
+        if ($receiverTypes) {
+            $arrayReceiverTypes = explode(", ", $receiverTypes);
+            if (in_array(strtolower(CustomReceiverTypeEnum::REVIEW()), $arrayReceiverTypes)) {
+                $arrayReceiverTypes = array_merge($this->getReceiverAsReviewData(), $arrayReceiverTypes);
+            }
+            $query->whereIn('ReceiverAs', $arrayReceiverTypes);
+        }
     }
 
     public function getReceiverAsReviewData()
