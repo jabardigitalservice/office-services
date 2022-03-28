@@ -52,6 +52,7 @@ enum ScopeType {
 input InboxHistoryFilterInput {
     inboxId: String!
     withAuthCheck: Boolean!
+    status: String
 }
 
 #import inbox.graphql
