@@ -147,8 +147,12 @@ class InboxQuery
     private function unreadCountSignatureQuery($context)
     {
         $user = $context->user;
-        $query = DocumentSignatureSent::where('is_receiver_read', false)
-            ->where('PeopleIDTujuan', $user->PeopleId);
+        $query = DocumentSignatureSent::where(fn($query) => $query
+            ->where('is_receiver_read', false)
+            ->where('PeopleIDTujuan', $user->PeopleId)
+            ->orWhere('PeopleID', $user->PeopleId)
+                ->where('status', '!=', SignatureStatusTypeEnum::WAITING()->value)
+                ->where('is_sender_read', false));
 
         return $query->count();
     }
