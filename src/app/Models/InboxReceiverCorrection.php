@@ -113,7 +113,8 @@ class InboxReceiverCorrection extends Model
                 break;
 
             case DraftObjectiveTypeEnum::OUT():
-                $query->where('To_Id', '!=', $userId);
+                $query->where(fn($query) => $query->whereNull('To_Id')
+                        ->orWhere('To_Id', '!=', $userId));
                 break;
 
             case DraftObjectiveTypeEnum::REVISE():
