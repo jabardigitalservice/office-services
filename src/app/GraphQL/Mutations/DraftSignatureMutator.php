@@ -381,14 +381,14 @@ class DraftSignatureMutator
             $InboxReceiverCorrection = new InboxReceiverCorrection();
             $InboxReceiverCorrection->NId           = $draft->NId_Temp;
             $InboxReceiverCorrection->NKey          = TableSetting::first()->tb_key;
-            $InboxReceiverCorrection->GIR_Id        = auth()->user()->PeopleId . Carbon::now();
+            $InboxReceiverCorrection->GIR_Id        = auth()->user()->PeopleId . Carbon::now()->addSeconds(1);
             $InboxReceiverCorrection->From_Id       = auth()->user()->PeopleId;
             $InboxReceiverCorrection->RoleId_From   = auth()->user()->PrimaryRoleId;
             $InboxReceiverCorrection->To_Id         = $value->PeopleId;
             $InboxReceiverCorrection->RoleId_To     = $value->PrimaryRoleId;
             $InboxReceiverCorrection->ReceiverAs    = 'meneruskan';
             $InboxReceiverCorrection->StatusReceive = 'unread';
-            $InboxReceiverCorrection->ReceiveDate   = Carbon::now();
+            $InboxReceiverCorrection->ReceiveDate   = Carbon::now()->addSeconds(1);
             $InboxReceiverCorrection->To_Id_Desc    = $value->role->RoleDesc;
             $InboxReceiverCorrection->action_label  = ActionLabelTypeEnum::REVIEW();
             $InboxReceiverCorrection->save();

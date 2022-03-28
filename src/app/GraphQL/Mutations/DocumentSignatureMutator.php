@@ -167,14 +167,14 @@ class DocumentSignatureMutator
         $updateFileData = DocumentSignature::where('id', $data->ttd_id)->update([
             'status' => 1,
             'file' => $newFileName,
-            'code' => $verifyCode
+            'code' => $verifyCode,
+            'has_footer' => true,
         ]);
 
         //update status document sent to 1 (signed)
         $updateDocumentSent = tap(DocumentSignatureSent::where('id', $data->id))->update([
             'status' => 1,
             'next' => 1,
-            'has_footer' => true,
             'tgl_ttd' => setDateTimeNowValue()
         ])->first();
 

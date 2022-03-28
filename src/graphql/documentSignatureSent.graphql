@@ -17,6 +17,10 @@ type DocumentSignatureSent {
     documentSignature: DocumentSignature @belongsTo
 }
 
+type DocumentSignatureSentTimelines {
+    documentSignatuerSents: [DocumentSignatureSent]
+}
+
 type DocumentSignatureSentHistory {
     documentSignatureForward: [DocumentSignatureForward]
     documentSignatureSent: [DocumentSignatureSent]
@@ -35,6 +39,12 @@ input outboxDocumentSignatureSentsInput {
 
 input documentSignatureSentTimelineInput {
     documentSignatureId: String!
+    sort: String!
+    status: StatusType
+}
+
+input documentSignatureSentTimelinesInput {
+    documentSignatureIds: String!
     sort: String!
     status: StatusType
 }

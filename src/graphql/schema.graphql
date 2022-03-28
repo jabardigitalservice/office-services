@@ -87,6 +87,12 @@ type Query {
         @field(resolver: "DocumentSignatureQuery@detail")
         @guard
 
+    documentSignatureSentTimelines(
+        filter: documentSignatureSentTimelinesInput
+    ): [DocumentSignatureSentTimelines!]!
+        @field(resolver: "DocumentSignatureQuery@timelines")
+        @guard
+
     documentSignatureSentTimeline(
         filter: documentSignatureSentTimelineInput @builder(method: "App\\Models\\DocumentSignatureSent@filterTimeline")
     ): [DocumentSignatureSent!]!
