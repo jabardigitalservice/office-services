@@ -48,6 +48,7 @@ class InboxReceiver extends Model
     {
         return $query->where('NId', $filter['inboxId'])
             ->where(function ($query) use ($filter) {
+                $status = $filter['status'] ?? null;
                 if ($filter['withAuthCheck']) {
                     $query->whereIn('GIR_Id', function ($query) {
                         $query->select('GIR_Id')
@@ -55,6 +56,10 @@ class InboxReceiver extends Model
                             ->where('RoleId_To', 'like', auth()->user()->PrimaryRoleId . '%');
                     })
                     ->orWhere('RoleId_From', 'like', auth()->user()->PrimaryRoleId . '%');
+                }
+                if ($status) {
+                    $status = explode(', ', $status);
+                    $query->whereIn('ReceiverAs', $status);
                 }
             });
     }

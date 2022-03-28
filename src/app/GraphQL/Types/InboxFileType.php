@@ -3,6 +3,8 @@
 namespace App\GraphQL\Types;
 
 use App\Enums\InboxReceiverCorrectionTypeEnum;
+use App\Enums\SignatureStatusTypeEnum;
+use App\Models\DocumentSignature;
 use App\Models\InboxReceiverCorrection;
 use App\Models\People;
 use Illuminate\Support\Facades\Http;
@@ -88,6 +90,17 @@ class InboxFileType
                                                     ->where('Nid', $draft->NId)
                                                     ->where('ReceiverAs', InboxReceiverCorrectionTypeEnum::SIGNED()->value);
             })->get();
+
+            if ($signers->isEmpty()) {
+                $documentSignature = DocumentSignature::where('file', $draft->FileName_fake)->first();
+                $signers = People::whereIn('PeopleId', function ($query) use ($documentSignature) {
+                    $query->select('PeopleIDTujuan')
+                        ->from('m_ttd_kirim')
+                        ->where('status', SignatureStatusTypeEnum::SUCCESS()->value)
+                        ->where('ttd_id', $documentSignature->id)
+                        ->whereIn('PeopleIDTujuan', $documentSignature->documentSignatureSents->pluck('PeopleIDTujuan'));
+                })->get();
+            }
         }
 
         return $signers;
