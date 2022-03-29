@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\ObjectiveTypeEnum;
 use App\Enums\SignatureStatusTypeEnum;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -55,6 +56,29 @@ class DocumentSignatureSent extends Model
     public function documentSignature()
     {
         return $this->belongsTo(DocumentSignature::class, 'ttd_id', 'id');
+    }
+
+    public function objective($query, $objective)
+    {
+        $userId = auth()->user()->PeopleId;
+        switch ($objective) {
+            case ObjectiveTypeEnum::IN():
+                $query->where(fn($query) => $query
+                    ->where('PeopleIDTujuan', $userId)
+                    ->orWhere('PeopleID', $userId)
+                    ->where('status', '!=', SignatureStatusTypeEnum::WAITING()->value)
+                );
+                break;
+
+            case ObjectiveTypeEnum::OUT():
+                $query->where(fn($query) => $query
+                    ->where('PeopleID', $userId)
+                    ->orWhere('PeopleIDTujuan', $userId)
+                    ->where('status', '!=', SignatureStatusTypeEnum::WAITING()->value)
+                );
+                break;
+        }
+        return $query;
     }
 
     public function filter($query, $filter)

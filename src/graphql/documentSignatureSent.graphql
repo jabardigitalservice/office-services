@@ -54,6 +54,11 @@ enum StatusType {
     UNSIGNED
 }
 
+enum ObjectiveType {
+    IN
+    OUT
+}
+
 #import people.graphql
 #import documentSignature.graphql
 #import documentSignatureForward.graphql
