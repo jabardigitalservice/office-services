@@ -34,6 +34,16 @@ class Inbox extends Model
         return $this->belongsTo(InboxFile::class, 'NId', 'NId');
     }
 
+    public function draft()
+    {
+        return $this->belongsTo(Draft::class, 'NId', 'NId_Temp');
+    }
+
+    public function getMadeFromDraftAttribute(): bool
+    {
+        return (bool) $this->draft()->exists();
+    }
+
     public function getDocumentBaseUrlAttribute()
     {
         return config('sikd.base_path_file');

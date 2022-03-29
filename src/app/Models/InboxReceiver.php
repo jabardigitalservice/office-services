@@ -6,7 +6,7 @@ use App\Enums\ListTypeEnum;
 use App\Enums\PeopleGroupTypeEnum;
 use App\Http\Traits\InboxFilterTrait;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Hoyvoy\CrossDatabase\Eloquent\Model;
+use Illuminate\Database\Eloquent\Model;
 
 class InboxReceiver extends Model
 {
