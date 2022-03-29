@@ -166,6 +166,7 @@ class InboxMutator
         $label = match ($action) {
             PeopleProposedTypeEnum::NUMBERING_UK()->value,
             PeopleProposedTypeEnum::NUMBERING_TU()->value   => ActionLabelTypeEnum::NUMBERING(),
+            PeopleProposedTypeEnum::FORWARD_DRAFT()->value  => ActionLabelTypeEnum::REVIEW(),
             default                                         => null
         };
         return $label;
