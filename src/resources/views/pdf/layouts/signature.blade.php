@@ -6,6 +6,7 @@
             $fontSizeInBox = '11px;';
             $boxSignature = '-62px;';
             $imageOnBoxSignature = '80px;';
+            $roleFontSize = '12px';
             $reviewTitle = true;
             break;
 
@@ -14,6 +15,16 @@
             $fontSizeInBox = '13px;';
             $boxSignature = '0px;';
             $imageOnBoxSignature = '65px;';
+            $roleFontSize = '16px';
+            $reviewTitle = false;
+            break;
+
+        case 'outboxrekomendasi':
+            $signatureBoxSize = '340px';
+            $fontSizeInBox = '13px;';
+            $boxSignature = '0px;';
+            $imageOnBoxSignature = '65px;';
+            $roleFontSize = '16px';
             $reviewTitle = false;
             break;
 
@@ -22,6 +33,7 @@
             $fontSizeInBox = '10px;';
             $boxSignature = '0px;';
             $imageOnBoxSignature = '45px;';
+            $roleFontSize = '12px';
             $reviewTitle = true;
             break;
     }
@@ -35,13 +47,16 @@
 @endif
 <section class="signature-content-section" style="position: relative; left: 255px; width: {{ $signatureBoxSize }}">
     <div style="width: {{ $signatureBoxSize }} position: relative; left: {{ $boxSignature; }}">
-        @if ($draft->Ket == 'outboxsprint')
-            <p style="text-align: center; font-size:16px;">
-                Ditetapkan di {{ ($esign) ? $draft->lokasi : ".............."  }} <br>
-                Pada tanggal {{ ($esign) ? parseSetLocaleDate($draft->TglNaskah, 'id', 'd F Y') : ".............."  }}
-            </p>
-        @endif
-        <p style="text-align: center; font-size: {{ ($draft->Ket == 'outboxsprint') ? '16px; margin-bottom: 0;' : '12px;' }}">
+        <p style="text-align: center; font-size:16px; margin: 0px;">
+            @if ($draft->Ket == 'outboxsprint')
+            Ditetapkan di {{ ($esign) ? $draft->lokasi : ".............."  }} <br>
+            Pada tanggal {{ ($esign) ? parseSetLocaleDate($draft->TglNaskah, 'id', 'd F Y') : ".............."  }}
+            @endif
+            @if ($draft->Ket == 'outboxrekomendasi')
+                    {{ $draft->lokasi . ', ' . parseSetLocaleDate($draft->TglNaskah, 'id', 'd F Y');  }}
+            @endif
+        </p>
+        <p style="text-align: center; font-size: {{ $roleFontSize }}; margin: 5px 0px;">
             @if ($draft->TtdText == 'PLT')
                 Plt. {!! $draft->reviewer->role->RoleName !!},
             @elseif ($draft->TtdText == 'PLH')

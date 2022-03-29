@@ -85,7 +85,7 @@
             </div>
         </div>
     </div>
-    <div style="margin: 70px 5px 0px 5px;">
+    <div style="margin: 5px;">
         @include('pdf.layouts.signature')
     </div>
 @endsection
