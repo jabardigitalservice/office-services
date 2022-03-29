@@ -9,6 +9,7 @@ type Inbox {
     fromOrg: String @rename(attribute: "Instansipengirim")
     about: String @rename(attribute: "Hal")
     type: DocumentType @belongsTo
+    madeFromDraft: Boolean @rename(attribute: "made_from_draft")
     urgency: DocumentUrgency @belongsTo
     createdBy: People @belongsTo
     documentBaseUrl: String @rename(attribute: "document_base_url")
