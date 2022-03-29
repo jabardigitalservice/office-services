@@ -51,7 +51,7 @@ trait DraftTrait
         $customData = match ($draft->Ket) {
             'outboxnotadinas'       => $this->setDataNotaDinas($draft),
             'outboxkeluar'          => $this->setDataSuratDinas($draft),
-            default                 => $this->setDataSuratPerintah($draft),
+            default                 => $this->setDataDefault($draft),
         };
 
         return $customData;
@@ -83,12 +83,12 @@ trait DraftTrait
     }
 
     /**
-     * setDataSuratPerintah
+     * setDataDefault
      *
      * @param  collection $draft
      * @return array
      */
-    public function setDataSuratPerintah($draft)
+    public function setDataDefault($draft)
     {
         $response['receivers'] = $this->getReceivers($draft);
         return $response;

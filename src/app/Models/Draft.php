@@ -133,7 +133,7 @@ class Draft extends Model
             'outboxsket'            => 'pdf.surat_keterangan',
             'outboxpengumuman'      => 'pdf.pengumuman',
             'outboxsuratizin'       => 'pdf.surat_izin',
-            'outboxrekomendasi'     => 'pdf.rekomendasi',
+            'outboxrekomendasi'     => 'pdf.surat_rekomendasi',
             default                 => 'pdf.nadin_lain',
         };
 
