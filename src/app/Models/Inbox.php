@@ -39,9 +39,9 @@ class Inbox extends Model
         return $this->belongsTo(Draft::class, 'NId', 'NId_Temp');
     }
 
-    public function getMadeFromDraftAttribute(): bool
+    public function getMadeFromDraftAttribute()
     {
-        return (bool) $this->draft()->exists();
+        return $this->draft()->exists();
     }
 
     public function getDocumentBaseUrlAttribute()
