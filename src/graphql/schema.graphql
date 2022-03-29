@@ -75,8 +75,8 @@ type Query {
     outboxDocumentSignatureSents(
         search: String @builder(method: "App\\Models\\DocumentSignatureSent@search")
         filter: outboxDocumentSignatureSentsInput @builder(method: "App\\Models\\DocumentSignatureSent@outboxFilter")
+        objective: ObjectiveType @builder(method: "App\\Models\\DocumentSignatureSent@objective")
     ): [DocumentSignatureSent!]!
-        @whereAuth(relation: "sender")
         @orderBy(column: "tgl", direction: DESC)
         @paginate(type: CONNECTION)
         @guard

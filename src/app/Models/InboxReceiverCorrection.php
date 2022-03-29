@@ -3,7 +3,7 @@
 namespace App\Models;
 
 use App\Enums\CustomReceiverTypeEnum;
-use App\Enums\DraftObjectiveTypeEnum;
+use App\Enums\ObjectiveTypeEnum;
 use App\Enums\ListTypeEnum;
 use App\Http\Traits\InboxFilterTrait;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -108,17 +108,17 @@ class InboxReceiverCorrection extends Model
         });
 
         switch ($objective) {
-            case DraftObjectiveTypeEnum::IN():
+            case ObjectiveTypeEnum::IN():
                 $query->where('From_Id', '!=', $userId)
                     ->where('ReceiverAs', '!=', 'to_koreksi');
                 break;
 
-            case DraftObjectiveTypeEnum::OUT():
+            case ObjectiveTypeEnum::OUT():
                 $query->where(fn($query) => $query->whereNull('To_Id')
                         ->orWhere('To_Id', '!=', $userId));
                 break;
 
-            case DraftObjectiveTypeEnum::REVISE():
+            case ObjectiveTypeEnum::REVISE():
                 $query->where('From_Id', $userId)
                     ->where('To_Id', $userId);
                 break;

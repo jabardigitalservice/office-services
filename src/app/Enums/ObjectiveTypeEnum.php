@@ -10,7 +10,6 @@ use Spatie\Enum\Enum;
  * @method static self REVISE()
  */
 
-final class DraftObjectiveTypeEnum extends Enum
+final class ObjectiveTypeEnum extends Enum
 {
-
 }
