@@ -122,12 +122,7 @@ class InboxQuery
         $deptCode = $user->role->RoleCode;
         $query = InboxReceiver::where('RoleId_To', $user->PrimaryRoleId)
             ->where('StatusReceive', 'unread')
-            ->where('ReceiverAs', 'to_forward')
-            ->whereHas('sender', function ($senderQuery) use ($deptCode) {
-                $senderQuery->whereHas('role', function ($roleQuery) use ($deptCode) {
-                    $roleQuery->where('RoleCode', '=', $deptCode);
-                });
-            })
+            ->whereIn('ReceiverAs', ['to_forward', 'bcc'])
             ->whereHas('inboxDetail', function ($detailQuery) {
                 $detailQuery->where('Pengirim', '=', 'eksternal');
             });
