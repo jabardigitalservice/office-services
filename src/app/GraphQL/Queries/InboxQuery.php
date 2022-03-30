@@ -9,7 +9,6 @@ use App\Exceptions\CustomException;
 use App\Models\DocumentSignatureSent;
 use App\Models\InboxReceiver;
 use App\Models\InboxReceiverCorrection;
-use Illuminate\Support\Facades\DB;
 use Nuwave\Lighthouse\Support\Contracts\GraphQLContext;
 
 class InboxQuery
@@ -119,7 +118,6 @@ class InboxQuery
     private function unreadCountDeptQuery($context)
     {
         $user = $context->user;
-        $deptCode = $user->role->RoleCode;
         $query = InboxReceiver::where('RoleId_To', $user->PrimaryRoleId)
             ->where('StatusReceive', 'unread')
             ->whereIn('ReceiverAs', ['to_forward', 'bcc'])
