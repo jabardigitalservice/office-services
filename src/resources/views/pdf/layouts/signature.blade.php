@@ -49,14 +49,14 @@
     <div style="width: {{ $signatureBoxSize }} position: relative; left: {{ $boxSignature; }}">
         <p style="text-align: center; font-size:16px; margin: 0px;">
             @if ($draft->Ket == 'outboxsprint')
-            Ditetapkan di {{ ($esign) ? $draft->lokasi : ".............."  }} <br>
-            Pada tanggal {{ ($esign) ? parseSetLocaleDate($draft->TglNaskah, 'id', 'd F Y') : ".............."  }}
+            Ditetapkan di {{ ($esign) ? $draft->lokasi : '..............'  }} <br>
+            Pada tanggal {{ ($esign) ? parseSetLocaleDate($draft->TglNaskah, 'id', 'd F Y') : '..............'  }}
             @endif
             @if ($draft->Ket == 'outboxrekomendasi')
-                    {{ $draft->lokasi . ', ' . parseSetLocaleDate($draft->TglNaskah, 'id', 'd F Y');  }}
+                {{ ($esign) ? $draft->lokasi . ', ' . parseSetLocaleDate($draft->TglNaskah, 'id', 'd F Y') : 'Tempat, tanggal, bulan dan tahun';  }}
             @endif
         </p>
-        <p style="text-align: center; font-size: {{ $roleFontSize }}; margin: 5px 0px;">
+        <p style="text-align: center; font-size: {{ $roleFontSize }}; margin: 5px 0px 15px 0px;">
             @if ($draft->TtdText == 'PLT')
                 Plt. {!! $draft->reviewer->role->RoleName !!},
             @elseif ($draft->TtdText == 'PLH')
