@@ -20,6 +20,7 @@ type Inbox {
 type UnreadCount {
     regional: Int!
     internal: Int!
+    forward: Int!
     disposition: Int!
     signature: Int!
     draft: Int!
