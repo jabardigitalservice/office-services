@@ -55,20 +55,22 @@ class InboxQuery
 
         $found = $this->isFoundUserPosition($userPosition, $positionGroups);
         if ($found) {
-            $regionalCount = $this->unreadCountDeptQuery($context);
+            $forwardCount = $this->unreadCountDeptQuery($context);
         } else {
-            $regionalCount = $this->unreadCountQuery(InboxReceiverScopeType::REGIONAL(), $context);
+            $forwardCount = $this->unreadCountQuery(InboxReceiverScopeType::REGIONAL(), $context);
         }
 
         $internalCount = $this->unreadCountQuery(InboxReceiverScopeType::INTERNAL(), $context);
         $dispositionCount = $this->unreadCountQuery(InboxReceiverScopeType::DISPOSITION(), $context);
+        $regionalCount = (int) $forwardCount + (int) $dispositionCount;
         $signatureCount = $this->unreadCountSignatureQuery($context);
         $draftCount = $this->draftUnreadCountQuery($context);
 
         $count = [
+            'forward'       => $forwardCount,
+            'disposition'   => $dispositionCount,
             'regional'      => $regionalCount,
             'internal'      => $internalCount,
-            'disposition'   => $dispositionCount,
             'signature'     => $signatureCount,
             'draft'         => $draftCount
         ];
