@@ -60,7 +60,9 @@
             <div class="row has-margin-bottom">
                 <div class="column" style="width: 110px">Dasar</div>
                 <div class="column" style="width: 13px">:</div>
-                <div class="column align-justify list-no-margin" style="width: 480px;">{!! $draft->Hal !!}</div>
+            </div>
+            <div class="align-justify list-no-margin" style="position: relative; left: 123px; top: -30px; width: 480px;">
+                {!! $draft->Hal !!}
             </div>
             @php $content = json_decode($draft->Konten); @endphp
             <div class="row has-margin-bottom">
