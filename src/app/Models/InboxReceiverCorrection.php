@@ -150,6 +150,7 @@ class InboxReceiverCorrection extends Model
         if ($receiverTypes) {
             $arrayReceiverTypes = explode(", ", $receiverTypes);
             if (in_array(strtolower(CustomReceiverTypeEnum::REVIEW()), $arrayReceiverTypes)) {
+                array_push($arrayReceiverTypes, 'meneruskan');
                 $arrayReceiverTypes = array_merge($this->getReceiverAsReviewData(), $arrayReceiverTypes);
             }
             $query->whereIn('ReceiverAs', $arrayReceiverTypes);
