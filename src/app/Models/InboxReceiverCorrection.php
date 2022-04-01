@@ -153,7 +153,8 @@ class InboxReceiverCorrection extends Model
                 array_push($arrayReceiverTypes, 'meneruskan');
                 $arrayReceiverTypes = array_merge($this->getReceiverAsReviewData(), $arrayReceiverTypes);
             }
-            $query->whereIn('ReceiverAs', $arrayReceiverTypes);
+            $query->whereIn('ReceiverAs', $arrayReceiverTypes)
+                ->whereNotNull('action_label');
         }
     }
 
