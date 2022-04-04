@@ -75,7 +75,7 @@
         @if (!$esign && $reviewTitle == true)
             <p style="text-align: center;">PEMERIKSA</p>
         @endif
-        <div style="border: 1px solid #000000; font-size: {{ $fontSizeInBox; }};">
+        <div style="border: 1px solid #000000; font-size: {{ $fontSizeInBox; }}; border-radius: 8px;">
             <table class="table-collapse no-padding-table signature-table">
                 <tr>
                     <td rowspan="4" style="vertical-align: middle; text-align:center">
@@ -85,7 +85,7 @@
                             <img src="{{ public_path('/images/logo-empty.jpg') }}" width="{{ $imageOnBoxSignature }}">
                         @endif
                     </td>
-                    <td>Ditandatangani secara elekronik oleh:</td>
+                    <td style="padding-top: 6px;">Ditandatangani secara elekronik oleh:</td>
                 </tr>
                 <tr>
                     <td>
@@ -112,11 +112,13 @@
                         {{ $draft->Nama_ttd_konsep }}
                     </td>
                 </tr>
-                <tr>
-                    <td>
-                        {{ $draft->reviewer->Pangkat }}
-                    </td>
-                </tr>
+                @if ($draft->reviewer->Pangkat != null)
+                    <tr>
+                        <td style="padding-bottom: 6px;">
+                            {{ $draft->reviewer->Pangkat }}
+                        </td>
+                    </tr>
+                @endif
             </table>
         </div>
     </div>
