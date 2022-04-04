@@ -10,6 +10,7 @@ use Spatie\Enum\Enum;
  * @method static self SIGN_REQUEST()
  * @method static self SIGNED()
  * @method static self REVIEW()
+ * @method static self DISTRIBUTION()
  */
 
 final class CustomReceiverTypeEnum extends Enum
