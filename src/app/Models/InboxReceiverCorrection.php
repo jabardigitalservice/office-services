@@ -149,12 +149,66 @@ class InboxReceiverCorrection extends Model
         $receiverTypes = $filter["receiverTypes"] ?? null;
         if ($receiverTypes) {
             $arrayReceiverTypes = explode(", ", $receiverTypes);
-            if (in_array(strtolower(CustomReceiverTypeEnum::REVIEW()), $arrayReceiverTypes)) {
-                array_push($arrayReceiverTypes, 'meneruskan');
-                $arrayReceiverTypes = array_merge($this->getReceiverAsReviewData(), $arrayReceiverTypes);
-            }
-            $query->whereIn('ReceiverAs', $arrayReceiverTypes)
-                ->whereNotNull('action_label');
+            $this->filterReceiverLabelReviewQuery($query, $arrayReceiverTypes);
+            $this->filterReceiverLabelDistributionQuery($query, $arrayReceiverTypes);
+            $this->filterReceiverLabelDefaultQuery($query, $arrayReceiverTypes);
+            $query->whereNotNull('action_label');
+        }
+    }
+
+    /**
+     * Receiver label default filter query
+     *
+     * @param Object $query
+     * @param Array $arrayReceiverTypes
+     *
+     * @return Void
+     */
+    private function filterReceiverLabelDefaultQuery($query, $arrayReceiverTypes)
+    {
+        if (
+            in_array(strtolower(CustomReceiverTypeEnum::REVIEW()), $arrayReceiverTypes) == false &&
+            in_array(strtolower(CustomReceiverTypeEnum::DISTRIBUTION()), $arrayReceiverTypes) == false
+        ) {
+            $query->whereIn('ReceiverAs', $arrayReceiverTypes);
+        }
+    }
+
+    /**
+     * Receiver label review filter query
+     *
+     * @param Object $query
+     * @param Array $arrayReceiverTypes
+     *
+     * @return Void
+     */
+    private function filterReceiverLabelReviewQuery($query, $arrayReceiverTypes)
+    {
+        if (in_array(strtolower(CustomReceiverTypeEnum::REVIEW()), $arrayReceiverTypes)) {
+            $query->where(
+                fn($query) => $query
+                    ->whereIn('ReceiverAs', $this->getReceiverAsReviewData())
+                    ->orWhere('ReceiverAs', 'meneruskan')
+                    ->whereHas('receiver', fn($query) => $query->where('GroupId', '!=', 6))
+            );
+        }
+    }
+
+    /**
+     * Receiver label distribution filter query
+     * Only return 'Surat Dinas' letters with the receiver is UK (GroupId=6)
+     *
+     * @param Object $query
+     * @param Array $arrayReceiverTypes
+     *
+     * @return Void
+     */
+    private function filterReceiverLabelDistributionQuery($query, $arrayReceiverTypes)
+    {
+        if (in_array(strtolower(CustomReceiverTypeEnum::DISTRIBUTION()), $arrayReceiverTypes)) {
+            $query->where('ReceiverAs', 'meneruskan')
+                ->whereHas('draftDetail', fn($query) => $query->where('JenisId', 'XxJyPn38Yh.35'))
+                ->whereHas('receiver', fn($query) => $query->where('GroupId', 6));
         }
     }
 
