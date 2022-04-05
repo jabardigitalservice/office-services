@@ -66,7 +66,8 @@ class People extends Authenticatable
             PeopleProposedTypeEnum::DISPOSITION()->value => $this->filterDisposition($query),
             PeopleProposedTypeEnum::FORWARD_DOC_SIGNATURE()->value => $this->filterForwardSignature($query),
             PeopleProposedTypeEnum::NUMBERING_UK()->value => $this->filterNumberingByUK($query),
-            PeopleProposedTypeEnum::NUMBERING_TU()->value => $this->filterNumberingByTU($query)
+            PeopleProposedTypeEnum::NUMBERING_TU()->value => $this->filterNumberingByTU($query),
+            PeopleProposedTypeEnum::DISTRIBUTE()->value => $this->filterDistribute($query),
         };
     }
 
@@ -216,6 +217,17 @@ class People extends Authenticatable
         } elseif (!$this->isALeader($userPosition) && !$this->hasArchiver()) {
             $query->where('RoleAtasan', auth()->user()->RoleAtasan);
         }
+    }
+
+    /**
+     * Filter people for distribute document (UK).
+     *
+     * @param  Object  $query
+     */
+    private function filterDistribute($query)
+    {
+        $query->where('GroupId', PeopleGroupTypeEnum::UK())
+            ->whereNotIn('RoleAtasan', ['', '-']);
     }
 
     /**
