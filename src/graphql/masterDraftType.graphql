@@ -1,5 +1,5 @@
 type MasterDraftType {
     id: String! @rename(attribute: "JenisId")
     name: String! @rename(attribute: "JenisName")
-    description: String @rename(attribute: "Isi")
+    content: String @rename(attribute: "Isi")
 }

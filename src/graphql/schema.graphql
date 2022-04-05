@@ -154,6 +154,11 @@ type Query {
         @orderBy(column: "JenisName", direction: ASC)
         @all
         @guard
+
+    masterDocumentTypes: [DocumentType!]!
+        @orderBy(column: "JenisName", direction: ASC)
+        @all
+        @guard
 }
 
 type Mutation {
@@ -192,6 +197,7 @@ type Mutation {
 #import documentSignatureSent.graphql
 #import documentSignature.graphql
 #import documentSignatureForward.graphql
+#import documentType.graphql
 #import masterDisposition.graphql
 #import masterDraftType.graphql
 #import inboxReceiverCorrection.graphql
