@@ -114,7 +114,8 @@ class Draft extends Model
          * max length 180 character, remove the unused special character and change space with underscore
          */
         $title = str_replace(' ', '_', trim(preg_replace('/[^a-zA-Z0-9_ -]/s', '', substr($this->about, 0, 180))));
-        $pdfName = $type  . '_' . $title . '_' . parseDateTimeFormat(Carbon::now(), 'dmY')  . '_signed.pdf';
+        $time = parseDateTimeFormat(Carbon::now(), 'dmY') . '_' . parseDateTimeFormat(Carbon::now(), 'His');
+        $pdfName = $type  . '_' . $title . '_' . $time  . '_signed.pdf';
 
         return $pdfName;
     }

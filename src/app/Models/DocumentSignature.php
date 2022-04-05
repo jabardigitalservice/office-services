@@ -48,7 +48,8 @@ class DocumentSignature extends Model
     public function getDocumentFileNameAttribute()
     {
         $title = str_replace(' ', '_', trim(preg_replace('/[^a-zA-Z0-9_ -]/s', '', substr($this->nama_file, 0, 180))));
-        $pdfName = $title . '_' . parseDateTimeFormat(Carbon::now(), 'dmY')  . '_signed.pdf';
+        $time = parseDateTimeFormat(Carbon::now(), 'dmY') . '_' . parseDateTimeFormat(Carbon::now(), 'His');
+        $pdfName = $title . '_' . $time . '_signed.pdf';
 
         return $pdfName;
     }
