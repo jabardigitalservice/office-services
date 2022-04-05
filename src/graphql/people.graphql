@@ -22,6 +22,7 @@ enum ProposedTypes {
     FORWARD_DRAFT
     NUMBERING_UK
     NUMBERING_TU
+    DISTRIBUTE
 }
 
 #import role.graphql

@@ -149,6 +149,21 @@ type Query {
     correctionOptions: [MasterCorrectionOption!]!
         @paginate(type: CONNECTION)
         @guard
+
+    masterDocumentTypes: [DocumentType!]!
+        @orderBy(column: "JenisName", direction: ASC)
+        @all
+        @guard
+
+    masterDocumentUrgencies: [DocumentUrgency!]!
+        @orderBy(column: "UrgensiName", direction: ASC)
+        @all
+        @guard
+
+    masterClassifieds: [MasterClassified!]!
+        @orderBy(column: "SIfatName", direction: ASC)
+        @all
+        @guard
 }
 
 type Mutation {
@@ -187,7 +202,10 @@ type Mutation {
 #import documentSignatureSent.graphql
 #import documentSignature.graphql
 #import documentSignatureForward.graphql
+#import documentType.graphql
+#import masterClassified.graphql
 #import masterDisposition.graphql
+#import documentUrgency.graphql
 #import inboxReceiverCorrection.graphql
 #import masterCorrectionOption.graphql
 #import validation.graphql

@@ -54,7 +54,7 @@ class Draft extends Model
 
     public function draftType()
     {
-        return $this->belongsTo(MasterDraftType::class, 'JenisId', 'JenisId');
+        return $this->belongsTo(DocumentType::class, 'JenisId', 'JenisId');
     }
 
     public function classified()
