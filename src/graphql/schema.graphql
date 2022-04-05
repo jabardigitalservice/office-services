@@ -159,6 +159,11 @@ type Query {
         @orderBy(column: "JenisName", direction: ASC)
         @all
         @guard
+
+    masterClassifieds: [MasterClassified!]!
+        @orderBy(column: "SIfatName", direction: ASC)
+        @all
+        @guard
 }
 
 type Mutation {
@@ -198,6 +203,7 @@ type Mutation {
 #import documentSignature.graphql
 #import documentSignatureForward.graphql
 #import documentType.graphql
+#import masterClassified.graphql
 #import masterDisposition.graphql
 #import masterDraftType.graphql
 #import inboxReceiverCorrection.graphql
