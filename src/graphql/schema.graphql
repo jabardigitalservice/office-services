@@ -149,6 +149,11 @@ type Query {
     correctionOptions: [MasterCorrectionOption!]!
         @paginate(type: CONNECTION)
         @guard
+
+    masterDraftTypes: [MasterDraftType!]!
+        @orderBy(column: "JenisName", direction: ASC)
+        @all
+        @guard
 }
 
 type Mutation {
@@ -188,6 +193,7 @@ type Mutation {
 #import documentSignature.graphql
 #import documentSignatureForward.graphql
 #import masterDisposition.graphql
+#import masterDraftType.graphql
 #import inboxReceiverCorrection.graphql
 #import masterCorrectionOption.graphql
 #import validation.graphql
