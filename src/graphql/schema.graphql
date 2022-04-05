@@ -150,11 +150,6 @@ type Query {
         @paginate(type: CONNECTION)
         @guard
 
-    masterDraftTypes: [MasterDraftType!]!
-        @orderBy(column: "JenisName", direction: ASC)
-        @all
-        @guard
-
     masterDocumentTypes: [DocumentType!]!
         @orderBy(column: "JenisName", direction: ASC)
         @all
@@ -205,7 +200,6 @@ type Mutation {
 #import documentType.graphql
 #import masterClassified.graphql
 #import masterDisposition.graphql
-#import masterDraftType.graphql
 #import inboxReceiverCorrection.graphql
 #import masterCorrectionOption.graphql
 #import validation.graphql
