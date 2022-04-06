@@ -133,6 +133,12 @@ type Query {
     ): InboxReceiverCorrection
         @field(resolver: "DraftQuery@detail")
         @guard
+    
+    externalDrafts: [DocumentSignatureForward!]!
+        @whereAuth(relation: "receiver")
+        @orderBy(column: "tgl", direction: DESC)
+        @paginate(type: CONNECTION)
+        @guard
 
     draftTimeline(
         filter: DraftTimelineInput @builder(method: "App\\Models\\InboxReceiverCorrection@timeline")
