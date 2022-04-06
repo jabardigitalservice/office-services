@@ -8,6 +8,7 @@ type DocumentSignatureForward {
     note: String @rename(attribute: "catatan")
     status: String
     sort: String @rename(attribute: "urutan")
+    isRead: Int @rename(attribute: "is_read")
     next: String
     sender: People!
     receiver: People!
