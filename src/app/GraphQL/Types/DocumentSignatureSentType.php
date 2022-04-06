@@ -59,9 +59,7 @@ class DocumentSignatureSentType
      */
     public function isRead($rootValue, array $args, GraphQLContext $context)
     {
-        if ($rootValue->PeopleIDTujuan == auth()->user()->PeopleId && $rootValue->is_receiver_read == true) {
-            return true;
-        } elseif ($rootValue->PeopleID == auth()->user()->PeopleId  && $rootValue->is_sender_read == true) {
+        if ($rootValue->is_receiver_read == true || $rootValue->is_sender_read == true) {
             return true;
         } else {
             return false;
