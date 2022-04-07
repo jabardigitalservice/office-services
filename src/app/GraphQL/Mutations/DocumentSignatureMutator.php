@@ -166,16 +166,21 @@ class DocumentSignatureMutator
         //change filename with _signed & update stastus
         if ($data->documentSignature->has_footer == false) {
             $updateFileData = DocumentSignature::where('id', $data->ttd_id)->update([
-                'status' => 1,
+                'status' => SignatureStatusTypeEnum::SUCCESS()->value,
                 'file' => $newFileName,
                 'code' => $verifyCode,
                 'has_footer' => true,
+            ]);
+        } else {
+            $updateFileData = DocumentSignature::where('id', $data->ttd_id)->update([
+                'status' => SignatureStatusTypeEnum::SUCCESS()->value,
+                'file' => $newFileName,
             ]);
         }
 
         //update status document sent to 1 (signed)
         $updateDocumentSent = tap(DocumentSignatureSent::where('id', $data->id))->update([
-            'status' => 1,
+            'status' => SignatureStatusTypeEnum::SUCCESS()->value,
             'next' => 1,
             'tgl_ttd' => setDateTimeNowValue()
         ])->first();
