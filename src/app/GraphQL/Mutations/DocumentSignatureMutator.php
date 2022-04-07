@@ -171,6 +171,11 @@ class DocumentSignatureMutator
                 'code' => $verifyCode,
                 'has_footer' => true,
             ]);
+        } else {
+            $updateFileData = DocumentSignature::where('id', $data->ttd_id)->update([
+                'status' => 1,
+                'file' => $newFileName,
+            ]);
         }
 
         //update status document sent to 1 (signed)
