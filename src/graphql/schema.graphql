@@ -199,6 +199,10 @@ type Mutation {
     draftReturn(input: DraftReturnInput): InboxReceiverCorrection!
         @field(resolver: "InboxReceiverCorrectionMutator@backToDrafter")
         @guard
+
+    distributeDocumentToInbox(input: DistributeDocumentToInboxInput): DocumentSignature!
+        @field(resolver: "DistributeDocumentMutator@distributeDocumentToInbox")
+        @guard
 }
 
 #import auth.graphql
