@@ -55,6 +55,19 @@ input InboxHistoryFilterInput {
     status: String
 }
 
+input DistributeDocumentToInboxInput {
+    documentTypeId: String!
+    documentUrgencyId: String!
+    classifiedId: String!
+    date: Date!
+    letterNumber: String!
+    title: String!
+    documentSignatureId: String!
+    receiversIds: String!
+}
+
+scalar Date @scalar(class: "Nuwave\\Lighthouse\\Schema\\Types\\Scalars\\Date")
+
 #import inbox.graphql
 #import people.graphql
 #import inboxDisposition.graphql
