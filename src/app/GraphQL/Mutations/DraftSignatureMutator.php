@@ -86,9 +86,9 @@ class DraftSignatureMutator
         } else {
             //Save new file & update status
             $draft = $this->saveNewFile($response, $draft, $verifyCode);
-            //Save log
-            $this->createPassphraseSessionLog($response);
         }
+        //Save log
+        $this->createPassphraseSessionLog($response);
 
         return $draft;
     }
