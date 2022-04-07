@@ -15,5 +15,10 @@ type DocumentSignatureForward {
     documentSignature: DocumentSignature @belongsTo
 }
 
+input ExternalDraftFilterInput {
+    isRead: String
+    isDistributed: String
+}
+
 #import people.graphql
 #import documentSignature.graphql
