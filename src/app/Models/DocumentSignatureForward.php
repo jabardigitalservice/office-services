@@ -27,6 +27,7 @@ class DocumentSignatureForward extends Model
         'PeopleIDTujuan',
         'urutan',
         'status',
+        'is_read',
     ];
 
     public function setTglAttribute($value)
