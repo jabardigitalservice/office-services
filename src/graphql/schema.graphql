@@ -134,7 +134,10 @@ type Query {
         @field(resolver: "DraftQuery@detail")
         @guard
     
-    externalDrafts: [DocumentSignatureForward!]!
+    externalDrafts(
+        filter: ExternalDraftFilterInput @builder(method: "App\\Models\\DocumentSignatureForward@filter")
+        search: String @builder(method: "App\\Models\\DocumentSignatureForward@search")
+    ): [DocumentSignatureForward!]!
         @whereAuth(relation: "receiver")
         @orderBy(column: "tgl", direction: DESC)
         @paginate(type: CONNECTION)
