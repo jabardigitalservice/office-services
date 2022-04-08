@@ -18,10 +18,10 @@ type Query {
         @paginate(type: CONNECTION)
         @guard
 
-    inboxFile(
-        id: ID! @builder(method: "App\\Models\\InboxFile@find")
-    ): InboxFile
-        @find
+    ValidationDocument(
+        filter: ValidationDocumentFilterInput!
+    ): ValidationDocument
+        @field(resolver: "ValidationDocumentQuery")
         @guard
 
     outboxes(
@@ -38,7 +38,7 @@ type Query {
         @guard
 
     inboxHistory(
-        inboxId: String! @builder(method: "App\\Models\\InboxReceiver@history")
+        filter: InboxHistoryFilterInput! @builder(method: "App\\Models\\InboxReceiver@history")
     ): [InboxReceiver!]!
         @orderBy(column: "ReceiveDate", direction: DESC)
         @paginate(type: CONNECTION)
@@ -72,14 +72,25 @@ type Query {
         @paginate(type: CONNECTION)
         @guard
 
+    outboxDocumentSignatureSents(
+        search: String @builder(method: "App\\Models\\DocumentSignatureSent@search")
+        filter: outboxDocumentSignatureSentsInput @builder(method: "App\\Models\\DocumentSignatureSent@outboxFilter")
+        objective: ObjectiveType @builder(method: "App\\Models\\DocumentSignatureSent@objective")
+    ): [DocumentSignatureSent!]!
+        @orderBy(column: "tgl", direction: DESC)
+        @paginate(type: CONNECTION)
+        @guard
+
     documentSignatureSent(
         id: ID @eq
     ): DocumentSignatureSent!
         @field(resolver: "DocumentSignatureQuery@detail")
         @guard
 
-    documentSignature(id: ID@eq): DocumentSignature!
-        @find
+    documentSignatureSentTimelines(
+        filter: documentSignatureSentTimelinesInput
+    ): [DocumentSignatureSentTimelines!]!
+        @field(resolver: "DocumentSignatureQuery@timelines")
         @guard
 
     documentSignatureSentTimeline(
@@ -106,11 +117,34 @@ type Query {
         @paginate(type: CONNECTION)
         @guard
 
+    outboxDrafts(
+        filter: DraftFilterInput @builder(method: "App\\Models\\InboxReceiverCorrection@filter")
+        objective: DraftObjectiveType @builder(method: "App\\Models\\InboxReceiverCorrection@objective")
+        search: String @builder(method: "App\\Models\\InboxReceiverCorrection@search")
+    ): [InboxReceiverCorrection!]!
+        @whereAuth(relation: "sender")
+        @orderBy(column: "ReceiveDate", direction: DESC)
+        @paginate(type: CONNECTION)
+        @guard
+
     draft(
         draftId: String!
         groupId: String!
     ): InboxReceiverCorrection
         @field(resolver: "DraftQuery@detail")
+        @guard
+    
+    externalDrafts(
+        filter: ExternalDraftFilterInput @builder(method: "App\\Models\\DocumentSignatureForward@filter")
+        search: String @builder(method: "App\\Models\\DocumentSignatureForward@search")
+    ): [DocumentSignatureForward!]!
+        @whereAuth(relation: "receiver")
+        @orderBy(column: "tgl", direction: DESC)
+        @paginate(type: CONNECTION)
+        @guard
+
+    externalDraft(id: String @eq): DocumentSignatureForward
+        @field(resolver: "ExternalDraftQuery@detail")
         @guard
 
     draftTimeline(
@@ -120,14 +154,28 @@ type Query {
         @guard
 
     draftHistory(
-        draftId: String @builder(method: "App\\Models\\InboxReceiverCorrection@history")
-    ): [InboxReceiverCorrection!]!
-        @all
-        @orderBy(column: "ReceiveDate", direction: DESC)
+        draftId: String
+    ): InboxReceiverCorrectionHistory
+        @field(resolver: "DraftHistoryQuery@history")
         @guard
 
     correctionOptions: [MasterCorrectionOption!]!
         @paginate(type: CONNECTION)
+        @guard
+
+    masterDocumentTypes: [DocumentType!]!
+        @orderBy(column: "JenisName", direction: ASC)
+        @all
+        @guard
+
+    masterDocumentUrgencies: [DocumentUrgency!]!
+        @orderBy(column: "UrgensiName", direction: ASC)
+        @all
+        @guard
+
+    masterClassifieds: [MasterClassified!]!
+        @orderBy(column: "SIfatName", direction: ASC)
+        @all
         @guard
 }
 
@@ -155,12 +203,12 @@ type Mutation {
         @field(resolver: "DocumentSignatureRejectMutator@reject")
         @guard
 
-    documentSignatureForward(input: DocumentSignatureForwardInput): [DocumentSignatureForward!]
-        @field(resolver: "DocumentSignatureForwardMutator@forward")
-        @guard
-
     draftReturn(input: DraftReturnInput): InboxReceiverCorrection!
         @field(resolver: "InboxReceiverCorrectionMutator@backToDrafter")
+        @guard
+
+    distributeDocumentToInbox(input: DistributeDocumentToInboxInput): DocumentSignature!
+        @field(resolver: "DistributeDocumentMutator@distributeDocumentToInbox")
         @guard
 }
 
@@ -171,6 +219,10 @@ type Mutation {
 #import documentSignatureSent.graphql
 #import documentSignature.graphql
 #import documentSignatureForward.graphql
+#import documentType.graphql
+#import masterClassified.graphql
 #import masterDisposition.graphql
+#import documentUrgency.graphql
 #import inboxReceiverCorrection.graphql
 #import masterCorrectionOption.graphql
+#import validation.graphql

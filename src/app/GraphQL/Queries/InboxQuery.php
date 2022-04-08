@@ -9,7 +9,6 @@ use App\Exceptions\CustomException;
 use App\Models\DocumentSignatureSent;
 use App\Models\InboxReceiver;
 use App\Models\InboxReceiverCorrection;
-use Illuminate\Support\Facades\DB;
 use Nuwave\Lighthouse\Support\Contracts\GraphQLContext;
 
 class InboxQuery
@@ -56,20 +55,23 @@ class InboxQuery
 
         $found = $this->isFoundUserPosition($userPosition, $positionGroups);
         if ($found) {
-            $regionalCount = $this->unreadCountDeptQuery($context);
+            $forwardCount = $this->unreadCountDeptQuery($context);
         } else {
-            $regionalCount = $this->unreadCountQuery(InboxReceiverScopeType::REGIONAL(), $context);
+            $forwardCount = $this->unreadCountQuery(InboxReceiverScopeType::REGIONAL(), $context);
         }
 
         $internalCount = $this->unreadCountQuery(InboxReceiverScopeType::INTERNAL(), $context);
-        $dispositionCount = $this->unreadCountQuery(InboxReceiverScopeType::DISPOSITION(), $context);
+        $dispositionCount = $this->unreadCountQuery(InboxReceiverScopeType::INTERNAL_DISPOSITION(), $context);
+        $regionalDispositionCount = $this->unreadCountQuery(InboxReceiverScopeType::REGIONAL_DISPOSITION(), $context);
+        $regionalCount = (int) $forwardCount + (int) $regionalDispositionCount;
         $signatureCount = $this->unreadCountSignatureQuery($context);
         $draftCount = $this->draftUnreadCountQuery($context);
 
         $count = [
+            'forward'       => $forwardCount,
+            'disposition'   => $dispositionCount,
             'regional'      => $regionalCount,
             'internal'      => $internalCount,
-            'disposition'   => $dispositionCount,
             'signature'     => $signatureCount,
             'draft'         => $draftCount
         ];
@@ -102,7 +104,10 @@ class InboxQuery
             $query->where('To_Id', $user->PeopleId);
         }
 
-        if ($scope == InboxReceiverScopeType::DISPOSITION()) {
+        if (
+            $scope == InboxReceiverScopeType::INTERNAL_DISPOSITION() ||
+            $scope == InboxReceiverScopeType::REGIONAL_DISPOSITION()
+        ) {
             $query->where('ReceiverAs', 'cc1');
         } elseif ($scope == InboxReceiverScopeType::REGIONAL()) {
             $query->whereHas('inboxDetail', fn($query) => $query->where('Pengirim', 'eksternal'));
@@ -119,15 +124,9 @@ class InboxQuery
     private function unreadCountDeptQuery($context)
     {
         $user = $context->user;
-        $deptCode = $user->role->RoleCode;
         $query = InboxReceiver::where('RoleId_To', $user->PrimaryRoleId)
             ->where('StatusReceive', 'unread')
-            ->where('ReceiverAs', 'to_forward')
-            ->whereHas('sender', function ($senderQuery) use ($deptCode) {
-                $senderQuery->whereHas('role', function ($roleQuery) use ($deptCode) {
-                    $roleQuery->where('RoleCode', '=', $deptCode);
-                });
-            })
+            ->whereIn('ReceiverAs', ['to_forward', 'bcc'])
             ->whereHas('inboxDetail', function ($detailQuery) {
                 $detailQuery->where('Pengirim', '=', 'eksternal');
             });
@@ -147,18 +146,12 @@ class InboxQuery
     private function unreadCountSignatureQuery($context)
     {
         $user = $context->user;
-        $readIds = DB::connection('mysql')->table('document_signature_sent_reads')
-            ->where('people_id', $user->PeopleId)
-            ->pluck('document_signature_sent_id')
-            ->toArray();
-
-        $sentIds = DocumentSignatureSent::where(fn($query) => $query->where('PeopleIDTujuan', $user->PeopleId))
-            ->orWhere(fn($query) => $query->where('PeopleId', $user->PeopleId)
-                ->where('status', '!=', SignatureStatusTypeEnum::WAITING()->value))
-            ->pluck('id')
-            ->toArray();
-
-        $query = DocumentSignatureSent::whereIn('id', array_diff($sentIds, $readIds));
+        $query = DocumentSignatureSent::where(fn($query) => $query
+            ->where('is_receiver_read', false)
+            ->where('PeopleIDTujuan', $user->PeopleId)
+            ->orWhere('PeopleID', $user->PeopleId)
+                ->where('status', '!=', SignatureStatusTypeEnum::WAITING()->value)
+                ->where('is_sender_read', false));
 
         return $query->count();
     }
@@ -209,10 +202,11 @@ class InboxQuery
     {
         switch ($scope) {
             case InboxReceiverScopeType::REGIONAL():
+            case InboxReceiverScopeType::REGIONAL_DISPOSITION():
                 return '!=';
 
             case InboxReceiverScopeType::INTERNAL():
-            case InboxReceiverScopeType::DISPOSITION():
+            case InboxReceiverScopeType::INTERNAL_DISPOSITION():
                 return '=';
         }
     }

@@ -4,6 +4,7 @@ namespace App\Http\Traits;
 
 use App\Models\PassphraseSession;
 use Carbon\Carbon;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Http;
 
 /**
@@ -59,7 +60,7 @@ trait SignatureTrait
         $passphraseSession->keterangan      = 'Insert Passphrase Berhasil, Data disimpan';
         $passphraseSession->log_desc        = 'sukses';
 
-        if ($response->status() != 200) {
+        if ($response->status() != Response::HTTP_OK) {
             $passphraseSession->keterangan      = 'Insert Passphrase Gagal, Data failed';
             $passphraseSession->log_desc        = 'gagal';
         }

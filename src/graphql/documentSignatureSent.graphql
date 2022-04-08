@@ -11,10 +11,14 @@ type DocumentSignatureSent {
     next: String
     sender: People!
     receiver: People!
-    read: Boolean @belongsTo(relation: "documentSignatureSentRead")
+    read: Boolean @field(resolver: "App\\GraphQL\\Types\\DocumentSignatureSentType@isRead")
     isLastSigned: Boolean @field(resolver: "App\\GraphQL\\Types\\DocumentSignatureSentType@isLastSigned")
     parent: DocumentSignatureSent @field(resolver: "App\\GraphQL\\Types\\DocumentSignatureSentType@parent")
     documentSignature: DocumentSignature @belongsTo
+}
+
+type DocumentSignatureSentTimelines {
+    documentSignatuerSents: [DocumentSignatureSent]
 }
 
 type DocumentSignatureSentHistory {
@@ -25,9 +29,12 @@ type DocumentSignatureSentHistory {
 input documentSignatureSentsInput {
     statuses: String
     read: Boolean
-    unread: Boolean
     withSender: Boolean
     withReceiver: Boolean
+}
+
+input outboxDocumentSignatureSentsInput {
+    statuses: String
 }
 
 input documentSignatureSentTimelineInput {
@@ -36,9 +43,20 @@ input documentSignatureSentTimelineInput {
     status: StatusType
 }
 
+input documentSignatureSentTimelinesInput {
+    documentSignatureIds: String!
+    sort: String!
+    status: StatusType
+}
+
 enum StatusType {
     SIGNED
     UNSIGNED
+}
+
+enum ObjectiveType {
+    IN
+    OUT
 }
 
 #import people.graphql

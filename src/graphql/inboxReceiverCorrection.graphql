@@ -12,12 +12,18 @@ type InboxReceiverCorrection {
     toIdDesc: String @rename(attribute: "To_Id_Desc")
     isReturned: Int @rename(attribute: "Status")
     correctionId: String @rename(attribute: "id_koreksi")
+    actionLabel: String @rename(attribute: "action_label")
     draftDetail: Draft @belongsTo
     sender: People @belongsTo
     receiver: People @belongsTo
     correction: InboxCorrection @belongsTo
     isActioned: Boolean @field(resolver: "App\\GraphQL\\Types\\InboxReceiverCorrectionType@isActioned")
     senderRequestSignature: People @field(resolver: "App\\GraphQL\\Types\\InboxReceiverCorrectionType@senderSignatureRequest")
+}
+
+type InboxReceiverCorrectionHistory {
+    inboxReceiver: [InboxReceiver]
+    inboxReceiverCorrection: [InboxReceiverCorrection]
 }
 
 enum TimelineType {
@@ -33,6 +39,7 @@ input DraftFilterInput {
     types: String
     urgencies: String
     statuses: String
+    actionLabels: String
     receiverTypes: String
 }
 
@@ -51,5 +58,6 @@ enum DraftObjectiveType {
 
 #import draft.graphql
 #import people.graphql
+#import inboxReceiver.graphql
 #import inboxCorrection.graphql
 

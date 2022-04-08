@@ -14,14 +14,14 @@ return [
             'KEPALA BIRO',
             'KEPALA BALAI',
             'KEPALA CABANG',
-            'KEPALA UPTD',
-            'INSPEKTUR DAERAH',
-            'KEPALA PELAKSANA HARIAN BADAN'
+            'KEPALA UPTD'
         ),
         '3' => array(
             'KEPALA BADAN',
+            'KEPALA PELAKSANA HARIAN BADAN',
             'SEKRETARIS DEWAN PERWAKILAN RAKYAT DAERAH',
             'KEPALA INSPEKTORAT',
+            'INSPEKTUR DAERAH',
             'KEPALA DINAS',
             'KEPALA SATUAN POLISI PAMONG PRAJA'
         ),
@@ -34,6 +34,11 @@ return [
             'KEPALA UNIT PELAKSANA TEKNIS DAERAH',
             'DIREKTUR'
         )
-    ]
+    ],
+
+    'sekdaRoleIdGroups' => [
+        'XxJyPn38Yh.3',
+        'XxJyPn38Yh.40'
+    ],
 
 ];

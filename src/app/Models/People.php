@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Enums\ArchiverIdUnitTypeEnum;
 use App\Enums\PeopleGroupTypeEnum;
 use App\Enums\PeopleProposedTypeEnum;
+use App\Enums\PeopleRoleIdTypeEnum;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Support\Arr;
@@ -65,7 +66,8 @@ class People extends Authenticatable
             PeopleProposedTypeEnum::DISPOSITION()->value => $this->filterDisposition($query),
             PeopleProposedTypeEnum::FORWARD_DOC_SIGNATURE()->value => $this->filterForwardSignature($query),
             PeopleProposedTypeEnum::NUMBERING_UK()->value => $this->filterNumberingByUK($query),
-            PeopleProposedTypeEnum::NUMBERING_TU()->value => $this->filterNumberingByTU($query)
+            PeopleProposedTypeEnum::NUMBERING_TU()->value => $this->filterNumberingByTU($query),
+            PeopleProposedTypeEnum::DISTRIBUTE()->value => $this->filterDistribute($query),
         };
     }
 
@@ -79,34 +81,48 @@ class People extends Authenticatable
     private function filterForward($query)
     {
         $this->groupExceptionQuery($query);
+        $this->ukFilterForward($query);
+        $this->defaultFilterForward($query);
+    }
+
+    /**
+     * Filter people for forwarding proposed
+     * for UK Setda list.
+     *
+     * @param  Object  $query
+     *
+     * @return Void
+     */
+    private function ukFilterForward($query)
+    {
+        $this->groupExceptionQuery($query);
         $roleId = auth()->user()->PrimaryRoleId;
-        $roleIdUnit = count(explode(".", $roleId));
-        switch ($roleIdUnit) {
-            case ArchiverIdUnitTypeEnum::SETDA()->value:
-                // A special condition when the archiver (unit kearsipan) is 'unit kearsipan setda (uk.setda)'
-                // uk.setda role id is uk.1.1.1.1.1 (roleIdUnit=6)
-                $query->whereIn('PrimaryRoleId', function ($roleQuery) {
-                    $roleQuery->select('RoleId')
-                        ->from('role')
-                        // The forward targets have various role ids
-                        // with min. length id is 4, for example uk.1 as the government
-                        // and max. length id is 18, for instance uk.1.1.1.1.1.1.1.2 as the bureau chief
-                        ->whereRaw('LENGTH(PrimaryRoleId) >= 4 AND LENGTH(PrimaryRoleId) <= 18')
-                        ->where('RoleCode', 3);
-                });
-                break;
-
-            case ArchiverIdUnitTypeEnum::DEPT()->value:
-                // Department archivers (unit kearsipan dinas) always have the roleIdUnit=3
-                // These are the role id patterns for 'kadis' and 'sekdis' of a department (dinas)
-                $query->whereIn('PrimaryRoleId', [$roleId . '.1', $roleId . '.1.1']);
-                break;
-
-            default:
-                // For another archivers, the people targets are their direct superior roles
-                $query->where('PrimaryRoleId', auth()->user()->RoleAtasan);
-                break;
+        if ($roleId == PeopleRoleIdTypeEnum::UKSETDA()->value) {
+            $query->whereIn('PrimaryRoleId', fn($query) => $query->select('RoleId')
+                ->from('role')
+                ->whereRaw('LENGTH(PrimaryRoleId) >= 4 AND LENGTH(PrimaryRoleId) <= 18')
+                ->where('RoleCode', 3));
         }
+    }
+
+    /**
+     * Filter people for forwarding proposed
+     * for default list.
+     *
+     * @param  Object  $query
+     *
+     * @return Void
+     */
+    private function defaultFilterForward($query)
+    {
+        $superiorId = auth()->user()->RoleAtasan;
+        $superiorPosition = People::where('PrimaryRoleId', $superiorId)->first()->PeoplePosition;
+        if ($this->isALeader($superiorPosition)) {
+            // will return the user seperior (atasan) and the secretary
+            $query->whereIn('PrimaryRoleId', [$superiorId, $superiorId . '.1']);
+        } else {
+            $query->where('PrimaryRoleId', $superiorId);
+        };
     }
 
     /**
@@ -162,21 +178,91 @@ class People extends Authenticatable
      */
     private function filterNumberingByUK($query)
     {
-        $query->where('GroupId', PeopleGroupTypeEnum::UK());
-        $this->filterNumbering($query);
+        $userRole = auth()->user()->role->RoleName;
+        if ($userRole == 'GUBERNUR JAWA BARAT' || $userRole == 'WAKIL GUBERNUR JAWA BARAT') {
+            $this->governorNumberingByUK($query);
+        } else {
+            $this->filterNumbering($query);
+        }
+        $query->where('GroupId', PeopleGroupTypeEnum::UK())
+            ->where('PeoplePosition', 'like', "UNIT KEARSIPAN%");
+    }
+
+    /**
+     * Numbering by archiver (UK) for the governor.
+     *
+     * @param  Object  $query
+     *
+     * @return Void
+     */
+    private function governorNumberingByUK($query)
+    {
+        $query->whereIn('PrimaryRoleId', fn($query) => $query->select('RoleId')
+            ->from('role')
+            ->where('Code_Tu', 'uk.setda'));
     }
 
     /**
      * Filter people for numbering by administration (TU).
      *
      * @param  Object  $query
-     *
-     * @return Void
      */
     private function filterNumberingByTU($query)
     {
-        $query->where('GroupId', PeopleGroupTypeEnum::TU());
         $this->filterNumbering($query);
+        $query->where('GroupId', PeopleGroupTypeEnum::TU());
+        $userPosition = auth()->user()->PeoplePosition;
+        if (!$this->isALeader($userPosition) && $this->hasArchiver()) {
+            $query->where('RoleAtasan', auth()->user()->PrimaryRoleId);
+        } elseif (!$this->isALeader($userPosition) && !$this->hasArchiver()) {
+            $query->where('RoleAtasan', auth()->user()->RoleAtasan);
+        }
+    }
+
+    /**
+     * Filter people for distribute document (UK).
+     *
+     * @param  Object  $query
+     */
+    private function filterDistribute($query)
+    {
+        $query->where('GroupId', PeopleGroupTypeEnum::UK())
+            ->whereNotIn('RoleAtasan', ['', '-']);
+    }
+
+    /**
+     * User department archiver (TU) checker
+     *
+     * @return Mixed
+     */
+    private function hasArchiver()
+    {
+        $archiver = People::where('GroupId', PeopleGroupTypeEnum::TU())
+            ->where('RoleAtasan', auth()->user()->PrimaryRoleId)->get();
+
+        if (!count($archiver)) {
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * Is a leader position checking.
+     *
+     * @param String $userPosition
+     *
+     * @return Boolean
+     */
+    private function isALeader($userPosition)
+    {
+        $positions = config('constants.peoplePositionGroups');
+        $leadersPositions = array_merge($positions[1], $positions[3]);
+        foreach ($leadersPositions as $position) {
+            if (strpos($userPosition, $position) !== false) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**

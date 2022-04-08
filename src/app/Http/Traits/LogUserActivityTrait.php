@@ -9,28 +9,34 @@ use App\Models\LogUserActivity;
  */
 trait LogUserActivityTrait
 {
-    public function saveLogActivity($peopleId, $device, $request = null)
+    public function saveLogActivity($request)
     {
-        if ($request != null) {
-            $request = str_replace('"', '', $request->input('query'));
-            //identify request is query / mutation
-            $firstWordTemp  = ltrim($request);
-            $firstWordTemp  = strtok($firstWordTemp, " ");
-            $firstWord      = (trim($firstWordTemp) == '{') ? 'query' : $firstWordTemp;
+        $doLogging = true;
+        if ($request['device'] == 'mobile') {
+            $request['action'] = str_replace('"', '', $request['action']);
+            //identify request['action'] is query / mutation (graphql)
+            $methodTemp  = ltrim($request['action']);
+            $methodTemp  = strtok($methodTemp, " ");
+            $method = (str_contains($methodTemp, 'mutation')) ? 'mutation' : 'query';
             //identify field in schema
-            $secondWord = explode('{', $request);
-            $secondWord = explode('(', (($firstWordTemp == '{') ? $secondWord[0] : $secondWord[1]));
-            $secondWord = ltrim($secondWord[0]);
-            //join word into a single string
-            $request = $firstWord . ' | ' . $secondWord;
+            $action = explode('{', $request['action']);
+            $action = explode('(', (($methodTemp == '{') ? $action[0] : $action[1]));
+            $action = trim(str_replace('\r\n', '', str_replace('__typename', '', trim($action[0]))));
+            $request['type']    = $method;
+            $request['action']  = $action;
+            if ($action == '__schema') { //handle for playground graphql
+                $doLogging = false;
+            }
         }
-
-        $log            = new LogUserActivity();
-        $log->people_id = $peopleId;
-        $log->device    = $device;
-        $log->query     = $request;
-        $log->save();
-
-        return $log;
+        if ($doLogging) {
+            $log            = new LogUserActivity();
+            $log->people_id = $request['people_id'];
+            $log->device    = $request['device'];
+            $log->type      = $request['type'] ?? null;
+            $log->action    = $request['action'];
+            $log->save();
+            return $log;
+        }
+        return false;
     }
 }

@@ -6,6 +6,7 @@ use Spatie\Enum\Enum;
 
 /**
  * @method static self NUMBERING()
+ * @method static self SIGNED()
  */
 
 final class InboxReceiverCorrectionTypeEnum extends Enum
@@ -14,6 +15,7 @@ final class InboxReceiverCorrectionTypeEnum extends Enum
     {
         return [
             'NUMBERING' => 'Meminta Nomber Surat',
+            'SIGNED' => 'approvenaskah',
         ];
     }
 }

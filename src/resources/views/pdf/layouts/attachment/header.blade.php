@@ -31,10 +31,7 @@
         <tr>
             <td style="width: 80px; vertical-align: top;">TANGGAL</td>
             <td style="width: 15px; vertical-align: top;">:</td>
-            @php
-                $defaultStringDate = (($draft->Ket != 'outboxnotadinas') ?? 'Tempat / ') . 'Tanggal / Bulan / Tahun';
-            @endphp
-            <td style="vertical-align: top;">{{ ($generateQrCode) ? $draft->lokasi . ', ' . parseSetLocaleDate($draft->TglReg, 'id', 'd F Y') : $defaultStringDate; }}</td>
+            <td style="vertical-align: top;">{{ ($esign) ? $draft->lokasi . ', ' . parseSetLocaleDate($draft->TglReg, 'id', 'd F Y') : 'Tanggal / Bulan / Tahun' }}</td>
         </tr>
         <tr>
             <td style="width: 80px; vertical-align: top;">PERIHAL</td>

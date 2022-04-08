@@ -2,7 +2,9 @@
 
 namespace App\GraphQL\Mutations;
 
+use App\Enums\ActionLabelTypeEnum;
 use App\Enums\FcmNotificationActionTypeEnum;
+use App\Enums\PeopleGroupTypeEnum;
 use App\Enums\PeopleProposedTypeEnum;
 use App\Http\Traits\SendNotificationTrait;
 use App\Models\Draft;
@@ -32,6 +34,10 @@ class InboxMutator
         // Forward is the default action
         $action = Arr::get($args, 'input.action') ?? PeopleProposedTypeEnum::FORWARD();
         $stringReceiversIds = Arr::get($args, 'input.receiversIds');
+        if (!$stringReceiversIds) {
+            $stringReceiversIds = strval($this->getDefaultReceiver()->PeopleId);
+        }
+
         $time = Carbon::now();
         $dispositionType = str_replace(", ", "|", Arr::get($args, 'input.dispositionType'));
 
@@ -54,8 +60,15 @@ class InboxMutator
         }
 
         $this->createInboxDisposition($inboxData, $action);
-        $this->markActioned($inboxData);
-        $this->actionNotification($inboxData, $action);
+        $this->markActioned($inboxData, $action);
+
+        // TEMPORARY: NUMBERING_UK/TU will not get the notification
+        if (
+            $action != PeopleProposedTypeEnum::NUMBERING_UK() &&
+            $action != PeopleProposedTypeEnum::NUMBERING_TU()
+        ) {
+            $this->actionNotification($inboxData, $action);
+        }
         return $inboxReceivers;
     }
 
@@ -74,8 +87,11 @@ class InboxMutator
 
         InboxReceiver::where('NId', $inboxId)
             ->where('To_Id', strval($peopleId))
-            ->firstOrFail()
-            ->update(['Status' => 1, 'TindakLanjut' => 1]);
+            ->update([
+                'Status' => 1,
+                'TindakLanjut' => 1,
+                'action_label' => ActionLabelTypeEnum::FINISHED()
+            ]);
 
         return 'status updated';
     }
@@ -102,20 +118,58 @@ class InboxMutator
      *
      * @return void
      */
-    private function markActioned($inboxData)
+    private function markActioned($inboxData, $action)
     {
         $inboxId = $inboxData['inboxId'];
         $fromId = $inboxData['from']->PeopleId;
+        $actionLabel = $this->defineActionLabel($action);
+        $currentInbox = InboxReceiver::where('NId', $inboxId)
+            ->where('To_Id', strval($fromId));
 
-        $inbox = InboxReceiver::where('NId', $inboxId)
-            ->where('To_Id', strval($fromId))
-            ->firstOrFail();
-
-        if ($inbox->Status != 1) {
-            InboxReceiver::where('NId', $inboxId)
+        $currentInbox->update(['Status' => 1]);
+        if ($this->isDraftScope($action)) {
+            InboxReceiverCorrection::where('NId', $inboxId)
                 ->where('To_Id', strval($fromId))
-                ->update(['Status' => 1]);
+                ->update(['action_label' => $actionLabel]);
+        } else {
+            $currentInbox->update(['action_label' => $actionLabel]);
         }
+    }
+
+    /**
+     * Define the action label for the updated recods
+     * @param String $action
+     *
+     * @return String
+     */
+    private function defineActionLabel($action)
+    {
+        $label = match ($action) {
+            PeopleProposedTypeEnum::DISPOSITION()->value    => ActionLabelTypeEnum::DISPOSED(),
+            PeopleProposedTypeEnum::FORWARD()->value,
+            PeopleProposedTypeEnum::FORWARD_DRAFT()->value,
+            PeopleProposedTypeEnum::NUMBERING_UK()->value,
+            PeopleProposedTypeEnum::NUMBERING_TU()->value   => ActionLabelTypeEnum::REVIEWED(),
+            default                                         => null
+        };
+        return $label;
+    }
+
+    /**
+     * Generate the action label for a new recod
+     * @param String $action
+     *
+     * @return String
+     */
+    private function generateActionLabel($action)
+    {
+        $label = match ($action) {
+            PeopleProposedTypeEnum::NUMBERING_UK()->value,
+            PeopleProposedTypeEnum::NUMBERING_TU()->value   => ActionLabelTypeEnum::NUMBERING(),
+            PeopleProposedTypeEnum::FORWARD_DRAFT()->value  => ActionLabelTypeEnum::REVIEW(),
+            default                                         => null
+        };
+        return $label;
     }
 
     /**
@@ -130,18 +184,21 @@ class InboxMutator
         $dept = $inbox->createdBy->role->rolecode->rolecode_sort;
         $sender = auth()->user()->PeopleName;
         $title = '';
-        $body = $dept . ' telah mengirimkan surat terkait dengan ' . $inbox->Hal . '. Klik disini untuk membaca dan menindaklanjuti pesan.';
+        $body = $dept . ' telah mengirimkan surat terkait dengan ' . $inbox->Hal;
 
         if ($action == PeopleProposedTypeEnum::FORWARD()) {
             $actionMessage = FcmNotificationActionTypeEnum::INBOX_DETAIL();
         } elseif ($action == PeopleProposedTypeEnum::DISPOSITION()) {
             $title = 'Disposisi Naskah';
-            $body = $sender . ' telah mendisposisikan ' . $inbox->type->JenisName . ' terkait dengan ' . $inbox->Hal . '. Klik disini untuk membaca dan menindaklanjuti pesan.';
+            $body = $sender . ' telah mendisposisikan ' . $inbox->type->JenisName . ' terkait dengan ' . $inbox->Hal;
             $actionMessage = FcmNotificationActionTypeEnum::DISPOSITION_DETAIL();
         } elseif ($this->isDraftScope($action)) {
+            $title = 'Review Naskah';
+            $body = 'Terdapat ' . $inbox->type->JenisName . ' terkait dengan ' . $inbox->Hal . ' yang harus segera Anda periksa';
             $actionMessage = FcmNotificationActionTypeEnum::DRAFT_DETAIL();
         }
 
+        $body = $body . '. Klik disini untuk membaca dan menindaklanjuti pesan.';
         $peopleId = substr($inboxData['groupId'], 0, -19);
         $dateString = substr($inboxData['groupId'], -19);
         $date = parseDateTimeFormat($dateString, 'dmyhis');
@@ -149,7 +206,7 @@ class InboxMutator
         $messageAttribute = [
             'notification' => [
                 'title' => $title,
-                'body' => $body,
+                'body' => str_replace('&nbsp;', ' ', strip_tags($body))
             ],
             'data' => [
                 'inboxId' => $inboxData['inboxId'],
@@ -217,6 +274,7 @@ class InboxMutator
         if ($this->isDraftScope($action)) {
             $inboxReceiverCorrection = $this->generateInboxReceiverData($inboxData, $receiverId, $action);
             $inboxReceiverCorrection['ReceiverAs'] = $this->generateLabel($action);
+            $inboxReceiverCorrection['action_label'] = $this->generateActionLabel($action);
             InboxReceiverCorrection::create($inboxReceiverCorrection);
             $this->updateOriginDraft(
                 $inboxReceiverCorrection['receiver'],
@@ -277,6 +335,7 @@ class InboxMutator
             'ReceiveDate'   => $inboxData['time'],
             'To_Id_Desc'    => $receiver->role->RoleDesc,
             'Status'        => 0,
+            'action_label'  => ActionLabelTypeEnum::REVIEW(),
         ];
 
         if ($draft) {
@@ -285,6 +344,31 @@ class InboxMutator
         }
 
         return $data;
+    }
+
+    /**
+     * Get default receiver
+     * The default receiver is an UK
+     *
+     * @return People
+     */
+    private function getDefaultReceiver()
+    {
+        $receiver = People::where('GroupId', PeopleGroupTypeEnum::UK())
+            ->where('PeoplePosition', 'like', "UNIT KEARSIPAN%");
+
+        $userRole = auth()->user()->role->RoleName;
+        if ($userRole == 'GUBERNUR JAWA BARAT' || $userRole == 'WAKIL GUBERNUR JAWA BARAT') {
+            return $receiver->whereIn('PrimaryRoleId', fn($query) => $query->select('RoleId')
+                ->from('role')
+                ->where('Code_Tu', 'uk.setda'))
+            ->first();
+        }
+
+        return $receiver->whereIn('PrimaryRoleId', fn($query) => $query->select('RoleId')
+            ->from('role')
+            ->where('GRoleId', auth()->user()->role->GRoleId))
+        ->first();
     }
 
     /**

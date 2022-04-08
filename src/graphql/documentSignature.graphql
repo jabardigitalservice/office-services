@@ -2,9 +2,11 @@ type DocumentSignature {
     id: String!
     name: String @rename(attribute: "nama_file")
     url: String
+    code: String
     validation: Validation @field(resolver: "App\\GraphQL\\Types\\DocumentSignatureType@validate")
     inboxFile: InboxFile @belongsTo
     documentSignatureSents: [DocumentSignatureSent]
+    documentSignatureType: DocumenSignaturetType
 }
 
 input DocumentSignatureInput {
@@ -18,10 +20,9 @@ input DocumentSignaturRejectInput {
 }
 
 input DocumentSignatureForwardInput {
-    documentSignatureId: String!
-    sender: String!
-    receivers: String!
+    documentSignatureSentId: String!
     note: String
 }
 
 #import validation.graphql
+#import documentSignatureType.graphql

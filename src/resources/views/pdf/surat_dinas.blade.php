@@ -16,9 +16,9 @@
             <img style="width: 100%" src="{{ config('sikd.base_path_file') . 'kop/' . $header->Header }}">
         </section>
         <section id="header-content-section">
-            <div style="margin-top: 49px">
+            <div style="margin-top: {{ ($draft->createdBy->role->GRoleId == 'XxJyPn38Yh.40') ? '82px;' : '49px' }} "> <!-- Custom condition header for gubernur level -->
                 <div class="left-header">&nbsp;</div>
-                <div class="right-header"><p style="margin-bottom: 0;">{{ ($generateQrCode) ? $draft->lokasi . ', ' . parseSetLocaleDate($draft->TglReg, 'id', 'd F Y') : 'Tempat / Tanggal / Bulan / Tahun'; }}</p></div>
+                <div class="right-header"><p style="margin-bottom: 0;">{{ ($esign) ? $draft->lokasi . ', ' . parseSetLocaleDate($draft->TglReg, 'id', 'd F Y') : 'Tempat / Tanggal / Bulan / Tahun'; }}</p></div>
                 <div class="clearfix"></div>
             </div>
             <div>
@@ -30,9 +30,9 @@
                 <div class="left-header">
                     <table class="table-collapse no-padding-table">
                         <tr>
-                            <td style="width: 69px">Nomor</td>
-                            <td style="width: 18px">:</td>
-                            <td>
+                            <td valign="top" style="width: 69px">Nomor</td>
+                            <td valign="top" style="width: 18px">:</td>
+                            <td valign="top">
                                 @if ($draft->nosurat != null)
                                     {{ $draft->nosurat }}
                                 @else
@@ -41,19 +41,19 @@
                             </td>
                         </tr>
                         <tr>
-                            <td style="width: 69px">Sifat</td>
-                            <td style="width: 18px">:</td>
-                            <td>{!! $draft->classified->SifatName; !!}</td>
+                            <td valign="top" style="width: 69px">Sifat</td>
+                            <td valign="top" style="width: 18px">:</td>
+                            <td valign="top">{!! $draft->classified->SifatName; !!}</td>
                         </tr>
                         <tr>
-                            <td style="width: 69px">Lampiran</td>
-                            <td style="width: 18px">:</td>
-                            <td>{!! $draft->Jumlah . ' ' . $draft->measureUnit->MeasureUnitName; !!}</td>
+                            <td valign="top" style="width: 69px">Lampiran</td>
+                            <td valign="top" style="width: 18px">:</td>
+                            <td valign="top">{!! $draft->Jumlah . ' ' . $draft->measureUnit->MeasureUnitName; !!}</td>
                         </tr>
                         <tr>
-                            <td style="width: 69px">Hal</td>
-                            <td style="width: 18px">:</td>
-                            <td>{!! $draft->Hal; !!}</td>
+                            <td valign="top" style="width: 69px">Hal</td>
+                            <td valign="top" style="width: 18px">:</td>
+                            <td valign="top" style="width: 220px;" class="align-justify">{!! $draft->Hal; !!}</td>
                         </tr>
                     </table>
                 </div>

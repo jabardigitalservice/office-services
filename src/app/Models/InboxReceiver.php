@@ -6,7 +6,7 @@ use App\Enums\ListTypeEnum;
 use App\Enums\PeopleGroupTypeEnum;
 use App\Http\Traits\InboxFilterTrait;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Hoyvoy\CrossDatabase\Eloquent\Model;
+use Illuminate\Database\Eloquent\Model;
 
 class InboxReceiver extends Model
 {
@@ -35,7 +35,8 @@ class InboxReceiver extends Model
         'ReceiveDate',
         'To_Id_Desc',
         'Status',
-        'TindakLanjut'
+        'TindakLanjut',
+        'action_label'
     ];
 
     public function inboxDetail()
@@ -43,16 +44,23 @@ class InboxReceiver extends Model
         return $this->belongsTo(Inbox::class, 'NId', 'NId');
     }
 
-    public function history($query, $NId)
+    public function history($query, $filter)
     {
-        return $query->where('NId', $NId)
-            ->where(function ($query) {
-                $query->whereIn('GIR_Id', function ($query) {
-                    $query->select('GIR_Id')
-                        ->from('inbox_receiver')
-                        ->where('RoleId_To', 'like', auth()->user()->PrimaryRoleId . '%');
-                })
-                ->orWhere('RoleId_From', 'like', auth()->user()->PrimaryRoleId . '%');
+        return $query->where('NId', $filter['inboxId'])
+            ->where(function ($query) use ($filter) {
+                $status = $filter['status'] ?? null;
+                if ($filter['withAuthCheck']) {
+                    $query->whereIn('GIR_Id', function ($query) {
+                        $query->select('GIR_Id')
+                            ->from('inbox_receiver')
+                            ->where('RoleId_To', 'like', auth()->user()->PrimaryRoleId . '%');
+                    })
+                    ->orWhere('RoleId_From', 'like', auth()->user()->PrimaryRoleId . '%');
+                }
+                if ($status) {
+                    $status = explode(', ', $status);
+                    $query->whereIn('ReceiverAs', $status);
+                }
             });
     }
 
@@ -99,6 +107,8 @@ class InboxReceiver extends Model
         $this->filterByForwardStatus($query, $filter);
         $this->filterByReceiverTypes($query, $filter);
         $this->filterByScope($query, $filter);
+        $this->filterByFollowedUpStatus($query, $filter);
+        $this->filterByActionLabel($query, $filter);
         return $query;
     }
 

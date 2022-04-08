@@ -2,6 +2,7 @@
 
 namespace App\Http\Traits;
 
+use App\Exceptions\CustomException;
 use App\Models\Draft;
 use App\Models\MasterDraftHeader;
 use App\Models\People;
@@ -11,6 +12,8 @@ use Endroid\QrCode\Encoding\Encoding;
 use Endroid\QrCode\ErrorCorrectionLevel\ErrorCorrectionLevelHigh;
 use Endroid\QrCode\RoundBlockSizeMode\RoundBlockSizeModeMargin;
 use Endroid\QrCode\Writer\PngWriter;
+use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
 use PDF;
 
@@ -19,47 +22,22 @@ use PDF;
  */
 trait DraftTrait
 {
-    public function setDraftDocumentPdf($id, $verifyCode = null)
+    public function setDraftDocumentPdf($request, $id)
     {
         $draft  = Draft::where('NId_Temp', $id)->firstOrFail();
         $header = MasterDraftHeader::where('GRoleId', $draft->createdBy->role->GRoleId)->first();
         $customData = $this->customData($draft);
-
-        $generateQrCode = ($verifyCode) ? $this->generateQrCode($id) : null;
-        $pdf = PDF::loadView($draft->document_template_name, compact('draft', 'header', 'customData', 'generateQrCode', 'verifyCode'));
-        if ($draft->Ket == 'outboxsprint') {
-            $pdf->setPaper(array(0,0,609.4488,935.433), 'portrait'); //F4 Size
+        if (getimagesize(config('sikd.base_path_file') . 'kop/' . $header->Header) === false) {
+            throw new CustomException('Invalid generate PDF', 'Invalid generate PDF because file not found');
         }
+
+        $esign = null;
+        if ($request->has('esign')) {
+            $esign = true;
+        }
+        $pdf = PDF::loadView($draft->document_template_name, compact('draft', 'header', 'customData', 'esign'));
+        $pdf->setPaper(array(0,0,609.4488,935.433), 'portrait'); //F4 Size
         return $pdf->stream();
-    }
-
-    /**
-     * generateQrCode
-     *
-     * @param  mixed $id
-     * @return void
-     */
-    public function generateQrCode($id)
-    {
-        // Create QR code
-        $result = Builder::create()
-            ->writer(new PngWriter())
-            ->writerOptions([])
-            ->data($id)
-            ->encoding(new Encoding('UTF-8'))
-            ->errorCorrectionLevel(new ErrorCorrectionLevelHigh())
-            ->size(500)
-            ->margin(0)
-            ->roundBlockSizeMode(new RoundBlockSizeModeMargin())
-            ->logoPath(public_path('images/logo-jabar.jpg'))
-            ->logoResizeToWidth(150)
-            ->build();
-
-        header('Content-Type: ' . $result->getMimeType());
-        $fileName = $id . '.png';
-        Storage::disk('local')->put($fileName, $result->getString());
-
-        return $fileName;
     }
 
     /**
@@ -73,7 +51,7 @@ trait DraftTrait
         $customData = match ($draft->Ket) {
             'outboxnotadinas'       => $this->setDataNotaDinas($draft),
             'outboxkeluar'          => $this->setDataSuratDinas($draft),
-            default                 => $this->setDataSuratPerintah($draft),
+            default                 => $this->setDataDefault($draft),
         };
 
         return $customData;
@@ -105,12 +83,12 @@ trait DraftTrait
     }
 
     /**
-     * setDataSuratPerintah
+     * setDataDefault
      *
      * @param  collection $draft
      * @return array
      */
-    public function setDataSuratPerintah($draft)
+    public function setDataDefault($draft)
     {
         $response['receivers'] = $this->getReceivers($draft);
         return $response;

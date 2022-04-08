@@ -49,4 +49,20 @@ class DocumentSignatureSentType
 
         return null;
     }
+
+     /**
+     * @param $rootValue
+     * @param array                                                    $args
+     * @param \Nuwave\Lighthouse\Support\Contracts\GraphQLContext|null $context
+     *
+     * @return array
+     */
+    public function isRead($rootValue, array $args, GraphQLContext $context)
+    {
+        if ($rootValue->is_receiver_read == true || $rootValue->is_sender_read == true) {
+            return true;
+        } else {
+            return false;
+        }
+    }
 }

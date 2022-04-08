@@ -5,17 +5,13 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class MasterDraftType extends Model
+class DocumentSignatureType extends Model
 {
     use HasFactory;
 
     protected $connection = 'sikdweb';
 
-    protected $table = 'master_jnaskah';
+    protected $table = 'm_ttd_types';
 
     public $timestamps = false;
-
-    protected $keyType = 'string';
-
-    protected $primaryKey = 'JenisId';
 }

@@ -3,13 +3,17 @@
 namespace App\GraphQL\Mutations;
 
 use App\Enums\DocumentSignatureSentNotificationTypeEnum;
+use App\Enums\PeopleGroupTypeEnum;
 use App\Enums\SignatureStatusTypeEnum;
 use App\Http\Traits\SendNotificationTrait;
 use App\Http\Traits\SignatureTrait;
 use App\Exceptions\CustomException;
 use App\Models\DocumentSignature;
+use App\Models\DocumentSignatureForward;
 use App\Models\DocumentSignatureSent;
+use App\Models\People;
 use Carbon\Carbon;
+use Illuminate\Http\Response;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
@@ -72,38 +76,36 @@ class DocumentSignatureMutator
     protected function doSignature($setupConfig, $data, $passphrase)
     {
         $url = $setupConfig['url'] . '/api/sign/pdf';
-        //flagging for easy define by mobile
-        $linkQR = 'document_direct_upload-' . $data->ttd_id;
+        $newFileName = $data->documentSignature->document_file_name;
+        $verifyCode = strtoupper(substr(sha1(uniqid(mt_rand(), true)), 0, 10));
+        if ($data->documentSignature->has_footer == false) {
+            $pdfFile = $this->addFooterDocument($data, $newFileName, $verifyCode);
+        } else {
+            $pdfFile = file_get_contents($data->documentSignature->url);
+        }
 
         $response = Http::withHeaders([
             'Authorization' => 'Basic ' . $setupConfig['auth'],
             'Cookie' => 'JSESSIONID=' . $setupConfig['cookies'],
         ])->attach(
             'file',
-            file_get_contents($data->documentSignature->url),
+            $pdfFile,
             $data->documentSignature->file
         )->post($url, [
             'nik'           => $setupConfig['nik'],
             'passphrase'    => $passphrase,
-            'tampilan'      => 'visible',
-            'page'          => '1',
+            'tampilan'      => 'invisible',
             'image'         => 'false',
-            'imageTTD'      => '',
-            'linkQR'        => $linkQR,
-            'xAxis'         => 10,
-            'yAxis'         => 10,
-            'width'         => 80,
-            'height'        => 80
         ]);
 
-        if ($response->status() != 200) {
+        if ($response->status() != Response::HTTP_OK) {
             throw new CustomException('Document failed', 'Signature failed, check your file again');
         } else {
             //Save new file & update status
-            $data = $this->saveNewFile($response, $data);
-            //Save log
-            $this->createPassphraseSessionLog($response);
+            $data = $this->saveNewFile($response, $data, $newFileName, $verifyCode);
         }
+        //Save log
+        $this->createPassphraseSessionLog($response);
 
         return $data;
     }
@@ -127,10 +129,9 @@ class DocumentSignatureMutator
      * @param  collection $data
      * @return collection
      */
-    protected function saveNewFile($pdf, $data)
+    protected function saveNewFile($pdf, $data, $newFileName, $verifyCode)
     {
         //save to storage path for temporary file
-        $newFileName = str_replace(' ', '_', $data->documentSignature->nama_file) . '_' . parseDateTimeFormat(Carbon::now(), 'dmY')  . '_signed.pdf';
         Storage::disk('local')->put($newFileName, $pdf->body());
 
         $fileSignatured = fopen(Storage::path($newFileName), 'r');
@@ -142,10 +143,10 @@ class DocumentSignatureMutator
             $newFileName
         )->post(config('sikd.webhook_url'));
 
-        if ($response->status() != 200) {
+        if ($response->status() != Response::HTTP_OK) {
             throw new CustomException('Webhook failed', json_decode($response));
         } else {
-            $data = $this->updateDocumentSentStatus($data, $newFileName);
+            $data = $this->updateDocumentSentStatus($data, $newFileName, $verifyCode);
         }
 
         Storage::disk('local')->delete($newFileName);
@@ -160,19 +161,29 @@ class DocumentSignatureMutator
      * @param  string $newFileName
      * @return collection
      */
-    protected function updateDocumentSentStatus($data, $newFileName)
+    protected function updateDocumentSentStatus($data, $newFileName, $verifyCode)
     {
         //change filename with _signed & update stastus
-        $updateFileData = DocumentSignature::where('id', $data->ttd_id)->update([
-            'status' => 1,
-            'file' => $newFileName
-        ]);
+        if ($data->documentSignature->has_footer == false) {
+            $updateFileData = DocumentSignature::where('id', $data->ttd_id)->update([
+                'status' => SignatureStatusTypeEnum::SUCCESS()->value,
+                'file' => $newFileName,
+                'code' => $verifyCode,
+                'has_footer' => true,
+            ]);
+        } else {
+            $updateFileData = DocumentSignature::where('id', $data->ttd_id)->update([
+                'status' => SignatureStatusTypeEnum::SUCCESS()->value,
+                'file' => $newFileName,
+            ]);
+        }
 
         //update status document sent to 1 (signed)
         $updateDocumentSent = tap(DocumentSignatureSent::where('id', $data->id))->update([
-            'status' => 1,
+            'status' => SignatureStatusTypeEnum::SUCCESS()->value,
             'next' => 1,
-            'tgl_ttd' => setDateTimeNowValue()
+            'tgl_ttd' => setDateTimeNowValue(),
+            'is_sender_read' => false
         ])->first();
 
         //check if any next siganture require
@@ -183,9 +194,18 @@ class DocumentSignatureMutator
             DocumentSignatureSent::where('id', $nextDocumentSent->id)->update([
                 'next' => 1
             ]);
-
             //Send notification to next people
             $this->doSendNotification($nextDocumentSent->id);
+        } else {
+            $documentSignatureForwardIds = $this->doForward($data);
+            if (!$documentSignatureForwardIds) {
+                throw new CustomException(
+                    'Forward document failed',
+                    'Return ids is missing. Please try again.'
+                );
+            }
+            //Send notification to sender
+            $this->doSendForwardNotification($data->id, $data->receiver->PeopleName);
         }
 
         return $updateDocumentSent;
@@ -211,5 +231,118 @@ class DocumentSignatureMutator
         ];
 
         $this->setupDocumentSignatureSentNotification($messageAttribute);
+    }
+
+    /**
+     * addFooterDocument
+     *
+     * @param  mixed $data
+     * @param  mixed $newFileName
+     * @return void
+     */
+    protected function addFooterDocument($data, $newFileName, $verifyCode)
+    {
+        $addFooter = Http::post(config('sikd.add_footer_url'), [
+            'pdf' => $data->documentSignature->url,
+            'qrcode' => config('sikd.url') . 'FilesUploaded/ttd/sudah_ttd/' . $newFileName,
+            'category' => $data->documentSignature->documentSignatureType->document_paper_type,
+            'code' => $verifyCode
+        ]);
+
+        return $addFooter;
+    }
+
+    /**
+     * doSendForwardNotification
+     *
+     * @param  string $id
+     * @param  string $name
+     * @return void
+     */
+    protected function doSendForwardNotification($id, $name)
+    {
+        $messageAttribute = [
+            'notification' => [
+                'title' => 'TTE Naskah',
+                'body' => 'Naskah Anda telah di tandatangani oleh ' . $name . '. Klik disini untuk lihat naskah!',
+            ],
+            'data' => [
+                'documentSignatureSentId' => $id,
+                'target' => DocumentSignatureSentNotificationTypeEnum::SENDER()
+            ]
+        ];
+
+        $this->setupDocumentSignatureSentNotification($messageAttribute);
+    }
+
+    /**
+     * doForward
+     *
+     * @param  object $documentSignatureSentId
+     * @param  string $sender
+     * @param  mixed $args
+     * @return array
+     */
+    public function doForward($documentSignatureSent)
+    {
+        $ids = array();
+        $receiver = $this->forwardReceiver($documentSignatureSent);
+
+        if ($receiver != null) {
+            foreach ($receiver as $key => $receiver) {
+                $key++;
+                $documentSignatureForward = DocumentSignatureForward::create([
+                    'ttd_id' => $documentSignatureSent->ttd_id,
+                    'catatan' => '',
+                    'tgl' => Carbon::now(),
+                    'PeopleID' => $documentSignatureSent->PeopleIDTujuan,
+                    'PeopleIDTujuan' => $receiver,
+                    'urutan' => $key,
+                    'status' => SignatureStatusTypeEnum::WAITING()->value,
+                ]);
+
+                array_push($ids, $documentSignatureForward);
+            }
+
+            return $ids;
+        }
+
+        return false;
+    }
+
+    /**
+     * forwardReceiver
+     *
+     * @param  mixed $type
+     * @return mixed
+     */
+    public function forwardReceiver($documentSignatureSent)
+    {
+        $type = optional($documentSignatureSent->documentSignature->documentSignatureType)->document_forward_target;
+        switch ($type) {
+            case 'UK':
+            case 'TU':
+                if ($type == 'UK') {
+                    $peopleGroupType = PeopleGroupTypeEnum::UK()->value;
+                    $whereField = 'GRoleId';
+                    $whereParams = auth()->user()->role->GRoleId;
+                }
+                if ($type == 'TU') {
+                    $peopleGroupType = PeopleGroupTypeEnum::TU()->value;
+                    $whereField = 'Code_Tu';
+                    $whereParams = auth()->user()->role->Code_Tu;
+                }
+                $receiver = People::whereHas('role', function ($role) use ($whereField, $whereParams) {
+                    $role->where('RoleCode', auth()->user()->role->RoleCode);
+                    $role->where($whereField, $whereParams);
+                })->where('GroupId', $peopleGroupType)->pluck('PeopleId');
+                break;
+
+            default:
+                $receiver = null;
+                break;
+        }
+
+        return $receiver;
     }
 }

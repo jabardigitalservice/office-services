@@ -6,6 +6,7 @@
             $fontSizeInBox = '11px;';
             $boxSignature = '-62px;';
             $imageOnBoxSignature = '80px;';
+            $roleFontSize = '12px';
             $reviewTitle = true;
             break;
 
@@ -14,6 +15,16 @@
             $fontSizeInBox = '13px;';
             $boxSignature = '0px;';
             $imageOnBoxSignature = '65px;';
+            $roleFontSize = '16px';
+            $reviewTitle = false;
+            break;
+
+        case 'outboxrekomendasi':
+            $signatureBoxSize = '340px';
+            $fontSizeInBox = '13px;';
+            $boxSignature = '0px;';
+            $imageOnBoxSignature = '65px;';
+            $roleFontSize = '16px';
             $reviewTitle = false;
             break;
 
@@ -22,6 +33,7 @@
             $fontSizeInBox = '10px;';
             $boxSignature = '0px;';
             $imageOnBoxSignature = '45px;';
+            $roleFontSize = '12px';
             $reviewTitle = true;
             break;
     }
@@ -33,15 +45,18 @@
         }
     </style>
 @endif
-<section class="signature-content-section">
-    <div style="float:right; width: {{ $signatureBoxSize }} position: relative; left: {{ $boxSignature; }}">
-        @if ($draft->Ket == 'outboxsprint')
-            <p style="text-align: center; font-size:16px;">
-                Ditetapkan di {{ ($generateQrCode) ? $draft->lokasi : ".............."  }} <br>
-                Pada Tanggal {{ ($generateQrCode) ? parseSetLocaleDate($draft->TglNaskah, 'id', 'd F Y') : ".............."  }}
-            </p>
-        @endif
-        <p style="text-align: center; font-size: {{ ($draft->Ket == 'outboxsprint') ? '16px; margin-bottom: 0;' : '12px;' }}">
+<section class="signature-content-section" style="position: relative; left: 255px; width: {{ $signatureBoxSize }}">
+    <div style="width: {{ $signatureBoxSize }} position: relative; left: {{ $boxSignature; }}">
+        <p style="text-align: center; font-size:16px; margin: 0px;">
+            @if ($draft->Ket == 'outboxsprint')
+            Ditetapkan di {{ ($esign) ? $draft->lokasi : '..............'  }} <br>
+            Pada tanggal {{ ($esign) ? parseSetLocaleDate($draft->TglNaskah, 'id', 'd F Y') : '..............'  }}
+            @endif
+            @if ($draft->Ket == 'outboxrekomendasi')
+                {{ ($esign) ? $draft->lokasi . ', ' . parseSetLocaleDate($draft->TglNaskah, 'id', 'd F Y') : 'Tempat, tanggal, bulan dan tahun';  }}
+            @endif
+        </p>
+        <p style="text-align: center; font-size: {{ $roleFontSize }}; margin: 5px 0px 15px 0px;">
             @if ($draft->TtdText == 'PLT')
                 Plt. {!! $draft->reviewer->role->RoleName !!},
             @elseif ($draft->TtdText == 'PLH')
@@ -57,20 +72,20 @@
                 {!! $draft->reviewer->role->RoleName !!},
             @endif
         </p>
-        @if (!$generateQrCode && $reviewTitle == true)
+        @if (!$esign && $reviewTitle == true)
             <p style="text-align: center;">PEMERIKSA</p>
         @endif
-        <div style="border: 1px solid #000000; font-size: {{ $fontSizeInBox; }};">
+        <div style="border: 1px solid #000000; font-size: {{ $fontSizeInBox; }}; border-radius: 8px;">
             <table class="table-collapse no-padding-table signature-table">
                 <tr>
                     <td rowspan="4" style="vertical-align: middle; text-align:center">
-                        @if ($generateQrCode)
-                            <img src="{{ public_path('/images/logo-jabar.jpg') }}" width="55px">
+                        @if ($esign)
+                            <img src="{{ public_path('/images/new-specimen-signature.svg') }}" width="55px">
                         @else
                             <img src="{{ public_path('/images/logo-empty.jpg') }}" width="{{ $imageOnBoxSignature }}">
                         @endif
                     </td>
-                    <td>Ditandatangani secara elekronik oleh:</td>
+                    <td style="padding-top: 6px;">Ditandatangani secara elekronik oleh:</td>
                 </tr>
                 <tr>
                     <td>
@@ -97,11 +112,13 @@
                         {{ $draft->Nama_ttd_konsep }}
                     </td>
                 </tr>
-                <tr>
-                    <td>
-                        {{ $draft->reviewer->Pangkat }}
-                    </td>
-                </tr>
+                @if ($draft->reviewer->Pangkat != null)
+                    <tr>
+                        <td style="padding-bottom: 6px;">
+                            {{ $draft->reviewer->Pangkat }}
+                        </td>
+                    </tr>
+                @endif
             </table>
         </div>
     </div>

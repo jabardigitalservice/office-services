@@ -3,7 +3,7 @@
 namespace App\Models;
 
 use App\Enums\CustomReceiverTypeEnum;
-use App\Enums\DraftObjectiveTypeEnum;
+use App\Enums\ObjectiveTypeEnum;
 use App\Enums\ListTypeEnum;
 use App\Http\Traits\InboxFilterTrait;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -35,7 +35,8 @@ class InboxReceiverCorrection extends Model
         'To_Id_Desc',
         'RoleCode',
         'JenisId',
-        'id_koreksi'
+        'id_koreksi',
+        'action_label'
     ];
 
     public function draftDetail()
@@ -107,16 +108,17 @@ class InboxReceiverCorrection extends Model
         });
 
         switch ($objective) {
-            case DraftObjectiveTypeEnum::IN():
+            case ObjectiveTypeEnum::IN():
                 $query->where('From_Id', '!=', $userId)
                     ->where('ReceiverAs', '!=', 'to_koreksi');
                 break;
 
-            case DraftObjectiveTypeEnum::OUT():
-                $query->where('To_Id', '!=', $userId);
+            case ObjectiveTypeEnum::OUT():
+                $query->where(fn($query) => $query->whereNull('To_Id')
+                        ->orWhere('To_Id', '!=', $userId));
                 break;
 
-            case DraftObjectiveTypeEnum::REVISE():
+            case ObjectiveTypeEnum::REVISE():
                 $query->where('From_Id', $userId)
                     ->where('To_Id', $userId);
                 break;
@@ -129,82 +131,85 @@ class InboxReceiverCorrection extends Model
         $this->filterByStatus($query, $filter);
         $this->filterByType($query, $filter, ListTypeEnum::DRAFT_LIST());
         $this->filterByUrgency($query, $filter, ListTypeEnum::DRAFT_LIST());
-        $this->filterDraftByReceiverTypes($query, $filter);
+        $this->filterByActionLabel($query, $filter);
+        $this->filterByReceiverLabel($query, $filter);
         return $query;
     }
 
-    private function filterDraftByReceiverTypes($query, $filter)
+    /**
+     * Filtering list by receiver types
+     *
+     * @param Object $query
+     * @param Array $filter
+     *
+     * @return Void
+     */
+    private function filterByReceiverLabel($query, $filter)
     {
         $receiverTypes = $filter["receiverTypes"] ?? null;
         if ($receiverTypes) {
             $arrayReceiverTypes = explode(", ", $receiverTypes);
-            $receiverAs = $this->getReceiverAsData($arrayReceiverTypes);
-            if (in_array(CustomReceiverTypeEnum::REVIEW(), $arrayReceiverTypes)) {
-                $this->receiverReviewQuery($query, $receiverAs);
-            } else {
-                $this->receiverDefaultQuery($query, $receiverAs);
-                $this->receiverSignQuery($query, $arrayReceiverTypes);
-            }
+            $this->filterReceiverLabelReviewQuery($query, $arrayReceiverTypes);
+            $this->filterReceiverLabelDistributionQuery($query, $arrayReceiverTypes);
+            $this->filterReceiverLabelDefaultQuery($query, $arrayReceiverTypes);
+            $query->whereNotNull('action_label');
         }
     }
 
-    private function receiverDefaultQuery($query, $receiverTypes)
+    /**
+     * Receiver label default filter query
+     *
+     * @param Object $query
+     * @param Array $arrayReceiverTypes
+     *
+     * @return Void
+     */
+    private function filterReceiverLabelDefaultQuery($query, $arrayReceiverTypes)
     {
-        $query->whereIn('ReceiverAs', $receiverTypes);
-    }
-
-    private function receiverReviewQuery($query, $receiverTypes)
-    {
-        $query->where(fn($query) => $query->whereIn('ReceiverAs', $receiverTypes)
-            ->orWhere(fn($query) => $query->where('ReceiverAs', 'meneruskan')
-                ->whereIn('NId', fn($query) => $query->select('NId_Temp')
-                    ->from('konsep_naskah')
-                    ->where('Konsep', '!=', '0')
-                    ->where(fn($query) => $query->where('nosurat', '=', null)
-                        ->orWhere('nosurat', '!=', null)
-                        ->where('Approve_People', '!=', auth()->user()->PeopleId)))));
-    }
-
-    private function receiverSignQuery($query, $receiverTypes)
-    {
-        $operator = $this->signedOperatorSelect($receiverTypes);
-        if ($operator) {
-            $query->whereIn('NId', fn($query) => $query->select('NId_Temp')
-                ->from('konsep_naskah')
-                ->where('Konsep', $operator, '0')
-                ->where('nosurat', '!=', null));
-        }
-
-        if (in_array(CustomReceiverTypeEnum::SIGN_REQUEST(), $receiverTypes)) {
-            $query->whereIn('NId', fn($query) => $query->select('NId_Temp')
-                ->from('konsep_naskah')
-                ->where('Approve_People', '=', auth()->user()->PeopleId));
+        if (
+            in_array(strtolower(CustomReceiverTypeEnum::REVIEW()), $arrayReceiverTypes) == false &&
+            in_array(strtolower(CustomReceiverTypeEnum::DISTRIBUTION()), $arrayReceiverTypes) == false
+        ) {
+            $query->whereIn('ReceiverAs', $arrayReceiverTypes);
         }
     }
 
-    private function signedOperatorSelect($receiverTypes)
+    /**
+     * Receiver label review filter query
+     *
+     * @param Object $query
+     * @param Array $arrayReceiverTypes
+     *
+     * @return Void
+     */
+    private function filterReceiverLabelReviewQuery($query, $arrayReceiverTypes)
     {
-        if (in_array(CustomReceiverTypeEnum::SIGNED(), $receiverTypes)) {
-            return '=';
-        } elseif (in_array(CustomReceiverTypeEnum::SIGN_REQUEST(), $receiverTypes)) {
-            return'!=';
+        if (in_array(strtolower(CustomReceiverTypeEnum::REVIEW()), $arrayReceiverTypes)) {
+            $query->where(
+                fn($query) => $query
+                    ->whereIn('ReceiverAs', $this->getReceiverAsReviewData())
+                    ->orWhere('ReceiverAs', 'meneruskan')
+                    ->whereHas('receiver', fn($query) => $query->where('GroupId', '!=', 6))
+            );
         }
     }
 
-    private function getReceiverAsData($arrayReceiverTypes)
+    /**
+     * Receiver label distribution filter query
+     * Only return 'Surat Dinas' letters with the receiver is UK (GroupId=6)
+     *
+     * @param Object $query
+     * @param Array $arrayReceiverTypes
+     *
+     * @return Void
+     */
+    private function filterReceiverLabelDistributionQuery($query, $arrayReceiverTypes)
     {
-        $receiverAs = [];
-        foreach ($arrayReceiverTypes as $receiverType) {
-            $receiverType = match ($receiverType) {
-                CustomReceiverTypeEnum::CORRECTION()->value    => ['koreksi'],
-                CustomReceiverTypeEnum::NUMBERING()->value     => ['Meminta Nomber Surat'],
-                CustomReceiverTypeEnum::SIGN_REQUEST()->value,
-                CustomReceiverTypeEnum::SIGNED()->value        => ['meneruskan'],
-                default => $this->getReceiverAsReviewData()
-            };
-            $receiverAs = array_merge($receiverAs, $receiverType);
+        if (in_array(strtolower(CustomReceiverTypeEnum::DISTRIBUTION()), $arrayReceiverTypes)) {
+            $query->where('ReceiverAs', 'meneruskan')
+                ->whereHas('draftDetail', fn($query) => $query->where('JenisId', 'XxJyPn38Yh.35'))
+                ->whereHas('receiver', fn($query) => $query->where('GroupId', 6));
         }
-        return $receiverAs;
     }
 
     public function getReceiverAsReviewData()
@@ -234,10 +239,5 @@ class InboxReceiverCorrection extends Model
         };
 
         return $label;
-    }
-
-    public function history($query, $draftId)
-    {
-        return $query->where('NId', $draftId);
     }
 }

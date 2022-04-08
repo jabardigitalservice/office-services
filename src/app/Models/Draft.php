@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\URL;
@@ -53,7 +54,7 @@ class Draft extends Model
 
     public function draftType()
     {
-        return $this->belongsTo(MasterDraftType::class, 'JenisId', 'JenisId');
+        return $this->belongsTo(DocumentType::class, 'JenisId', 'JenisId');
     }
 
     public function classified()
@@ -86,25 +87,37 @@ class Draft extends Model
         return $file;
     }
 
+    public function getAboutAttribute()
+    {
+        return str_replace('&nbsp;', ' ', strip_tags($this->Hal));
+    }
+
     public function getDocumentFileNameAttribute()
     {
-        $label = match ($this->Ket) {
-            'outboxnotadinas'       => 'nota_dinas-' . $this->NId_Temp . '.pdf',
-            'outboxsprint'          => 'sprint-' . $this->NId_Temp . '.pdf',
-            'outboxsprintgub'       => 'sprintgub-' . $this->NId_Temp . '.pdf',
-            'outboxundangan'        => 'undangan-' . $this->NId_Temp . '.pdf',
-            'outboxedaran'          => 'surat_edaran-' . $this->NId_Temp . '.pdf',
-            'outboxinstruksigub'    => 'surat_instruksi-' . $this->NId_Temp . '.pdf',
-            'outboxsupertugas'      => 'surat_supertugas-' . $this->NId_Temp . '.pdf',
-            'outboxkeluar'          => 'surat_dinas-' . $this->NId_Temp . '.pdf',
-            'outboxsket'            => 'surat_keterangan-' . $this->NId_Temp . '.pdf',
-            'outboxpengumuman'      => 'pengumuman-' . $this->NId_Temp . '.pdf',
-            'outboxsuratizin'       => 'surat_izin-' . $this->NId_Temp . '.pdf',
-            'outboxrekomendasi'     => 'rekomendasi-' . $this->NId_Temp . '.pdf',
-            default                 => 'nadin_lain-' . $this->NId_Temp . '.pdf',
+        $type = match ($this->Ket) {
+            'outboxnotadinas'       => 'Nota_Dinas',
+            'outboxsprint'          => 'Surat_Perintah_Perangkat_Daerah',
+            'outboxsprintgub'       => 'Surat_Perintah_Gubernur',
+            'outboxundangan'        => 'Surat_Undangan',
+            'outboxedaran'          => 'Surat_Edaran',
+            'outboxinstruksigub'    => 'Surat_Instruksi_Gubernur',
+            'outboxsupertugas'      => 'Surat_Pernyataan_Melaksanakan_Tugas',
+            'outboxkeluar'          => 'Surat_Dinas',
+            'outboxsket'            => 'Surat_Keterangan',
+            'outboxpengumuman'      => 'Pengumuman',
+            'outboxsuratizin'       => 'Surat_Izin',
+            'outboxrekomendasi'     => 'Surat_Rekomendasi',
+            default                 => 'Nadin_Lain',
         };
 
-        return $label;
+        /* we need to get title value with rule
+         * max length 180 character, remove the unused special character and change space with underscore
+         */
+        $title = str_replace(' ', '_', trim(preg_replace('/[^a-zA-Z0-9_ -]/s', '', substr($this->about, 0, 180))));
+        $time = parseDateTimeFormat(Carbon::now(), 'dmY') . '_' . parseDateTimeFormat(Carbon::now(), 'His');
+        $pdfName = $type  . '_' . $title . '_' . $time  . '_signed.pdf';
+
+        return $pdfName;
     }
 
     public function getDocumentTemplateNameAttribute()
@@ -121,10 +134,23 @@ class Draft extends Model
             'outboxsket'            => 'pdf.surat_keterangan',
             'outboxpengumuman'      => 'pdf.pengumuman',
             'outboxsuratizin'       => 'pdf.surat_izin',
-            'outboxrekomendasi'     => 'pdf.rekomendasi',
+            'outboxrekomendasi'     => 'pdf.surat_rekomendasi',
             default                 => 'pdf.nadin_lain',
         };
 
         return $label;
+    }
+
+    public function getCategoryFooterAttribute()
+    {
+        switch ($this->Ket) {
+            case 'outboxinstruksigub':
+                return 3;
+                break;
+
+            default:
+                return 1;
+                break;
+        }
     }
 }

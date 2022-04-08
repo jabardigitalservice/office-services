@@ -2,6 +2,7 @@
 
 namespace App\GraphQL\Mutations;
 
+use App\Enums\ActionLabelTypeEnum;
 use App\Enums\FcmNotificationActionTypeEnum;
 use App\Http\Traits\SendNotificationTrait;
 use App\Models\Draft;
@@ -57,6 +58,7 @@ class InboxReceiverCorrectionMutator
     protected function updateInboxStatus($inbox)
     {
         $inbox->Status = 1;
+        $inbox->action_label = ActionLabelTypeEnum::REVIEWED();
         $inbox->save();
     }
 
@@ -85,6 +87,7 @@ class InboxReceiverCorrectionMutator
         $inbox->StatusReceive   = 'unread';
         $inbox->ReceiveDate     = $draftData['time'];
         $inbox->To_Id_Desc      = $drafter->role->RoleName;
+        $inbox->action_label    = ActionLabelTypeEnum::CORRECTION();
         $inbox->save();
 
         return $inbox;
@@ -118,11 +121,12 @@ class InboxReceiverCorrectionMutator
     protected function actionNotification($draftData)
     {
         $draft = Draft::findOrFail($draftData['draftId']);
+        $about = str_replace('&nbsp;', ' ', strip_tags($draft->Hal));
         $peopleId = substr($draftData['groupId'], 0, -19);
         $dateString = substr($draftData['groupId'], -19);
         $date = parseDateTimeFormat($dateString, 'dmyhis');
         $title = 'Perbaikan Naskah';
-        $body = 'Terdapat ' . $draft->type->JenisName . ' terkait dengan ' . $draft->Hal . ' yang perlu diperbaiki terlebih dahulu. Klik di sini untuk informasi lebih lanjut.';
+        $body = 'Terdapat ' . $draft->type->JenisName . ' terkait dengan ' . $about . ' yang perlu diperbaiki terlebih dahulu. Klik di sini untuk informasi lebih lanjut.';
 
         $messageAttribute = [
             'notification' => [

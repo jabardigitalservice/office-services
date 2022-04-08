@@ -1,0 +1,5 @@
+type MasterClassified {
+    id: String! @rename(attribute: "SifatId")
+    name: String! @rename(attribute: "SifatName")
+    code: String @rename(attribute: "KodeSifat")
+}

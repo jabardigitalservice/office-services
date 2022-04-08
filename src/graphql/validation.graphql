@@ -1,6 +1,19 @@
+type ValidationDocument {
+    inboxFile: InboxFile
+    documentSignature: DocumentSignature
+}
+
 type Validation {
     isValid: Boolean
     signatures: [People]
 }
 
-#import people.graphql
+input ValidationDocumentFilterInput {
+    type: ValidationDocumentInputType!
+    value: String!
+}
+
+enum ValidationDocumentInputType {
+    QRCODE
+    CODE
+}

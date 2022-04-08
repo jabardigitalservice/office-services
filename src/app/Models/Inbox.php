@@ -17,6 +17,8 @@ class Inbox extends Model
 
     protected $primaryKey = 'NId';
 
+    public $timestamps = false;
+
     public function type()
     {
         return $this->belongsTo(DocumentType::class, 'JenisId', 'JenisId');
@@ -30,6 +32,16 @@ class Inbox extends Model
     public function documentFile()
     {
         return $this->belongsTo(InboxFile::class, 'NId', 'NId');
+    }
+
+    public function draft()
+    {
+        return $this->belongsTo(Draft::class, 'NId', 'NId_Temp');
+    }
+
+    public function getMadeFromDraftAttribute()
+    {
+        return $this->draft()->exists();
     }
 
     public function getDocumentBaseUrlAttribute()

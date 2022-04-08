@@ -68,7 +68,10 @@ trait InboxFilterTrait
                 ->from('inbox')
                 ->whereIn('NTipe', $arrayFolders);
             });
-            $query->where('ReceiverAs', 'to');
+            $receiverTypes = $filter["receiverTypes"] ?? null;
+            if (!$receiverTypes) {
+                $query->where('ReceiverAs', 'to');
+            }
         }
     }
 
@@ -107,7 +110,10 @@ trait InboxFilterTrait
     }
 
     /**
-     * Filtering list by scope types
+     * Filtering list by scope types.
+     * If the RoleId_From from the governor (uk.1)
+     * or vice governor (uk.1.1.1)
+     * then should be included on IINTERNAL scope
      *
      * @param Object $query
      * @param Array $filter
@@ -118,18 +124,74 @@ trait InboxFilterTrait
     {
         $scope = $filter["scope"] ?? null;
         if ($scope) {
+            $userGroupRole = auth()->user()->role->GRoleId;
             $departmentId = $this->generateDeptId(auth()->user()->PrimaryRoleId);
-            $comparison = '';
             switch ($scope) {
                 case InboxReceiverScopeType::REGIONAL():
-                    $comparison = 'NOT LIKE';
+                    $this->queryRegionalScope($query, $userGroupRole, $departmentId);
                     break;
 
                 case InboxReceiverScopeType::INTERNAL():
-                    $comparison = 'LIKE';
+                    $this->queryInternalScope($query, $userGroupRole, $departmentId);
                     break;
             }
-            $query->where('RoleId_From', $comparison, $departmentId . '%');
+        }
+    }
+
+    /**
+     * Filtering list by action label
+     *
+     * @param Object $query
+     * @param Array $filter
+     *
+     * @return Void
+     */
+    private function filterByActionLabel($query, $filter)
+    {
+        $labels = $filter["actionLabels"] ?? null;
+        if ($labels) {
+            $arraylabels = explode(", ", $labels);
+            $query->whereIn('action_label', $arraylabels);
+        }
+    }
+
+    /**
+     * Query REGIONAL scope filter
+     *
+     * @param Object $query
+     * @param String $groupRole
+     * @param String $deptId
+     *
+     * @return Void
+     */
+    private function queryRegionalScope($query, $groupRole, $deptId)
+    {
+        if (in_array($groupRole, config('constants.sekdaRoleIdGroups'))) {
+            $query->where('RoleId_From', '!=', 'uk.1')
+                ->where('RoleId_From', '!=', 'uk.1.1.1');
+        };
+        $query->where('RoleId_From', 'NOT LIKE', $deptId . '%');
+    }
+
+    /**
+     * Query INTERNAL scope filter
+     *
+     * @param Object $query
+     * @param String $groupRole
+     * @param String $deptId
+     *
+     * @return Void
+     */
+    private function queryInternalScope($query, $groupRole, $deptId)
+    {
+        if (in_array($groupRole, config('constants.sekdaRoleIdGroups'))) {
+            $query->where(
+                fn($query) => $query->where('RoleId_From', 'LIKE', $deptId . '%')
+                    ->orWhere('RoleId_From', '=', 'uk.1')
+                    ->orWhere('RoleId_From', '=', 'uk.1.1.1')
+            );
+        } else {
+            $query->where('RoleId_From', 'LIKE', $deptId . '%');
         }
     }
 
@@ -211,7 +273,26 @@ trait InboxFilterTrait
         $followedUp = $filter["followedUp"] ?? null;
         if ($followedUp || $followedUp != null) {
             $arrayFollowedUp = explode(", ", $followedUp);
-            $query->whereIn('TindakLanjut', $arrayFollowedUp);
+            $this->determineFollowedUpStatus($query, $arrayFollowedUp);
+        }
+    }
+
+    /**
+     * Followed up status filter determination
+     *
+     * @param Object $query
+     * @param Array  $filterValue
+     *
+     * @return Void
+     */
+    private function determineFollowedUpStatus($query, $filterValue)
+    {
+        if (count($filterValue) == 1) {
+            if (in_array('1', $filterValue)) {
+                $query->whereIn('TindakLanjut', $filterValue);
+            } elseif (in_array('0', $filterValue)) {
+                $query->whereNull('TindakLanjut');
+            }
         }
     }
 

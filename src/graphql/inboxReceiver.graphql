@@ -13,6 +13,7 @@ type InboxReceiver {
     isForwarded: Int @rename(attribute: "Status")
     isFollowUp: Int @rename(attribute: "TindakLanjut")
     message: String @rename(attribute: "Msg")
+    actionLabel: String @rename(attribute: "action_label")
     inboxDetail: Inbox @belongsTo
     sender: People @belongsTo
     purpose: [InboxReceiver]
@@ -31,6 +32,7 @@ input FilterInput {
     receiverTypes: String
     followedUp: String
     scope: ScopeType
+    actionLabels: String
 }
 
 input ForwardInput {
@@ -46,6 +48,25 @@ enum ScopeType {
     REGIONAL @enum(value: "REGIONAL")
     INTERNAL @enum(value: "INTERNAL")
 }
+
+input InboxHistoryFilterInput {
+    inboxId: String!
+    withAuthCheck: Boolean!
+    status: String
+}
+
+input DistributeDocumentToInboxInput {
+    documentTypeId: String!
+    documentUrgencyId: String!
+    classifiedId: String!
+    date: Date!
+    letterNumber: String!
+    title: String!
+    documentSignatureId: String!
+    receiversIds: String!
+}
+
+scalar Date @scalar(class: "Nuwave\\Lighthouse\\Schema\\Types\\Scalars\\Date")
 
 #import inbox.graphql
 #import people.graphql

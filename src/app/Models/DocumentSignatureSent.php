@@ -2,9 +2,10 @@
 
 namespace App\Models;
 
+use App\Enums\ObjectiveTypeEnum;
 use App\Enums\SignatureStatusTypeEnum;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Hoyvoy\CrossDatabase\Eloquent\Model;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
 
@@ -27,7 +28,9 @@ class DocumentSignatureSent extends Model
     protected $fillable = [
         'status',
         'next',
-        'tgl_ttd'
+        'tgl_ttd',
+        'is_sender_read',
+        'is_receiver_read'
     ];
 
     public function receiver()
@@ -50,71 +53,67 @@ class DocumentSignatureSent extends Model
         return $this->hasMany(PersonalAccessToken::class, 'tokenable_id', 'PeopleID');
     }
 
-    public function documentSignatureSentRead()
-    {
-        return $this->belongsTo(DocumentSignatureSentRead::class, 'id', 'document_signature_sent_id')->where(function ($query) {
-            $query->where('people_id', auth()->user()->PeopleId);
-        });
-    }
-
     public function documentSignature()
     {
         return $this->belongsTo(DocumentSignature::class, 'ttd_id', 'id');
     }
 
+    public function objective($query, $objective)
+    {
+        $userId = auth()->user()->PeopleId;
+        switch ($objective) {
+            case ObjectiveTypeEnum::IN():
+                $query->where(fn($query) => $query
+                    ->where('PeopleIDTujuan', $userId)
+                    ->orWhere('PeopleID', $userId)
+                    ->where('status', '!=', SignatureStatusTypeEnum::WAITING()->value)
+                );
+                break;
+
+            case ObjectiveTypeEnum::OUT():
+                $query->where(fn($query) => $query
+                    ->where('PeopleID', $userId)
+                    ->orWhere('PeopleIDTujuan', $userId)
+                    ->where('status', '!=', SignatureStatusTypeEnum::WAITING()->value)
+                );
+                break;
+        }
+        return $query;
+    }
+
     public function filter($query, $filter)
     {
-        $statuses = $filter['statuses'] ?? null;
         $read = $filter['read'] ?? null;
-        $unread = $filter['unread'] ?? null;
         $withSender = $filter['withSender'] ?? null;
         $withReceiver = $filter['withReceiver'] ?? null;
-        $readId = [];
 
         $withReceiverId = [];
         if ($withReceiver) {
-            $withReceiverId = DB::connection('sikdweb')->table('m_ttd_kirim')
-            ->select('id')
-            ->where('PeopleIDTujuan', auth()->user()->PeopleId)
-            ->pluck('id');
+            $withReceiverId = DocumentSignatureSent::where('PeopleIDTujuan', auth()->user()->PeopleId)
+                    ->where(function ($query) use ($read) {
+                        if (is_bool($read)) {
+                            $query->where('is_receiver_read', $read);
+                        }
+                    })
+                    ->pluck('id');
         }
 
-        //get data by sender if data has success/reject status value
+        //show data on inbox sender if document signature is already actioned
         $withSenderId = [];
         if ($withSender) {
-            $withSenderId = DB::connection('sikdweb')->table('m_ttd_kirim')
-            ->select('id')
-            ->where('PeopleID', auth()->user()->PeopleId)
-            ->where('status', '!=', SignatureStatusTypeEnum::WAITING()->value)
-            ->pluck('id');
+            $withSenderId = DocumentSignatureSent::where('PeopleID', auth()->user()->PeopleId)
+                    ->where('status', '!=', SignatureStatusTypeEnum::WAITING()->value)
+                    ->where(function ($query) use ($read) {
+                        if (is_bool($read)) {
+                            $query->where('is_sender_read', $read);
+                        }
+                    })
+                    ->pluck('id');
         }
 
-        $documentSignatureSentIds = Arr::collapse([$withReceiverId, $withSenderId]);
+        $query->whereIn('id', Arr::collapse([$withReceiverId, $withSenderId]));
 
-        if ($read || $unread) {
-            $readId = DB::connection('mysql')->table('document_signature_sent_reads')
-            ->select('document_signature_sent_id')
-            ->where('people_id', auth()->user()->PeopleId)
-            ->pluck('document_signature_sent_id')
-            ->toArray();
-        }
-
-        if ($read && !$unread) {
-            $documentSignatureSentIds = array_intersect($documentSignatureSentIds, $readId);
-        }
-
-        if (!$read && $unread) {
-            $documentSignatureSentIds = array_diff($documentSignatureSentIds, $readId);
-        }
-
-
-        $query->whereIn('id', $documentSignatureSentIds);
-
-        if ($statuses  || $statuses == '0') {
-            $arrayStatuses = explode(", ", $statuses);
-            $query->whereIn('status', $arrayStatuses);
-        }
-
+        $this->filterByStatus($query, $filter);
         return $query;
     }
 
@@ -161,5 +160,20 @@ class DocumentSignatureSent extends Model
     public function getUrutanParentAttribute()
     {
         return $this->urutan - 1;
+    }
+
+    public function outboxFilter($query, $filter)
+    {
+        $this->filterByStatus($query, $filter);
+        return $query;
+    }
+
+    private function filterByStatus($query, $filter)
+    {
+        $statuses = $filter['statuses'] ?? null;
+        if ($statuses || $statuses == '0') {
+            $arrayStatuses = explode(", ", $statuses);
+            $query->whereIn('status', $arrayStatuses);
+        }
     }
 }

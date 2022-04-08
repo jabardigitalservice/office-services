@@ -1,4 +1,5 @@
 <html>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <head>
         <style>
             /** Define the margins of your page **/
@@ -6,7 +7,7 @@
                 font-family: "Arial, Helvetica, sans-serif";
             }
             @page {
-                margin: 85px 85.5px 80px 123.1px;
+                margin: 85px 85.5px 114px 123.1px;
             }
 
             section#header-section {
@@ -71,7 +72,7 @@
                 word-break: break-all;
             }
 
-            .has-margin-bottom td {
+            .has-margin-bottom {
                 padding-bottom: 10px;
             }
 
@@ -145,23 +146,20 @@
                 word-break: break-all;
                 text-align: justify;
             }
+
+            .column {
+                float: left;
+            }
+
+            .row:after {
+                content: "";
+                display: table;
+                clear: both;
+            }
         </style>
     </head>
     <body>
         <!-- Define header and footer blocks before your content -->
-        @if ($generateQrCode)
-            <footer>
-                <div class="qr-wrapper">
-                    <img src="{{ storage_path('app/' . $generateQrCode) }}" alt="QR Code Signed" width="50px">
-                    <p style="text-align: center; font-weight: bold; font-size: 9px; position: relative; top: -15px">{{ $verifyCode }}</p>
-                </div>
-                <div>
-                    Dokumen ini telah ditandatangani secara elektronik menggunakan sertifikat elektronik yang diterbitkan oleh
-                    <br>
-                    Balai Sertifikasi Elektronik (BSrE) Badan Siber dan Sandi Negara
-                </div>
-            </footer>
-        @endif
 
         <!-- Wrap the content of your PDF inside a main tag -->
         <main>
