@@ -4,6 +4,7 @@ namespace App\GraphQL\Mutations;
 
 use App\Enums\DocumentSignatureSentNotificationTypeEnum;
 use App\Enums\SignatureStatusTypeEnum;
+use App\Enums\StatusReadTypeEnum;
 use App\Http\Traits\SendNotificationTrait;
 use App\Exceptions\CustomException;
 use App\Models\DocumentSignatureSent;
@@ -29,7 +30,8 @@ class DocumentSignatureRejectMutator
         $documentSignatureSent = tap(DocumentSignatureSent::where('id', $documentSignatureSentId))->update([
             'status' => SignatureStatusTypeEnum::REJECT()->value,
             'catatan' => $note,
-            'tgl' => setDateTimeNowValue()
+            'tgl' => setDateTimeNowValue(),
+            'is_sender_read' => false
         ])->first();
 
         if (!$documentSignatureSent) {

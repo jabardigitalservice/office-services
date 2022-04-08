@@ -182,7 +182,8 @@ class DocumentSignatureMutator
         $updateDocumentSent = tap(DocumentSignatureSent::where('id', $data->id))->update([
             'status' => SignatureStatusTypeEnum::SUCCESS()->value,
             'next' => 1,
-            'tgl_ttd' => setDateTimeNowValue()
+            'tgl_ttd' => setDateTimeNowValue(),
+            'is_sender_read' => false
         ])->first();
 
         //check if any next siganture require
