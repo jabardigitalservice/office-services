@@ -172,10 +172,12 @@ class DocumentSignatureMutator
                 'has_footer' => true,
             ]);
         } else {
-            $updateFileData = DocumentSignature::where('id', $data->ttd_id)->update([
-                'status' => SignatureStatusTypeEnum::SUCCESS()->value,
-                'file' => $newFileName,
-            ]);
+            if ($data->urutan == 1) {
+                $updateFileData = DocumentSignature::where('id', $data->ttd_id)->update([
+                    'status' => SignatureStatusTypeEnum::SUCCESS()->value,
+                    'file' => $newFileName,
+                ]);
+            }
         }
 
         //update status document sent to 1 (signed)
