@@ -30,6 +30,11 @@ class DocumentSignature extends Model
         return $file;
     }
 
+    public function people()
+    {
+        return $this->belongsTo(People::class, 'PeopleID', 'PeopleId');
+    }
+
     public function documentSignatureSents()
     {
         return $this->hasMany(DocumentSignatureSent::class, 'ttd_id', 'id');
