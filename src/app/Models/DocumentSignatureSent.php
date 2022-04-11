@@ -95,6 +95,7 @@ class DocumentSignatureSent extends Model
                             $query->where('is_receiver_read', $read);
                         }
                     })
+                    ->with(['sender', 'receiver'])
                     ->pluck('id');
         }
 
@@ -108,6 +109,7 @@ class DocumentSignatureSent extends Model
                             $query->where('is_sender_read', $read);
                         }
                     })
+                    ->with(['sender', 'receiver'])
                     ->pluck('id');
         }
 
