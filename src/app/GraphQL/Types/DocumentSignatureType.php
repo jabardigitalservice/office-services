@@ -75,21 +75,34 @@ class DocumentSignatureType
         $signers = People::whereIn('NIP', $signersIds)->get();
 
         if ($signers->isEmpty()) {
-            $signers = People::whereIn('PeopleId', function ($query) use ($data) {
-                $query->select('PeopleIDTujuan')
-                    ->from('m_ttd_kirim')
-                    ->where('status', SignatureStatusTypeEnum::SUCCESS()->value)
-                    ->where('ttd_id', $data->id)
-                    ->whereIn('PeopleIDTujuan', $data->documentSignatureSents->pluck('PeopleIDTujuan'));
-            })->get();
+            $signers = $this->getSignersByData($data);
+        }
 
-            if ($data->is_signed_self == true) {
-                $selfSigned = People::where('PeopleId', $data->PeopleID)->get();
-                if (count($signers) > 0) {
-                    $signers = $signers->merge($selfSigned);
-                } else {
-                    $signers = $selfSigned;
-                }
+        return $signers;
+    }
+
+    /**
+     * getSignersByData
+     *
+     * @param  mixed $data
+     * @return void
+     */
+    protected function getSignersByData($data)
+    {
+        $signers = People::whereIn('PeopleId', function ($query) use ($data) {
+            $query->select('PeopleIDTujuan')
+                ->from('m_ttd_kirim')
+                ->where('status', SignatureStatusTypeEnum::SUCCESS()->value)
+                ->where('ttd_id', $data->id)
+                ->whereIn('PeopleIDTujuan', $data->documentSignatureSents->pluck('PeopleIDTujuan'));
+        })->get();
+
+        if ($data->is_signed_self == true) {
+            $selfSigned = People::where('PeopleId', $data->PeopleID)->get();
+            if (count($signers) > 0) {
+                $signers = $signers->merge($selfSigned);
+            } else {
+                $signers = $selfSigned;
             }
         }
 
