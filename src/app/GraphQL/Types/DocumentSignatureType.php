@@ -19,16 +19,17 @@ class DocumentSignatureType
     public function validate($rootValue, array $args, GraphQLContext $context)
     {
         $signatures = $this->getSignatures($rootValue);
+        if (property_exists($signatures, 'error') || $signatures->jumlah_signature == 0) {
+            return [
+                'isValid' => false,
+                'signatures' => null
+            ];
+        };
 
-        $isValid = false;
-        $signers = $this->getSigners($rootValue);
-
-        if ($signatures->jumlah_signature > 0) {
-            $isValid = true;
-        }
+        $signers = $this->getSigners($signatures, $rootValue);
 
         $validation = [
-            'isValid' => $isValid,
+            'isValid' => true,
             'signatures' => $signers
         ];
 
@@ -58,16 +59,40 @@ class DocumentSignatureType
      *
      * @return Array
      */
-    protected function getSigners($data)
+    protected function getSigners($signaturesDetails, $data)
     {
-        $people = People::whereIn('PeopleId', function ($query) use ($data) {
-            $query->select('PeopleIDTujuan')
-                ->from('m_ttd_kirim')
-                ->where('status', SignatureStatusTypeEnum::SUCCESS()->value)
-                ->where('ttd_id', $data->id)
-                ->whereIn('PeopleIDTujuan', $data->documentSignatureSents->pluck('PeopleIDTujuan'));
-        })->get();
+        $signatures = $signaturesDetails->details;
+        $regex = "/=.[0-9]+/i";
 
-        return $people;
+        $signersIds = [];
+        foreach ($signatures as $signature) {
+            $signer = $signature->info_signer->signer_dn;
+            preg_match($regex, $signer, $rawSignerId);
+            $signerId = explode("=", $rawSignerId[0])[1];
+            array_push($signersIds, $signerId);
+        }
+
+        $signers = People::whereIn('NIP', $signersIds)->get();
+
+        if ($signers->isEmpty()) {
+            $signers = People::whereIn('PeopleId', function ($query) use ($data) {
+                $query->select('PeopleIDTujuan')
+                    ->from('m_ttd_kirim')
+                    ->where('status', SignatureStatusTypeEnum::SUCCESS()->value)
+                    ->where('ttd_id', $data->id)
+                    ->whereIn('PeopleIDTujuan', $data->documentSignatureSents->pluck('PeopleIDTujuan'));
+            })->get();
+
+            if ($data->is_signed_self == true) {
+                $selfSigned = People::where('PeopleId', $data->PeopleID)->get();
+                if (count($signers) > 0) {
+                    $signers = $signers->merge($selfSigned);
+                } else {
+                    $signers = $selfSigned;
+                }
+            }
+        }
+
+        return $signers;
     }
 }
