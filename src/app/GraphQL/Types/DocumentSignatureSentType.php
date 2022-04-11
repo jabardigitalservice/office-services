@@ -51,6 +51,8 @@ class DocumentSignatureSentType
     }
 
      /**
+     * The read status used for the history
+     *
      * @param $rootValue
      * @param array                                                    $args
      * @param \Nuwave\Lighthouse\Support\Contracts\GraphQLContext|null $context
@@ -60,6 +62,26 @@ class DocumentSignatureSentType
     public function isRead($rootValue, array $args, GraphQLContext $context)
     {
         if ($rootValue->is_receiver_read == true || $rootValue->is_sender_read == true) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+     /**
+     * The read status used for the list
+     *
+     * @param $rootValue
+     * @param array                                                    $args
+     * @param \Nuwave\Lighthouse\Support\Contracts\GraphQLContext|null $context
+     *
+     * @return Boolean
+     */
+    public function statusRead($rootValue, array $args, GraphQLContext $context)
+    {
+        if ($rootValue->PeopleIDTujuan == auth()->user()->PeopleId && $rootValue->is_receiver_read == true) {
+            return true;
+        } elseif ($rootValue->PeopleID == auth()->user()->PeopleId && $rootValue->is_sender_read == true) {
             return true;
         } else {
             return false;
