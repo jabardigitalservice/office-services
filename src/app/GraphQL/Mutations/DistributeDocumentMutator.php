@@ -2,9 +2,12 @@
 
 namespace App\GraphQL\Mutations;
 
+use App\Enums\ActionLabelTypeEnum;
+use App\Enums\SignatureStatusTypeEnum;
 use App\Exceptions\CustomException;
 use App\Http\Traits\DistributeToInboxReceiverTrait;
 use App\Models\DocumentSignature;
+use App\Models\DocumentSignatureForward;
 use App\Models\Inbox;
 use App\Models\InboxFile;
 use App\Models\TableSetting;
@@ -49,6 +52,10 @@ class DistributeDocumentMutator
             $this->createInboxReceiver($tableKey, $inboxId, $stringReceiversIds);
             $this->createInboxFile($tableKey, $inboxId, $documentSignature);
             $this->doSendNotification($inboxId, $args, $stringReceiversIds);
+
+            DocumentSignatureForward::where('ttd_id', $documentSignatureId)
+                                ->where('PeopleIDTujuan', auth()->user()->PeopleId)
+                                ->update(['status' => SignatureStatusTypeEnum::SUCCESS()->value]);
         }
 
         return $documentSignature;
