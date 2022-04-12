@@ -131,8 +131,8 @@ trait SendNotificationTrait
                 'draftId' => $record->NId,
                 'groupId' => $record->GIR_Id,
                 'receiverAs' => $record->ReceiverAs,
-                'letterNumber' => $record->draftDetail->nosurat,
-                'draftStatus' => $record->draftDetail->Konsep,
+                'letterNumber' => optional($record->draftDetail)->nosurat,
+                'draftStatus' => optional($record->draftDetail)->Konsep,
                 'action' => $action
             ];
         }
