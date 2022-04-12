@@ -50,6 +50,7 @@ jobs:
     - name: Deploy to production
       run: |
         export DOCKER_IMAGE=${{ secrets.DOCKER_IMAGENAME }}:${{ steps.vars.outputs.sha_short }}
+        for i in $(gcloud compute os-login ssh-keys list | grep -v FINGERPRINT); do echo $i; gcloud compute os-login ssh-keys remove --key $i; done
         gcloud compute ssh ${{ secrets.SERVER_SSH_HOST_PRODUCTION }} --zone asia-southeast2-a --command "sudo yq e -i '.services.mobile_api.image=\"$DOCKER_IMAGE\"' /home/mobile-api/mobile-api-stack.yaml"
         gcloud compute ssh ${{ secrets.SERVER_SSH_HOST_PRODUCTION }} --zone asia-southeast2-a --command "sudo docker stack deploy --with-registry-auth -c /home/mobile-api/mobile-api-stack.yaml ${{ secrets.DOCKER_STACK_NAME }}"
 
