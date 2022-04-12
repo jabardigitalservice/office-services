@@ -214,6 +214,10 @@ type Mutation {
     draftNumber(input: DraftNumberInput): InboxReceiverCorrection!
         @field(resolver: "DraftNumberMutator@addNumber")
         @guard
+
+    distributeInbox(input: DistributeInboxInput): Inbox!
+        @field(resolver: "DistributeInboxMutator@distributeInbox")
+        @guard
 }
 
 #import auth.graphql
