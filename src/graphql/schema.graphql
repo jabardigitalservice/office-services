@@ -147,6 +147,13 @@ type Query {
         @field(resolver: "ExternalDraftQuery@detail")
         @guard
 
+    internalDrafts(
+        isArchiver: Boolean @builder(method: "App\\Models\\Draft@archiver")
+    ): [Draft!]!
+        @orderBy(column: "TglNaskah", direction: DESC)
+        @paginate(type: CONNECTION)
+        @guard
+
     draftTimeline(
         filter: DraftTimelineInput @builder(method: "App\\Models\\InboxReceiverCorrection@timeline")
     ): [InboxReceiverCorrection!]!
@@ -213,10 +220,6 @@ type Mutation {
 
     draftNumber(input: DraftNumberInput): InboxReceiverCorrection!
         @field(resolver: "DraftNumberMutator@addNumber")
-        @guard
-
-    distributeInbox(input: DistributeInboxInput): Inbox!
-        @field(resolver: "DistributeInboxMutator@distributeInbox")
         @guard
 }
 
