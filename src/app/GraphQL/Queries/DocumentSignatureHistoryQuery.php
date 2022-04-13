@@ -23,6 +23,7 @@ class DocumentSignatureHistoryQuery
     public function history($rootValue, array $args, GraphQLContext $context)
     {
         $documentSignatureSent = DocumentSignatureSent::where('ttd_id', $args['documentSignatureId'])
+                                    ->with(['sender', 'receiver'])
                                     ->orderBy('urutan', 'ASC')
                                     ->get();
 
@@ -35,6 +36,7 @@ class DocumentSignatureHistoryQuery
         }
 
         $documentSignatureForward = DocumentSignatureForward::where('ttd_id', $args['documentSignatureId'])
+                                    ->with(['sender', 'receiver'])
                                     ->orderBy('urutan', 'ASC')
                                     ->get();
 
@@ -43,6 +45,7 @@ class DocumentSignatureHistoryQuery
         $documentSignatureDistribute = null;
         if ($inboxId) {
             $documentSignatureDistribute = InboxReceiver::where('NId', $inboxId)
+                                        ->with(['sender', 'receiver'])
                                         ->where('ReceiverAs', 'to')
                                         ->get();
         }
