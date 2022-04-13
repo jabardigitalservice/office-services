@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use App\Enums\PeopleGroupTypeEnum;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -153,54 +152,5 @@ class Draft extends Model
                 return 1;
                 break;
         }
-    }
-
-    /**
-     * Defining the archiver (TU or UK)
-     *
-     * @param Object $query
-     * @param Array $filter
-     *
-     * @return object
-     */
-    public function archiver($query, $isArchiver)
-    {
-        if ($isArchiver) {
-            switch (auth()->user()->GroupId) {
-                case PeopleGroupTypeEnum::TU()->value:
-                    $query->where(
-                        fn($query) => $query
-                            ->where('Approve_People', auth()->user()->PeopleId)
-                            ->orWhere('RoleId_from', auth()->user()->PrimaryRoleId)
-                    );
-                    break;
-
-                case PeopleGroupTypeEnum::UK()->value:
-                    $query->where(
-                        fn($query) => $query
-                            ->where('Approve_People', auth()->user()->PeopleId)
-                            ->orWhere('RoleId_from', auth()->user()->PrimaryRoleId)
-                            ->whereIn('Ket', $this->getUKFolderDesc())
-                    );
-            }
-        }
-        return $query;
-    }
-
-    protected function getUKFolderDesc()
-    {
-        return array(
-            'outbox',
-            'outboxkeluar',
-            'outboxsprint',
-            'outboxundangan',
-            'outboxsprint',
-            'outboxinstruksigub',
-            'outboxedaran',
-            'outboxsket',
-            'outboxsuratizin',
-            'outboxsprintgub',
-            'outboxsupertugas'
-        );
     }
 }
