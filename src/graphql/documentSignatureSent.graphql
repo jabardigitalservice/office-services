@@ -23,6 +23,7 @@ type DocumentSignatureSentTimelines {
 }
 
 type DocumentSignatureSentHistory {
+    documentSignatureDistribute: [InboxReceiver]
     documentSignatureForward: [DocumentSignatureForward]
     documentSignatureSent: [DocumentSignatureSent]
 }
@@ -63,3 +64,4 @@ enum ObjectiveType {
 #import people.graphql
 #import documentSignature.graphql
 #import documentSignatureForward.graphql
+#import inboxReceiver.graphql
