@@ -2,13 +2,14 @@
 
 return [
 
+    // Do not change the array order
     'peoplePositionGroups' => [
         '1' => array(
-            'GUBERNUR'
+            'GUBERNUR JAWA BARAT'
         ),
         '2' => array(
-            'WAKIL GUBERNUR',
-            'SEKRETARIS DAERAH',
+            'WAKIL GUBERNUR JAWA BARAT',
+            'SEKRETARIS DAERAH PROVINSI JAWA BARAT',
             'ASISTEN',
             'KEPALA SEKRETARIAT KOMISI PEMILIHAN UMUM',
             'KEPALA BIRO',
