@@ -38,7 +38,8 @@ RUN apk --no-cache add \
     php8-sodium \
     php8-fpm \
     nginx \
-    supervisor
+    supervisor \
+    curl
 
 # https://github.com/codecasts/php-alpine/issues/21
 RUN ln -s /usr/bin/php8 /usr/bin/php
@@ -46,6 +47,14 @@ RUN ln -s /usr/bin/php8 /usr/bin/php
 # Configure docker-entrypoint
 # COPY docker-config/docker-entrypoint.sh /usr/local/bin/start
 # RUN chmod +x /usr/local/bin/start
+
+# Install new relic
+RUN curl -L "https://download.newrelic.com/php_agent/release/newrelic-php5-9.20.0.310-linux.tar.gz" | tar -C /tmp -zx \
+ && export NR_INSTALL_SILENT=1 \
+ && export NR_INSTALL_USE_CP_NOT_LN=1 \
+ && export NR_INSTALL_ARCH=x64 \
+ && /tmp/newrelic-php5-*/newrelic-install install \
+ && rm -rf /tmp/newrelic-php5-* /tmp/nrinstall*
 
 # Configure nginx
 COPY docker/docker-config/nginx.conf /etc/nginx/nginx.conf
@@ -56,6 +65,9 @@ RUN rm /etc/nginx/conf.d/default.conf
 # Configure PHP-FPM
 COPY docker/docker-config/fpm-pool.conf /etc/php8/php-fpm.d/www.conf
 COPY docker/docker-config/php.ini /etc/php8/conf.d/custom.ini
+
+# Configure newrelic
+COPY docker/docker-config/newrelic.ini /usr/local/etc/php/conf.d/newrelic.ini
 
 # Configure supervisord
 COPY docker/docker-config/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
