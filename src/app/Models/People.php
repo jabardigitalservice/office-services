@@ -179,8 +179,10 @@ class People extends Authenticatable
             $query->where(
                 fn($query) => $query
                     ->where('PeoplePosition', 'LIKE', $positionsGroup[3][0] . '%')
+                    ->orWhere('PeoplePosition', 'LIKE', $positionsGroup[3][1] . '%')
                     ->orWhere('PeoplePosition', 'LIKE', $positionsGroup[3][2] . '%')
                     ->orWhere('PeoplePosition', 'LIKE', $positionsGroup[3][3] . '%')
+                    ->orWhere('PeoplePosition', 'LIKE', $positionsGroup[3][4] . '%')
                     ->orWhere('PeoplePosition', 'LIKE', $positionsGroup[3][5] . '%')
                     ->orWhere('PeoplePosition', 'LIKE', $positionsGroup[3][6] . '%')
                     ->orWhereIn('PrimaryRoleId', fn($query) => $query->select('RoleId')
@@ -306,13 +308,14 @@ class People extends Authenticatable
      */
     private function dispositionLeaderQuery($query)
     {
-        $query->whereNotIn('GroupId', [
-            PeopleGroupTypeEnum::ADMIN()->value,
-            PeopleGroupTypeEnum::UK()->value,
-            PeopleGroupTypeEnum::TU()->value
-        ])->whereIn('PrimaryRoleId', fn($query) => $query->select('RoleId')
-            ->from('role')
-            ->where('RoleCode', auth()->user()->role->RoleCode));
+        $query->where('PrimaryRoleId', '!=', 'root')
+            ->whereNotIn('GroupId', [
+                PeopleGroupTypeEnum::ADMIN()->value,
+                PeopleGroupTypeEnum::UK()->value,
+                PeopleGroupTypeEnum::TU()->value
+            ])->whereIn('PrimaryRoleId', fn($query) => $query->select('RoleId')
+                ->from('role')
+                ->where('RoleCode', auth()->user()->role->RoleCode));
     }
 
     /**
