@@ -306,7 +306,11 @@ class People extends Authenticatable
      */
     private function dispositionLeaderQuery($query)
     {
-        $query->whereIn('PrimaryRoleId', fn($query) => $query->select('RoleId')
+        $query->whereNotIn('GroupId', [
+            PeopleGroupTypeEnum::ADMIN()->value,
+            PeopleGroupTypeEnum::UK()->value,
+            PeopleGroupTypeEnum::TU()->value
+        ])->whereIn('PrimaryRoleId', fn($query) => $query->select('RoleId')
             ->from('role')
             ->where('RoleCode', auth()->user()->role->RoleCode));
     }
