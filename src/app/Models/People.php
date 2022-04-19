@@ -248,6 +248,7 @@ class People extends Authenticatable
         if ($isPosition) {
             $this->dispositionLeaderQuery($query);
             $query->where('PeoplePosition', 'NOT LIKE', $positionsGroup[3][5] . '%');
+            $query->where('PrimaryRoleId', 'NOT LIKE', auth()->user()->RoleAtasan);
             return 'GROUP_4';
         }
     }
