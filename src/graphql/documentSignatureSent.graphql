@@ -9,9 +9,10 @@ type DocumentSignatureSent {
     sort: String @rename(attribute: "urutan")
     signatureDate: String @rename(attribute: "tgl_ttd")
     next: String
-    sender: People!
-    receiver: People!
+    sender: People! @with(relation: "sender")
+    receiver: People! @with(relation: "receiver")
     read: Boolean @field(resolver: "App\\GraphQL\\Types\\DocumentSignatureSentType@isRead")
+    statusRead: Boolean @field(resolver: "App\\GraphQL\\Types\\DocumentSignatureSentType@statusRead")
     isLastSigned: Boolean @field(resolver: "App\\GraphQL\\Types\\DocumentSignatureSentType@isLastSigned")
     parent: DocumentSignatureSent @field(resolver: "App\\GraphQL\\Types\\DocumentSignatureSentType@parent")
     documentSignature: DocumentSignature @belongsTo
@@ -22,6 +23,7 @@ type DocumentSignatureSentTimelines {
 }
 
 type DocumentSignatureSentHistory {
+    documentSignatureDistribute: [InboxReceiver]
     documentSignatureForward: [DocumentSignatureForward]
     documentSignatureSent: [DocumentSignatureSent]
 }
@@ -62,3 +64,4 @@ enum ObjectiveType {
 #import people.graphql
 #import documentSignature.graphql
 #import documentSignatureForward.graphql
+#import inboxReceiver.graphql

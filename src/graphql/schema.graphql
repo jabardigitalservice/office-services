@@ -133,7 +133,7 @@ type Query {
     ): InboxReceiverCorrection
         @field(resolver: "DraftQuery@detail")
         @guard
-    
+
     externalDrafts(
         filter: ExternalDraftFilterInput @builder(method: "App\\Models\\DocumentSignatureForward@filter")
         search: String @builder(method: "App\\Models\\DocumentSignatureForward@search")
@@ -209,6 +209,14 @@ type Mutation {
 
     distributeDocumentToInbox(input: DistributeDocumentToInboxInput): DocumentSignature!
         @field(resolver: "DistributeDocumentMutator@distributeDocumentToInbox")
+        @guard
+
+    draftNumber(input: DraftNumberInput): InboxReceiverCorrection!
+        @field(resolver: "DraftNumberMutator@addNumber")
+        @guard
+
+    distributeInbox(input: DistributeInboxInput): Inbox!
+        @field(resolver: "DistributeInboxMutator@distributeInbox")
         @guard
 }
 

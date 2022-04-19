@@ -50,6 +50,12 @@ input DraftReturnInput {
     message: String
 }
 
+input DraftNumberInput {
+    draftId: String!
+    number: String!
+    receiverId: String!
+}
+
 enum DraftObjectiveType {
     IN
     OUT
