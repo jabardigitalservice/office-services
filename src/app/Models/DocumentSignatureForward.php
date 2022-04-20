@@ -82,6 +82,7 @@ class DocumentSignatureForward extends Model
     {
         $this->filterByReadStatus($query, $filter);
         $this->filterByDistributionStatus($query, $filter);
+        $this->filterByType($query, $filter);
         return $query;
     }
 
@@ -116,6 +117,25 @@ class DocumentSignatureForward extends Model
         if ($isDistributed || $isDistributed == '0') {
             $arrayIsDistributed = explode(', ', $isDistributed);
             $query->whereIn('status', $arrayIsDistributed);
+        }
+    }
+
+    /**
+     * Filtering list by document types
+     *
+     * @param Object $query
+     * @param Array $filter
+     *
+     * @return Void
+     */
+    private function filterByType($query, $filter)
+    {
+        $types = $filter['types'] ?? null;
+        if ($types) {
+            $arrayTypes = explode(',', $types);
+            $query->whereIn('ttd_id', fn($query) => $query->select('id')
+                ->from('m_ttd')
+                ->whereIn('type_id', $arrayTypes));
         }
     }
 }
