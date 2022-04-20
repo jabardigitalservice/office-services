@@ -115,14 +115,17 @@ class People extends Authenticatable
      */
     private function defaultFilterForward($query)
     {
-        $superiorId = auth()->user()->RoleAtasan;
-        $superiorPosition = People::where('PrimaryRoleId', $superiorId)->first()->PeoplePosition;
-        if ($this->isALeader($superiorPosition)) {
-            // will return the user seperior (atasan) and the secretary
-            $query->whereIn('PrimaryRoleId', [$superiorId, $superiorId . '.1']);
-        } else {
-            $query->where('PrimaryRoleId', $superiorId);
-        };
+        $roleId = auth()->user()->PrimaryRoleId;
+        if ($roleId != PeopleRoleIdTypeEnum::UKSETDA()->value) {
+            $superiorId = auth()->user()->RoleAtasan;
+            $superiorPosition = People::where('PrimaryRoleId', $superiorId)->first()->PeoplePosition;
+            if ($this->isALeader($superiorPosition)) {
+                // will return the user seperior (atasan) and the secretary
+                $query->whereIn('PrimaryRoleId', [$superiorId, $superiorId . '.1']);
+            } else {
+                $query->where('PrimaryRoleId', $superiorId);
+            }
+        }
     }
 
     /**
