@@ -3,6 +3,7 @@
 namespace App\GraphQL\Queries;
 
 use App\Exceptions\CustomException;
+use App\Models\DocumentSignature;
 use App\Models\DocumentSignatureForward;
 use App\Models\DocumentSignatureSent;
 use App\Models\InboxReceiver;
@@ -27,22 +28,23 @@ class DocumentSignatureHistoryQuery
                                     ->orderBy('urutan', 'ASC')
                                     ->get();
 
-
-        if (!$documentSignatureSent) {
-            throw new CustomException(
-                'Document not found',
-                'Document with this user not found'
-            );
-        }
-
         $documentSignatureForward = DocumentSignatureForward::where('ttd_id', $args['documentSignatureId'])
                                     ->with(['sender', 'receiver'])
                                     ->orderBy('urutan', 'ASC')
                                     ->get();
 
-        //select one document signature sent, get name file for relation to inbox file
-        $inboxId = optional($documentSignatureSent->first()->documentSignature->inboxFile)->NId;
-        $documentSignatureDistribute = null;
+        $inboxId = null;
+        if (count($documentSignatureSent) == 0) {
+            $documentSignature = DocumentSignature::where('id', $args['documentSignatureId'])->first();
+            if ($documentSignature) {
+                $inboxId = optional($documentSignature->inboxFile)->NId;
+            }
+        } else {
+            //select one document signature sent, get name file for relation to inbox file
+            $inboxId = optional($documentSignatureSent->first()->documentSignature->inboxFile)->NId;
+        }
+
+        $documentSignatureDistribute = [];
         if ($inboxId) {
             $documentSignatureDistribute = InboxReceiver::where('NId', $inboxId)
                                         ->with(['sender', 'receiver'])
