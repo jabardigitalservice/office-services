@@ -15,7 +15,8 @@ return [
             'KEPALA BIRO',
             'KEPALA BALAI',
             'KEPALA CABANG',
-            'KEPALA UPTD'
+            'KEPALA UPTD',
+            'DIREKTUR'
         ),
         '3' => array(
             'KEPALA BADAN',
@@ -30,10 +31,6 @@ return [
             'SEKRETARIS DINAS',
             'SEKRETARIS INSPEKTORAT',
             'SEKRETARIS BADAN'
-        ),
-        '9' => array(
-            'KEPALA UNIT PELAKSANA TEKNIS DAERAH',
-            'DIREKTUR'
         )
     ],
 
