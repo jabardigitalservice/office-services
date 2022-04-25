@@ -19,14 +19,14 @@ class DocumentSignatureType
     public function validate($rootValue, array $args, GraphQLContext $context)
     {
         $signatures = $this->getSignatures($rootValue);
-        if (property_exists($signatures, 'error') || $signatures->jumlah_signature == 0) {
+        if ($signatures->status != Response::HTTP_OK || property_exists($signatures->body(), 'error') || $signatures->body()->jumlah_signature == 0) {
             return [
                 'isValid' => false,
                 'signatures' => null
             ];
         };
 
-        $signers = $this->getSigners($signatures, $rootValue);
+        $signers = $this->getSigners($signatures->body(), $rootValue);
 
         $validation = [
             'isValid' => true,
@@ -51,7 +51,7 @@ class DocumentSignatureType
             $data->file
         )->post(config('sikd.signature_verify_url'));
 
-        return json_decode($response->body());
+        return json_decode($response);
     }
 
     /**
