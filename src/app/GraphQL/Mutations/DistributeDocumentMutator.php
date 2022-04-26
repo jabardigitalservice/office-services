@@ -54,7 +54,6 @@ class DistributeDocumentMutator
             $this->doSendNotification($inboxId, $args, $stringReceiversIds);
 
             DocumentSignatureForward::where('ttd_id', $documentSignatureId)
-                                ->where('PeopleIDTujuan', auth()->user()->PeopleId)
                                 ->update(['status' => SignatureStatusTypeEnum::SUCCESS()->value]);
         }
 

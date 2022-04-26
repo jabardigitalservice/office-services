@@ -115,14 +115,17 @@ class People extends Authenticatable
      */
     private function defaultFilterForward($query)
     {
-        $superiorId = auth()->user()->RoleAtasan;
-        $superiorPosition = People::where('PrimaryRoleId', $superiorId)->first()->PeoplePosition;
-        if ($this->isALeader($superiorPosition)) {
-            // will return the user seperior (atasan) and the secretary
-            $query->whereIn('PrimaryRoleId', [$superiorId, $superiorId . '.1']);
-        } else {
-            $query->where('PrimaryRoleId', $superiorId);
-        };
+        $roleId = auth()->user()->PrimaryRoleId;
+        if ($roleId != PeopleRoleIdTypeEnum::UKSETDA()->value) {
+            $superiorId = auth()->user()->RoleAtasan;
+            $superiorPosition = People::where('PrimaryRoleId', $superiorId)->first()->PeoplePosition;
+            if ($this->isALeader($superiorPosition)) {
+                // will return the user seperior (atasan) and the secretary
+                $query->whereIn('PrimaryRoleId', [$superiorId, $superiorId . '.1']);
+            } else {
+                $query->where('PrimaryRoleId', $superiorId);
+            }
+        }
     }
 
     /**
@@ -206,9 +209,11 @@ class People extends Authenticatable
      */
     private function dispositionGroup2Query($query, $userPosition, $positionsGroup)
     {
-        if ($userPosition == $positionsGroup[2][0] || $userPosition == $positionsGroup[2][1]) {
+        $isPosition = $this->isBelongToGroup($userPosition, $positionsGroup[2]);
+        if ($isPosition) {
             $this->dispositionViceGovernorQuery($query, $userPosition, $positionsGroup);
             $this->dispositionSEKDAQuery($query, $userPosition, $positionsGroup);
+            $this->dispositionGroup2LeaderQuery($query, $userPosition, $positionsGroup);
             return 'GROUP_2';
         }
     }
@@ -297,6 +302,23 @@ class People extends Authenticatable
                     ->where('PrimaryRoleId', '!=', PeopleRoleIdTypeEnum::VICE_GOVERNOR())
                     ->where('GroupId', PeopleGroupTypeEnum::STRUCTURAL()->value)
             );
+        }
+    }
+
+    /**
+     * Filter people for Positions Group 2 - except Vice President or SEKDA disposition proposed
+     *
+     * @param  Object  $query
+     * @param  String  $userPosition
+     * @param  Array   $positionsGroup
+     *
+     * @return String
+     */
+    private function dispositionGroup2LeaderQuery($query, $userPosition, $positionsGroup)
+    {
+        if ($userPosition != $positionsGroup[2][0] && $userPosition != $positionsGroup[2][1]) {
+            $this->dispositionLeaderQuery($query);
+            $query->where('PrimaryRoleId', 'LIKE', auth()->user()->PrimaryRoleId . '.%');
         }
     }
 

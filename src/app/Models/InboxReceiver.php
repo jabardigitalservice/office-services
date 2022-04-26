@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\InboxTypeEnum;
 use App\Enums\ListTypeEnum;
 use App\Enums\PeopleGroupTypeEnum;
 use App\Http\Traits\InboxFilterTrait;
@@ -156,7 +157,7 @@ class InboxReceiver extends Model
     public function getReceiverAsLabelAttribute()
     {
         $label = match ($this->ReceiverAs) {
-            'to'                    => 'Naskah Masuk',
+            'to'                    => ($this->inboxDetail->NTipe == InboxTypeEnum::INBOX()->value) ? 'Naskah Masuk Non Disposisi' : 'Naskah Masuk',
             'to_undangan'           => 'Undangan',
             'to_sprint'             => 'Perintah',
             'to_notadinas'          => 'Nota Dinas',
@@ -164,6 +165,7 @@ class InboxReceiver extends Model
             'to_usul'               => 'Jawaban Nota Dinas',
             'to_forward'            => 'Teruskan',
             'cc1'                   => 'Disposisi',
+            'bcc'                   => 'Tembusan',
             'to_keluar'             => 'Surat Dinas Keluar',
             'to_nadin'              => 'Naskah Dinas Lainnya',
             'to_konsep'             => 'Konsep Naskah',

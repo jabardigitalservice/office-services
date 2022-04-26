@@ -5,8 +5,8 @@ namespace App\GraphQL\Types;
 use App\Enums\InboxReceiverCorrectionTypeEnum;
 use App\Enums\SignatureStatusTypeEnum;
 use App\Models\DocumentSignature;
-use App\Models\InboxReceiverCorrection;
 use App\Models\People;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Http;
 use Nuwave\Lighthouse\Support\Contracts\GraphQLContext;
 
@@ -24,14 +24,15 @@ class InboxFileType
         $fileName = $rootValue->FileName_fake;
 
         $signatures = $this->getSignatures($fileName);
-        if (property_exists($signatures, 'error') || $signatures->jumlah_signature == 0) {
+        $signaturesResponse = json_decode($signatures);
+        if ($signatures->status() != Response::HTTP_OK || property_exists($signaturesResponse, 'error') || $signaturesResponse->jumlah_signature == 0) {
             return [
                 'isValid' => false,
                 'signatures' => null
             ];
         };
 
-        $signers = $this->getSigners($signatures, $rootValue);
+        $signers = $this->getSigners($signaturesResponse, $rootValue);
 
         $validation = [
             'isValid' => true,
@@ -44,7 +45,7 @@ class InboxFileType
     /**
      * @param String $fileName
      *
-     * @return Object
+     * @return Mixed
      */
     protected function getSignatures($fileName)
     {
@@ -60,7 +61,7 @@ class InboxFileType
             $fileName
         )->post(config('sikd.signature_verify_url'));
 
-        return json_decode($response);
+        return $response;
     }
 
     /**
