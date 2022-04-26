@@ -21,7 +21,6 @@ class DocumentSignatureType
     {
         $signatures = $this->getSignatures($rootValue);
         $signaturesResponse = json_decode($signatures);
-        dd($signaturesResponse);
         if ($signatures->status() != Response::HTTP_OK || property_exists($signaturesResponse, 'error') || $signaturesResponse->jumlah_signature == 0) {
             return [
                 'isValid' => false,
