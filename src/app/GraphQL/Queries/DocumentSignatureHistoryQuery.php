@@ -3,7 +3,6 @@
 namespace App\GraphQL\Queries;
 
 use App\Exceptions\CustomException;
-use App\Models\DocumentSignature;
 use App\Models\DocumentSignatureForward;
 use App\Models\DocumentSignatureSent;
 use App\Models\InboxReceiver;
