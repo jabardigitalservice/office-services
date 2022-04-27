@@ -144,6 +144,7 @@ class People extends Authenticatable
         $positionGroup = $this->dispositionGroup2Query($query, $userPosition, $positions) ?? $positionGroup;
         $positionGroup = $this->dispositionGroup3Query($query, $userPosition, $positions) ?? $positionGroup;
         $positionGroup = $this->dispositionGroup4Query($query, $userPosition, $positions) ?? $positionGroup;
+        $positionGroup = $this->dispositionGroup5Query($query, $userPosition, $positions) ?? $positionGroup;
         $this->dispositionGroupDefaultQuery($query, $positionGroup);
     }
 
@@ -255,6 +256,28 @@ class People extends Authenticatable
             $query->where('PeoplePosition', 'NOT LIKE', $positionsGroup[3][5] . '%');
             $query->where('PrimaryRoleId', 'NOT LIKE', auth()->user()->RoleAtasan);
             return 'GROUP_4';
+        }
+    }
+
+    /**
+     * Filter people for Positions Group 5 disposition proposed
+     *
+     * @param  Object  $query
+     * @param  String  $userPosition
+     * @param  Array   $positionsGroup
+     *
+     * @return String
+     */
+    private function dispositionGroup5Query($query, $userPosition, $positionsGroup)
+    {
+        // Check if the user is belong to group 5
+        $isPosition = $this->isBelongToGroup($userPosition, $positionsGroup[5]);
+        if ($isPosition) {
+            $this->dispositionLeaderQuery($query);
+            $query->where('PeoplePosition', 'NOT LIKE', $positionsGroup[3][5] . '%');
+            $query->where('PeoplePosition', 'NOT LIKE', $positionsGroup[4][0] . '%');
+            $query->where('PrimaryRoleId', 'NOT LIKE', auth()->user()->RoleAtasan);
+            return 'GROUP_5';
         }
     }
 

@@ -31,6 +31,15 @@ return [
             'SEKRETARIS DINAS',
             'SEKRETARIS INSPEKTORAT',
             'SEKRETARIS BADAN'
+        ),
+        '5' => array(
+            'KEPALA BAGIAN',
+            'KEPALA SUBBAGIAN',
+            'KEPALA BIDANG',
+            'KEPALA SEKSI',
+            'KEPALA RUMAH',
+            'INSPEKTUR PEMBANTU',
+            'WAKIL DIREKTUR',
         )
     ],
 
