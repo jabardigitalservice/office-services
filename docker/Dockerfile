@@ -49,7 +49,7 @@ RUN ln -s /usr/bin/php8 /usr/bin/php
 # RUN chmod +x /usr/local/bin/start
 
 # Install new relic
-RUN curl -L "https://download.newrelic.com/php_agent/release/newrelic-php5-9.20.0.310-linux.tar.gz" | tar -C /tmp -zx \
+RUN curl -L "https://download.newrelic.com/php_agent/archive/9.21.0.311/newrelic-php5-9.21.0.311-linux.tar.gz" | tar -C /tmp -zx \
  && export NR_INSTALL_SILENT=1 \
  && export NR_INSTALL_USE_CP_NOT_LN=1 \
  && export NR_INSTALL_ARCH=x64 \
