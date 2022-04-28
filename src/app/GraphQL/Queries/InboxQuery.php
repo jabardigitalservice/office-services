@@ -61,19 +61,21 @@ class InboxQuery
         }
 
         $internalCount = $this->unreadCountQuery(InboxReceiverScopeType::INTERNAL(), $context);
-        $dispositionCount = $this->unreadCountQuery(InboxReceiverScopeType::INTERNAL_DISPOSITION(), $context);
+        $internalDispositionCount = $this->unreadCountQuery(InboxReceiverScopeType::INTERNAL_DISPOSITION(), $context);
         $regionalDispositionCount = $this->unreadCountQuery(InboxReceiverScopeType::REGIONAL_DISPOSITION(), $context);
         $regionalCount = (int) $forwardCount + (int) $regionalDispositionCount;
         $signatureCount = $this->unreadCountSignatureQuery($context);
         $draftCount = $this->draftUnreadCountQuery($context);
+        $registrationCount = $internalDispositionCount;
 
         $count = [
             'forward'       => $forwardCount,
-            'disposition'   => $dispositionCount,
+            'disposition'   => $internalDispositionCount,
             'regional'      => $regionalCount,
             'internal'      => $internalCount,
             'signature'     => $signatureCount,
-            'draft'         => $draftCount
+            'draft'         => $draftCount,
+            'registration'  => $registrationCount,
         ];
 
         return $count;
@@ -108,7 +110,7 @@ class InboxQuery
             $scope == InboxReceiverScopeType::INTERNAL_DISPOSITION() ||
             $scope == InboxReceiverScopeType::REGIONAL_DISPOSITION()
         ) {
-            $query->where('ReceiverAs', 'cc1');
+            $query->whereIn('ReceiverAs', array('cc1', 'to'));
         } elseif ($scope == InboxReceiverScopeType::REGIONAL()) {
             $query->whereHas('inboxDetail', fn($query) => $query->where('Pengirim', 'eksternal'));
         }

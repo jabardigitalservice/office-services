@@ -24,6 +24,7 @@ type UnreadCount {
     disposition: Int!
     signature: Int!
     draft: Int!
+    registration: Int!
 }
 
 input DistributeInboxInput {
