@@ -254,7 +254,6 @@ class People extends Authenticatable
         if ($isPosition) {
             $this->dispositionLeaderQuery($query);
             $query->where('PeoplePosition', 'NOT LIKE', $positionsGroup[3][5] . '%');
-            $query->where('PrimaryRoleId', 'NOT LIKE', auth()->user()->RoleAtasan);
             return 'GROUP_4';
         }
     }
@@ -274,10 +273,7 @@ class People extends Authenticatable
         $isPosition = $this->isBelongToGroup($userPosition, $positionsGroup[5]);
         if ($isPosition) {
             $this->dispositionLeaderQuery($query);
-            $query->where('PeoplePosition', 'NOT LIKE', $positionsGroup[3][5] . '%');
-            $query->where('PeoplePosition', 'NOT LIKE', $positionsGroup[4][0] . '%');
-            $query->where('PrimaryRoleId', 'NOT LIKE', auth()->user()->RoleAtasan);
-            $this->dispositionSubDepartmentQuery($query, $userPosition, $positionsGroup);
+            $query->where('PrimaryRoleId', 'LIKE', auth()->user()->PrimaryRoleId . '.%');
             return 'GROUP_5';
         }
     }
@@ -347,32 +343,6 @@ class People extends Authenticatable
     }
 
     /**
-     * Filter people for Positions Group 5 - Sub Department disposition proposed
-     *
-     * @param  Object  $query
-     * @param  String  $userPosition
-     * @param  Array   $positionsGroup
-     *
-     * @return Void
-     */
-    private function dispositionSubDepartmentQuery($query, $userPosition, $positionsGroup)
-    {
-        // Check if the user is belong to 'Kepala Subbagian' or 'Kepala Subbidang'
-        $positionsSubGroup = array(
-            $positionsGroup[5][1],
-            $positionsGroup[5][2],
-            $positionsGroup[5][4],
-            $positionsGroup[5][5]
-        );
-
-        $isPosition = $this->isBelongToGroup($userPosition, $positionsSubGroup);
-        if ($isPosition) {
-            $query->where('PeoplePosition', 'NOT LIKE', $positionsGroup[5][0] . '%');
-            $query->where('PeoplePosition', 'NOT LIKE', $positionsGroup[5][3] . '%');
-        }
-    }
-
-    /**
      * Filter people for Leader position disposition proposed
      *
      * @param  Object  $query
@@ -382,6 +352,7 @@ class People extends Authenticatable
     private function dispositionLeaderQuery($query)
     {
         $query->where('PrimaryRoleId', '!=', 'root')
+            ->where('PrimaryRoleId', 'NOT LIKE', auth()->user()->RoleAtasan)
             ->whereNotIn('GroupId', [
                 PeopleGroupTypeEnum::ADMIN()->value,
                 PeopleGroupTypeEnum::UK()->value,
