@@ -517,6 +517,21 @@ class People extends Authenticatable
     }
 
     /**
+     * Search people for by name or position.
+     *
+     * @param  Object  $query
+     * @param  String  $search
+     *
+     * @return Void
+     */
+    public function search($query, $search)
+    {
+        $query->where(fn($query) => $query->where('PeopleName', 'LIKE', '%' . $search . '%')
+            ->orWhere('PeoplePosition', 'LIKE', '%' . $search . '%'));
+        return $query;
+    }
+
+    /**
      * People group exception.
      *
      * @param  Object  $query
