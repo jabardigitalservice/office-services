@@ -277,6 +277,7 @@ class People extends Authenticatable
             $query->where('PeoplePosition', 'NOT LIKE', $positionsGroup[3][5] . '%');
             $query->where('PeoplePosition', 'NOT LIKE', $positionsGroup[4][0] . '%');
             $query->where('PrimaryRoleId', 'NOT LIKE', auth()->user()->RoleAtasan);
+            $this->dispositionSubDepartmentQuery($query, $userPosition, $positionsGroup);
             return 'GROUP_5';
         }
     }
@@ -342,6 +343,32 @@ class People extends Authenticatable
         if ($userPosition != $positionsGroup[2][0] && $userPosition != $positionsGroup[2][1]) {
             $this->dispositionLeaderQuery($query);
             $query->where('PrimaryRoleId', 'LIKE', auth()->user()->PrimaryRoleId . '.%');
+        }
+    }
+
+    /**
+     * Filter people for Positions Group 5 - Sub Department disposition proposed
+     *
+     * @param  Object  $query
+     * @param  String  $userPosition
+     * @param  Array   $positionsGroup
+     *
+     * @return Void
+     */
+    private function dispositionSubDepartmentQuery($query, $userPosition, $positionsGroup)
+    {
+        // Check if the user is belong to 'Kepala Subbagian' or 'Kepala Subbidang'
+        $positionsSubGroup = array(
+            $positionsGroup[5][1],
+            $positionsGroup[5][2],
+            $positionsGroup[5][4],
+            $positionsGroup[5][5]
+        );
+
+        $isPosition = $this->isBelongToGroup($userPosition, $positionsSubGroup);
+        if ($isPosition) {
+            $query->where('PeoplePosition', 'NOT LIKE', $positionsGroup[5][0] . '%');
+            $query->where('PeoplePosition', 'NOT LIKE', $positionsGroup[5][3] . '%');
         }
     }
 
