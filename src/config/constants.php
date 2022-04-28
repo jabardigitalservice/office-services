@@ -35,7 +35,10 @@ return [
         '5' => array(
             'KEPALA BAGIAN',
             'KEPALA SUBBAGIAN',
+            'KEPALA SUB BAGIAN',
             'KEPALA BIDANG',
+            'KEPALA SUBBIDANG',
+            'KEPALA SUB BIDANG',
             'KEPALA SEKSI',
             'KEPALA RUMAH',
             'INSPEKTUR PEMBANTU',
