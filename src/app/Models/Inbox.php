@@ -29,6 +29,11 @@ class Inbox extends Model
         return $this->belongsTo(DocumentUrgency::class, 'UrgensiId', 'UrgensiId');
     }
 
+    public function classified()
+    {
+        return $this->belongsTo(MasterClassified::class, 'SifatId', 'SifatId');
+    }
+
     public function documentFile()
     {
         return $this->belongsTo(InboxFile::class, 'NId', 'NId');

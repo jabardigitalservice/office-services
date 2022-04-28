@@ -13,6 +13,7 @@ type Draft {
     file: String @rename(attribute: "DraftFile")
     type: DocumentType @belongsTo
     urgency: DocumentUrgency @belongsTo
+    classified: MasterClassified @belongsTo
     createdBy: People @belongsTo
     reviewer: People @belongsTo
 }
@@ -25,3 +26,4 @@ input DraftSignatureInput {
 #import people.graphql
 #import documentType.graphql
 #import documentUrgency.graphql
+#import masterClassified.graphql

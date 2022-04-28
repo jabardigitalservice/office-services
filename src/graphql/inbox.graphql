@@ -11,6 +11,7 @@ type Inbox {
     type: DocumentType @belongsTo
     madeFromDraft: Boolean @rename(attribute: "made_from_draft")
     urgency: DocumentUrgency @belongsTo
+    classified: MasterClassified @belongsTo
     createdBy: People @belongsTo
     documentBaseUrl: String @rename(attribute: "document_base_url")
     documentPath: String @rename(attribute: "NFileDir")
@@ -24,6 +25,7 @@ type UnreadCount {
     disposition: Int!
     signature: Int!
     draft: Int!
+    registration: Int!
 }
 
 input DistributeInboxInput {
@@ -36,3 +38,4 @@ input DistributeInboxInput {
 #import documentUrgency.graphql
 #import inboxDisposition.graphql
 #import inboxFile.graphql
+#import masterClassified.graphql
