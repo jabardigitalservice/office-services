@@ -67,7 +67,7 @@ COPY docker/docker-config/fpm-pool.conf /etc/php8/php-fpm.d/www.conf
 COPY docker/docker-config/php.ini /etc/php8/conf.d/custom.ini
 
 # Configure newrelic
-COPY docker/docker-config/newrelic.ini /usr/local/etc/php/conf.d/newrelic.ini
+COPY docker/docker-config/newrelic.ini /etc/php8/conf.d/newrelic.ini
 
 # Configure supervisord
 COPY docker/docker-config/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
