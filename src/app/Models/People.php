@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-use App\Enums\ArchiverIdUnitTypeEnum;
+use App\Enums\DeptRoleCodeTypeEnum;
 use App\Enums\PeopleGroupTypeEnum;
 use App\Enums\PeopleProposedTypeEnum;
 use App\Enums\PeopleRoleIdTypeEnum;
@@ -115,14 +115,17 @@ class People extends Authenticatable
      */
     private function defaultFilterForward($query)
     {
-        $superiorId = auth()->user()->RoleAtasan;
-        $superiorPosition = People::where('PrimaryRoleId', $superiorId)->first()->PeoplePosition;
-        if ($this->isALeader($superiorPosition)) {
-            // will return the user seperior (atasan) and the secretary
-            $query->whereIn('PrimaryRoleId', [$superiorId, $superiorId . '.1']);
-        } else {
-            $query->where('PrimaryRoleId', $superiorId);
-        };
+        $roleId = auth()->user()->PrimaryRoleId;
+        if ($roleId != PeopleRoleIdTypeEnum::UKSETDA()->value) {
+            $superiorId = auth()->user()->RoleAtasan;
+            $superiorPosition = People::where('PrimaryRoleId', $superiorId)->first()->PeoplePosition;
+            if ($this->isALeader($superiorPosition)) {
+                // will return the user seperior (atasan) and the secretary
+                $query->whereIn('PrimaryRoleId', [$superiorId, $superiorId . '.1']);
+            } else {
+                $query->where('PrimaryRoleId', $superiorId);
+            }
+        }
     }
 
     /**
@@ -134,14 +137,304 @@ class People extends Authenticatable
      */
     private function filterDisposition($query)
     {
-        // The disposition targets are the people who has the 'RoleAtasan' as the user's roleId.
-        $query->where('RoleAtasan', auth()->user()->PrimaryRoleId)
-        // Data from group table: 3=Pejabat Struktural 4=Sekdis 7=Staf
-        ->whereIn('GroupId', [
-            PeopleGroupTypeEnum::STRUCTURAL()->value,
-            PeopleGroupTypeEnum::SECRETARY()->value,
-            PeopleGroupTypeEnum::STAFF()->value
-        ]);
+        $userPosition = auth()->user()->PeoplePosition;
+        $positions = config('constants.peoplePositionGroups');
+        $positionGroup = '';
+        $positionGroup = $this->dispositionGroup1Query($query, $userPosition, $positions) ?? $positionGroup;
+        $positionGroup = $this->dispositionGroup2Query($query, $userPosition, $positions) ?? $positionGroup;
+        $positionGroup = $this->dispositionGroup3Query($query, $userPosition, $positions) ?? $positionGroup;
+        $positionGroup = $this->dispositionGroup4Query($query, $userPosition, $positions) ?? $positionGroup;
+        $positionGroup = $this->dispositionGroup5Query($query, $userPosition, $positions) ?? $positionGroup;
+        $this->dispositionGroupDefaultQuery($query, $positionGroup);
+    }
+
+    /**
+     * Filter people for Positions Group default disposition proposed
+     *
+     * @param  Object  $query
+     * @param  String  $hasGroup
+     *
+     * @return Void
+     */
+    private function dispositionGroupDefaultQuery($query, $hasGroup)
+    {
+        if (!$hasGroup) {
+            $query->where('RoleAtasan', auth()->user()->PrimaryRoleId)
+                ->whereIn('GroupId', [
+                    PeopleGroupTypeEnum::STRUCTURAL()->value,
+                    PeopleGroupTypeEnum::SECRETARY()->value,
+                    PeopleGroupTypeEnum::STAFF()->value
+                ]);
+        }
+    }
+
+     /**
+     * Filter people for Positions Group 1 disposition proposed
+     *
+     * @param  Object  $query
+     * @param  String  $userPosition
+     * @param  Array   $positionsGroup
+     *
+     * @return String
+     */
+    private function dispositionGroup1Query($query, $userPosition, $positionsGroup)
+    {
+        if ($userPosition == $positionsGroup[1][0]) {
+            $query->where(
+                fn($query) => $query
+                    ->where('PeoplePosition', 'LIKE', $positionsGroup[3][0] . '%')
+                    ->orWhere('PeoplePosition', 'LIKE', $positionsGroup[3][1] . '%')
+                    ->orWhere('PeoplePosition', 'LIKE', $positionsGroup[3][2] . '%')
+                    ->orWhere('PeoplePosition', 'LIKE', $positionsGroup[3][3] . '%')
+                    ->orWhere('PeoplePosition', 'LIKE', $positionsGroup[3][4] . '%')
+                    ->orWhere('PeoplePosition', 'LIKE', $positionsGroup[3][5] . '%')
+                    ->orWhere('PeoplePosition', 'LIKE', $positionsGroup[3][6] . '%')
+                    ->orWhereIn('PrimaryRoleId', fn($query) => $query->select('RoleId')
+                        ->from('role')
+                        ->where('RoleCode', DeptRoleCodeTypeEnum::SETDA()->value))
+                    ->where('GroupId', PeopleGroupTypeEnum::STRUCTURAL()->value)
+            );
+
+            return 'GROUP_1';
+        }
+    }
+
+    /**
+     * Filter people for Positions Group 2 disposition proposed
+     *
+     * @param  Object  $query
+     * @param  String  $userPosition
+     * @param  Array   $positionsGroup
+     *
+     * @return String
+     */
+    private function dispositionGroup2Query($query, $userPosition, $positionsGroup)
+    {
+        $isPosition = $this->isBelongToGroup($userPosition, $positionsGroup[2]);
+        if ($isPosition) {
+            $this->dispositionViceGovernorQuery($query, $userPosition, $positionsGroup);
+            $this->dispositionSEKDAQuery($query, $userPosition, $positionsGroup);
+            $this->dispositionGroup2LeaderQuery($query, $userPosition, $positionsGroup);
+            return 'GROUP_2';
+        }
+    }
+
+     /**
+     * Filter people for Positions Group 3 disposition proposed
+     *
+     * @param  Object  $query
+     * @param  String  $userPosition
+     * @param  Array   $positionsGroup
+     *
+     * @return String
+     */
+    private function dispositionGroup3Query($query, $userPosition, $positionsGroup)
+    {
+        // Check if the user is belong to group 3
+        $isPosition = $this->isBelongToGroup($userPosition, $positionsGroup[3]);
+        if ($isPosition) {
+            $this->dispositionLeaderQuery($query);
+            return 'GROUP_3';
+        }
+    }
+
+    /**
+     * Filter people for Positions Group 4 disposition proposed
+     *
+     * @param  Object  $query
+     * @param  String  $userPosition
+     * @param  Array   $positionsGroup
+     *
+     * @return String
+     */
+    private function dispositionGroup4Query($query, $userPosition, $positionsGroup)
+    {
+        // Check if the user is belong to group 4
+        $isPosition = $this->isBelongToGroup($userPosition, $positionsGroup[4]);
+        if ($isPosition) {
+            $this->dispositionLeaderQuery($query);
+            $query->where('PeoplePosition', 'NOT LIKE', $positionsGroup[3][5] . '%');
+            return 'GROUP_4';
+        }
+    }
+
+    /**
+     * Filter people for Positions Group 5 disposition proposed
+     *
+     * @param  Object  $query
+     * @param  String  $userPosition
+     * @param  Array   $positionsGroup
+     *
+     * @return String
+     */
+    private function dispositionGroup5Query($query, $userPosition, $positionsGroup)
+    {
+        // Check if the user is belong to group 5
+        $isPosition = $this->isBelongToGroup($userPosition, $positionsGroup[5]);
+        if ($isPosition) {
+            $this->dispositionLeaderQuery($query);
+            for ($i = 1; $i <= 4; $i++) {
+                foreach ($positionsGroup[$i] as $position) {
+                    $query->where('PeoplePosition', 'NOT LIKE', $position . '%');
+                }
+            }
+            $this->dispositionChiefDepartmentQuery($query, $userPosition, $positionsGroup);
+            $this->dispositionSubDepartmentQuery($query, $userPosition, $positionsGroup);
+            return 'GROUP_5';
+        }
+    }
+
+    /**
+     * Filter people for Positions Group 2 - Vice Governor disposition proposed
+     *
+     * @param  Object  $query
+     * @param  String  $userPosition
+     * @param  Array   $positionsGroup
+     *
+     * @return Void
+     */
+    private function dispositionViceGovernorQuery($query, $userPosition, $positionsGroup)
+    {
+        if ($userPosition == $positionsGroup[2][0]) {
+            $query->where(
+                fn($query) => $query
+                    ->whereIn('PrimaryRoleId', fn($query) => $query->select('RoleId')
+                        ->from('role')
+                        ->where('RoleCode', DeptRoleCodeTypeEnum::SETDA()->value))
+                    ->where('PrimaryRoleId', '!=', PeopleRoleIdTypeEnum::GOVERNOR())
+                    ->where('GroupId', PeopleGroupTypeEnum::STRUCTURAL()->value)
+            );
+        }
+    }
+
+    /**
+     * Filter people for Positions Group 2 - SEKDA disposition proposed
+     *
+     * @param  Object  $query
+     * @param  String  $userPosition
+     * @param  Array   $positionsGroup
+     *
+     * @return Void
+     */
+    private function dispositionSEKDAQuery($query, $userPosition, $positionsGroup)
+    {
+        if ($userPosition == $positionsGroup[2][1]) {
+            $query->where(
+                fn($query) => $query
+                    ->whereIn('PrimaryRoleId', fn($query) => $query->select('RoleId')
+                        ->from('role')
+                        ->where('RoleCode', DeptRoleCodeTypeEnum::SETDA()->value))
+                    ->where('PrimaryRoleId', '!=', PeopleRoleIdTypeEnum::GOVERNOR())
+                    ->where('PrimaryRoleId', '!=', PeopleRoleIdTypeEnum::VICE_GOVERNOR())
+                    ->where('GroupId', PeopleGroupTypeEnum::STRUCTURAL()->value)
+            );
+        }
+    }
+
+    /**
+     * Filter people for Positions Group 2 - except Vice President or SEKDA disposition proposed
+     *
+     * @param  Object  $query
+     * @param  String  $userPosition
+     * @param  Array   $positionsGroup
+     *
+     * @return String
+     */
+    private function dispositionGroup2LeaderQuery($query, $userPosition, $positionsGroup)
+    {
+        if ($userPosition != $positionsGroup[2][0] && $userPosition != $positionsGroup[2][1]) {
+            $this->dispositionLeaderQuery($query);
+            $query->where('PrimaryRoleId', 'LIKE', auth()->user()->PrimaryRoleId . '.%');
+        }
+    }
+
+    /**
+     * Filter people for Positions Group 5 - Chief Department disposition proposed
+     *
+     * @param  Object  $query
+     * @param  String  $userPosition
+     * @param  Array   $positionsGroup
+     *
+     * @return Void
+     */
+    private function dispositionChiefDepartmentQuery($query, $userPosition, $positionsGroup)
+    {
+        $positionsSubGroup = array(
+            $positionsGroup[5][0],
+            $positionsGroup[5][4]
+        );
+
+        $isPosition = $this->isBelongToGroup($userPosition, $positionsSubGroup);
+        if ($isPosition) {
+            $query->where('PrimaryRoleId', 'LIKE', auth()->user()->PrimaryRoleId . '.%');
+        }
+    }
+
+    /**
+     * Filter people for Positions Group 5 - Sub Department disposition proposed
+     *
+     * @param  Object  $query
+     * @param  String  $userPosition
+     * @param  Array   $positionsGroup
+     *
+     * @return Void
+     */
+    private function dispositionSubDepartmentQuery($query, $userPosition, $positionsGroup)
+    {
+        // Check if the user is belong to 'Kepala Subbagian' or 'Kepala Subbidang'
+        $positionsSubGroup = array(
+            $positionsGroup[5][1],
+            $positionsGroup[5][2],
+            $positionsGroup[5][4],
+            $positionsGroup[5][5]
+        );
+
+        $isPosition = $this->isBelongToGroup($userPosition, $positionsSubGroup);
+        if ($isPosition) {
+            $query->where('PeoplePosition', 'NOT LIKE', $positionsGroup[5][0] . '.%');
+            $query->where('PeoplePosition', 'NOT LIKE', $positionsGroup[5][0] . '.%');
+            $query->where('PeoplePosition', 'NOT LIKE', $positionsGroup[5][3] . '.%');
+        }
+    }
+
+    /**
+     * Filter people for Leader position disposition proposed
+     *
+     * @param  Object  $query
+     *
+     * @return Void
+     */
+    private function dispositionLeaderQuery($query)
+    {
+        $query->where('PrimaryRoleId', '!=', 'root')
+            ->where('PrimaryRoleId', 'NOT LIKE', auth()->user()->RoleAtasan)
+            ->whereNotIn('GroupId', [
+                PeopleGroupTypeEnum::ADMIN()->value,
+                PeopleGroupTypeEnum::UK()->value,
+                PeopleGroupTypeEnum::TU()->value,
+                PeopleGroupTypeEnum::SETDA_RECIPIENT()->value,
+                PeopleGroupTypeEnum::SETDA_CONTROLLER()->value,
+                PeopleGroupTypeEnum::SETDA_DIRECTOR()->value,
+            ])->whereIn('PrimaryRoleId', fn($query) => $query->select('RoleId')
+                ->from('role')
+                ->where('RoleCode', auth()->user()->role->RoleCode));
+    }
+
+    /**
+     * Check people position group
+     *
+     * @param  Array $positionsGroup
+     *
+     * @return Boolean
+     */
+    private function isBelongToGroup($userPosition, $positionsGroup)
+    {
+        foreach ($positionsGroup as $position) {
+            if (strpos($userPosition, $position) !== false) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -277,6 +570,21 @@ class People extends Authenticatable
         $query->whereIn('PrimaryRoleId', fn($query) => $query->select('RoleId')
             ->from('role')
             ->where('GRoleId', auth()->user()->role->GRoleId));
+    }
+
+    /**
+     * Search people for by name or position.
+     *
+     * @param  Object  $query
+     * @param  String  $search
+     *
+     * @return Void
+     */
+    public function search($query, $search)
+    {
+        $query->where(fn($query) => $query->where('PeopleName', 'LIKE', '%' . $search . '%')
+            ->orWhere('PeoplePosition', 'LIKE', '%' . $search . '%'));
+        return $query;
     }
 
     /**

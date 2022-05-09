@@ -52,6 +52,7 @@ type Query {
 
     peopleList(
         isActive: Int @where(key: "PeopleIsActive")
+        search: String @builder(method: "App\\Models\\People@search")
         filter: PeopleFilterInput @builder(method: "App\\Models\\People@filter")
     ): [People!]!
         @orderBy(column: "PrimaryRoleId", direction: ASC)

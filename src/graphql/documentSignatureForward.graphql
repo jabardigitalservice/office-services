@@ -18,6 +18,7 @@ type DocumentSignatureForward {
 input ExternalDraftFilterInput {
     isRead: String
     isDistributed: String
+    types: String
 }
 
 #import people.graphql

@@ -4,6 +4,7 @@ namespace App\GraphQL\Types;
 
 use App\Enums\SignatureStatusTypeEnum;
 use App\Models\People;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Http;
 use Nuwave\Lighthouse\Support\Contracts\GraphQLContext;
 
@@ -19,14 +20,15 @@ class DocumentSignatureType
     public function validate($rootValue, array $args, GraphQLContext $context)
     {
         $signatures = $this->getSignatures($rootValue);
-        if (property_exists($signatures, 'error') || $signatures->jumlah_signature == 0) {
+        $signaturesResponse = json_decode($signatures);
+        if ($signatures->status() != Response::HTTP_OK || property_exists($signaturesResponse, 'error') || $signaturesResponse->jumlah_signature == 0) {
             return [
                 'isValid' => false,
                 'signatures' => null
             ];
         };
 
-        $signers = $this->getSigners($signatures, $rootValue);
+        $signers = $this->getSigners($signaturesResponse, $rootValue);
 
         $validation = [
             'isValid' => true,
@@ -39,7 +41,7 @@ class DocumentSignatureType
     /**
      * @param String $fileName
      *
-     * @return Object
+     * @return Mixed
      */
     protected function getSignatures($data)
     {
@@ -51,7 +53,7 @@ class DocumentSignatureType
             $data->file
         )->post(config('sikd.signature_verify_url'));
 
-        return json_decode($response->body());
+        return $response;
     }
 
     /**

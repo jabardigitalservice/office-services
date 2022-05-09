@@ -42,7 +42,10 @@ class InboxReceiverCorrectionMutator
 
         $this->createNewInboxCorrection($draftData);
         $this->updateInboxStatus($inbox);
-        $newInbox = $this->createNewInbox($draftData);
+
+        $drafter = People::findOrFail(Arr::get($args, 'input.drafterId'));
+        $newInbox = $this->createNewInbox($draftData, $drafter);
+        $this->updateOriginDraft($inbox, $drafter);
         $this->actionNotification($draftData);
         return $newInbox;
     }
@@ -65,15 +68,14 @@ class InboxReceiverCorrectionMutator
     /**
      * Create new inbox receiver correction record
      * @param Array $draftData
+     * @param People $drafter
      *
      * @throws \Exception
      *
      * @return InboxReceiverCorrection
      */
-    protected function createNewInbox($draftData)
+    protected function createNewInbox($draftData, $drafter)
     {
-        $drafter = People::findOrFail($draftData['receiversIds'][0]);
-
         $inbox                  = new InboxReceiverCorrection();
         $inbox->NId             = $draftData['draftId'];
         $inbox->NKey            = TableSetting::first()->tb_key;
@@ -109,6 +111,24 @@ class InboxReceiverCorrectionMutator
         $inbox->Koreksi = $draftData['options'];
         $inbox->RoleId  = $draftData['sender']->PrimaryRoleId;
         $inbox->save();
+    }
+
+    /**
+     * Update the origin draft
+     *
+     * @param InboxReceiverCorrection $inbox
+     * @param People                  $drafter
+     *
+     * @throws \Exception
+     *
+     * @return Void
+     */
+    private function updateOriginDraft($inbox, $drafter)
+    {
+        $draft = Draft::where('NId_Temp', $inbox->NId)->firstOrFail();
+        $draft->Approve_People = $drafter->PeopleId;
+        $draft->Nama_ttd_konsep = $drafter->PeopleName;
+        $draft->save();
     }
 
     /**

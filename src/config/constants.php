@@ -2,19 +2,21 @@
 
 return [
 
+    // Do not change the array order
     'peoplePositionGroups' => [
         '1' => array(
-            'GUBERNUR'
+            'GUBERNUR JAWA BARAT'
         ),
         '2' => array(
-            'WAKIL GUBERNUR',
-            'SEKRETARIS DAERAH',
+            'WAKIL GUBERNUR JAWA BARAT',
+            'SEKRETARIS DAERAH PROVINSI JAWA BARAT',
             'ASISTEN',
             'KEPALA SEKRETARIAT KOMISI PEMILIHAN UMUM',
             'KEPALA BIRO',
             'KEPALA BALAI',
             'KEPALA CABANG',
-            'KEPALA UPTD'
+            'KEPALA UPTD',
+            'DIREKTUR'
         ),
         '3' => array(
             'KEPALA BADAN',
@@ -30,9 +32,17 @@ return [
             'SEKRETARIS INSPEKTORAT',
             'SEKRETARIS BADAN'
         ),
-        '9' => array(
-            'KEPALA UNIT PELAKSANA TEKNIS DAERAH',
-            'DIREKTUR'
+        '5' => array(
+            'KEPALA BAGIAN',
+            'KEPALA SUBBAGIAN',
+            'KEPALA SUB BAGIAN',
+            'KEPALA BIDANG',
+            'KEPALA SUBBIDANG',
+            'KEPALA SUB BIDANG',
+            'KEPALA SEKSI',
+            'KEPALA RUMAH',
+            'INSPEKTUR PEMBANTU',
+            'WAKIL DIREKTUR',
         )
     ],
 
