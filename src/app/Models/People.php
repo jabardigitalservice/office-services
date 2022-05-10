@@ -278,7 +278,6 @@ class People extends Authenticatable
                     $query->where('PeoplePosition', 'NOT LIKE', $position . '%');
                 }
             }
-            $this->dispositionChiefDepartmentQuery($query, $userPosition, $positionsGroup);
             $this->dispositionSubDepartmentQuery($query, $userPosition, $positionsGroup);
             return 'GROUP_5';
         }
@@ -344,28 +343,6 @@ class People extends Authenticatable
     {
         if ($userPosition != $positionsGroup[2][0] && $userPosition != $positionsGroup[2][1]) {
             $this->dispositionLeaderQuery($query);
-            $query->where('PrimaryRoleId', 'LIKE', auth()->user()->PrimaryRoleId . '.%');
-        }
-    }
-
-    /**
-     * Filter people for Positions Group 5 - Chief Department disposition proposed
-     *
-     * @param  Object  $query
-     * @param  String  $userPosition
-     * @param  Array   $positionsGroup
-     *
-     * @return Void
-     */
-    private function dispositionChiefDepartmentQuery($query, $userPosition, $positionsGroup)
-    {
-        $positionsSubGroup = array(
-            $positionsGroup[5][0],
-            $positionsGroup[5][3]
-        );
-
-        $isPosition = $this->isBelongToGroup($userPosition, $positionsSubGroup);
-        if ($isPosition) {
             $query->where('PrimaryRoleId', 'LIKE', auth()->user()->PrimaryRoleId . '.%');
         }
     }
