@@ -361,7 +361,7 @@ class People extends Authenticatable
     {
         $positionsSubGroup = array(
             $positionsGroup[5][0],
-            $positionsGroup[5][4]
+            $positionsGroup[5][3]
         );
 
         $isPosition = $this->isBelongToGroup($userPosition, $positionsSubGroup);
@@ -391,7 +391,6 @@ class People extends Authenticatable
 
         $isPosition = $this->isBelongToGroup($userPosition, $positionsSubGroup);
         if ($isPosition) {
-            $query->where('PeoplePosition', 'NOT LIKE', $positionsGroup[5][0] . '.%');
             $query->where('PeoplePosition', 'NOT LIKE', $positionsGroup[5][0] . '.%');
             $query->where('PeoplePosition', 'NOT LIKE', $positionsGroup[5][3] . '.%');
         }
