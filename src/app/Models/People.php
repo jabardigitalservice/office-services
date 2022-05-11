@@ -279,6 +279,7 @@ class People extends Authenticatable
                 }
             }
             $this->dispositionSubDepartmentQuery($query, $userPosition, $positionsGroup);
+            $this->dispositionViceDirectorQuery($query, $userPosition, $positionsGroup);
             return 'GROUP_5';
         }
     }
@@ -370,6 +371,25 @@ class People extends Authenticatable
         if ($isPosition) {
             $query->where('PeoplePosition', 'NOT LIKE', $positionsGroup[5][0] . '.%');
             $query->where('PeoplePosition', 'NOT LIKE', $positionsGroup[5][3] . '.%');
+        }
+    }
+
+    /**
+     * Filter people for Positions Group 5 - Vice Director disposition proposed
+     *
+     * @param  Object  $query
+     * @param  String  $userPosition
+     * @param  Array   $positionsGroup
+     *
+     * @return Void
+     */
+    private function dispositionViceDirectorQuery($query, $userPosition, $positionsGroup)
+    {
+        // Check if the user is belong to 'Kepala Subbagian' or 'Kepala Subbidang'
+        $positionsSubGroup = array($positionsGroup[5][9]);
+        $isPosition = $this->isBelongToGroup($userPosition, $positionsSubGroup);
+        if ($isPosition) {
+            $query->where('PrimaryRoleId', 'LIKE', auth()->user()->RoleAtasan . '.%');
         }
     }
 

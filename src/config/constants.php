@@ -16,7 +16,7 @@ return [
             'KEPALA BALAI',
             'KEPALA CABANG',
             'KEPALA UPTD',
-            'DIREKTUR'
+            'DIREKTUR RUMAH SAKIT'
         ),
         '3' => array(
             'KEPALA BADAN',
