@@ -2,6 +2,7 @@
 
 namespace App\Http\Traits;
 
+use App\Exceptions\CustomException;
 use App\Models\PassphraseSession;
 use Carbon\Carbon;
 use Illuminate\Http\Response;
@@ -38,12 +39,17 @@ trait SignatureTrait
     public function checkUserSignature($setupConfig)
     {
         $checkUrl = $setupConfig['url'] . '/api/user/status/' . $setupConfig['nik'];
-        $response = Http::withHeaders([
-            'Authorization' => 'Basic ' . $setupConfig['auth'],
-            'Cookie' => 'JSESSIONID=' . $setupConfig['cookies'],
-        ])->get($checkUrl);
 
-        return $response->body();
+        try {
+            $response = Http::withHeaders([
+                'Authorization' => 'Basic ' . $setupConfig['auth'],
+                'Cookie' => 'JSESSIONID=' . $setupConfig['cookies'],
+            ])->get($checkUrl);
+
+            return $response->body();
+        } catch (\Throwable $th) {
+            throw new CustomException('Connect API for check user failed', $th->getMessage());
+        }
     }
 
     /**

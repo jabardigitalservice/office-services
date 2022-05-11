@@ -71,45 +71,53 @@ class DraftSignatureMutator
         $verifyCode = strtoupper(substr(sha1(uniqid(mt_rand(), true)), 0, 10));
         $pdfFile = $this->addFooterDocument($draft, $verifyCode);
 
-        $response = Http::withHeaders([
-            'Authorization' => 'Basic ' . $setupConfig['auth'],
-            'Cookie' => 'JSESSIONID=' . $setupConfig['cookies'],
-        ])->attach('file', $pdfFile, $draft->document_file_name)->post($url, [
-            'nik'           => $setupConfig['nik'],
-            'passphrase'    => $passphrase,
-            'tampilan'      => 'invisible',
-            'image'         => 'false',
-        ]);
+        try {
+            $response = Http::withHeaders([
+                'Authorization' => 'Basic ' . $setupConfig['auth'],
+                'Cookie' => 'JSESSIONID=' . $setupConfig['cookies'],
+            ])->attach('file', $pdfFile, $draft->document_file_name)->post($url, [
+                'nik'           => $setupConfig['nik'],
+                'passphrase'    => $passphrase,
+                'tampilan'      => 'invisible',
+                'image'         => 'false',
+            ]);
 
-        if ($response->status() != Response::HTTP_OK) {
-            throw new CustomException('Document failed', 'Signature failed, check your file again');
-        } else {
-            //Save new file & update status
-            $draft = $this->saveNewFile($response, $draft, $verifyCode);
+            if ($response->status() != Response::HTTP_OK) {
+                throw new CustomException('Document failed', 'Signature failed, check your file again');
+            } else {
+                //Save new file & update status
+                $draft = $this->saveNewFile($response, $draft, $verifyCode);
+            }
+            //Save log
+            $this->createPassphraseSessionLog($response);
+
+            return $draft;
+        } catch (\Throwable $th) {
+            throw new CustomException('Connect API for sign document failed', $th->getMessage());
         }
-        //Save log
-        $this->createPassphraseSessionLog($response);
-
-        return $draft;
     }
 
     /**
      * addFooterDocument
      *
-     * @param  mixed $data
-     * @param  mixed $newFileName
+     * @param  mixed $draft
+     * @param  mixed $verifyCode
      * @return void
      */
     protected function addFooterDocument($draft, $verifyCode)
     {
-        $addFooter = Http::post(config('sikd.add_footer_url'), [
-            'pdf' => $draft->draft_file . '?esign=true',
-            'qrcode' => config('sikd.url') . 'administrator/anri_mail_tl/log_naskah_masuk_pdf/' . $draft->NId_Temp,
-            'category' => $draft->category_footer,
-            'code' => $verifyCode
-        ]);
+        try {
+            $addFooter = Http::post(config('sikd.add_footer_url'), [
+                'pdf' => $draft->draft_file . '?esign=true',
+                'qrcode' => config('sikd.url') . 'administrator/anri_mail_tl/log_naskah_masuk_pdf/' . $draft->NId_Temp,
+                'category' => $draft->category_footer,
+                'code' => $verifyCode
+            ]);
 
-        return $addFooter;
+            return $addFooter;
+        } catch (\Throwable $th) {
+            throw new CustomException('Add footer document failed', $th->getMessage());
+        }
     }
 
     /**
@@ -124,14 +132,18 @@ class DraftSignatureMutator
     {
         //save signed data
         Storage::disk('local')->put($draft->document_file_name, $pdf->body());
-        //transfer to existing service
-        $response = $this->doTransferFile($draft);
-        if ($response->status() != Response::HTTP_OK) {
-            throw new CustomException('Webhook failed', json_decode($response));
+
+        try {
+            //transfer to existing service
+            $response = $this->doTransferFile($draft);
+            if ($response->status() != Response::HTTP_OK) {
+                throw new CustomException('Webhook failed', json_decode($response));
+            }
+            $this->doSaveSignature($draft, $verifyCode);
+        } catch (\Throwable $th) {
+            throw new CustomException('Connect API for webhook store file failed', $th->getMessage());
         }
-        $this->doSaveSignature($draft, $verifyCode);
         //remove temp data
-        Storage::disk('local')->delete($draft->NId_Temp . '.png');
         Storage::disk('local')->delete($draft->document_file_name);
 
         return $draft;

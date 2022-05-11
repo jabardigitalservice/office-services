@@ -78,36 +78,55 @@ class DocumentSignatureMutator
         $url = $setupConfig['url'] . '/api/sign/pdf';
         $newFileName = $data->documentSignature->document_file_name;
         $verifyCode = strtoupper(substr(sha1(uniqid(mt_rand(), true)), 0, 10));
+        $pdfFile = $this->pdfFile($data, $newFileName, $verifyCode);
+
+        try {
+            $response = Http::withHeaders([
+                'Authorization' => 'Basic ' . $setupConfig['auth'],
+                'Cookie' => 'JSESSIONID=' . $setupConfig['cookies'],
+            ])->attach(
+                'file',
+                $pdfFile,
+                $data->documentSignature->file
+            )->post($url, [
+                'nik'           => $setupConfig['nik'],
+                'passphrase'    => $passphrase,
+                'tampilan'      => 'invisible',
+                'image'         => 'false',
+            ]);
+
+            if ($response->status() != Response::HTTP_OK) {
+                throw new CustomException('Document failed', 'Signature failed, check your file again');
+            } else {
+                //Save new file & update status
+                $data = $this->saveNewFile($response, $data, $newFileName, $verifyCode);
+            }
+            //Save log
+            $this->createPassphraseSessionLog($response);
+
+            return $data;
+        } catch (\Throwable $th) {
+            throw new CustomException('Connect API for sign document failed', $th->getMessage());
+        }
+    }
+
+    /**
+     * pdfFile
+     *
+     * @param  mixed $data
+     * @param  mixed $newFileName
+     * @param  mixed $verifyCode
+     * @return void
+     */
+    protected function pdfFile($data, $newFileName, $verifyCode)
+    {
         if ($data->documentSignature->has_footer == false) {
             $pdfFile = $this->addFooterDocument($data, $newFileName, $verifyCode);
         } else {
             $pdfFile = file_get_contents($data->documentSignature->url);
         }
 
-        $response = Http::withHeaders([
-            'Authorization' => 'Basic ' . $setupConfig['auth'],
-            'Cookie' => 'JSESSIONID=' . $setupConfig['cookies'],
-        ])->attach(
-            'file',
-            $pdfFile,
-            $data->documentSignature->file
-        )->post($url, [
-            'nik'           => $setupConfig['nik'],
-            'passphrase'    => $passphrase,
-            'tampilan'      => 'invisible',
-            'image'         => 'false',
-        ]);
-
-        if ($response->status() != Response::HTTP_OK) {
-            throw new CustomException('Document failed', 'Signature failed, check your file again');
-        } else {
-            //Save new file & update status
-            $data = $this->saveNewFile($response, $data, $newFileName, $verifyCode);
-        }
-        //Save log
-        $this->createPassphraseSessionLog($response);
-
-        return $data;
+        return $pdfFile;
     }
 
     /**
@@ -134,6 +153,31 @@ class DocumentSignatureMutator
         //save to storage path for temporary file
         Storage::disk('local')->put($newFileName, $pdf->body());
 
+        try {
+            //transfer to existing service
+            $response = $this->doTransferFile($newFileName);
+            if ($response->status() != Response::HTTP_OK) {
+                throw new CustomException('Webhook failed', json_decode($response));
+            } else {
+                $data = $this->updateDocumentSentStatus($data, $newFileName, $verifyCode);
+            }
+        } catch (\Throwable $th) {
+            throw new CustomException('Connect API for webhook store file failed', $th->getMessage());
+        }
+
+        Storage::disk('local')->delete($newFileName);
+
+        return $data;
+    }
+
+    /**
+     * doTransferFile
+     *
+     * @param  string $newFileName
+     * @return mixed
+     */
+    public function doTransferFile($newFileName)
+    {
         $fileSignatured = fopen(Storage::path($newFileName), 'r');
         $response = Http::withHeaders([
             'Secret' => config('sikd.webhook_secret'),
@@ -143,15 +187,7 @@ class DocumentSignatureMutator
             $newFileName
         )->post(config('sikd.webhook_url'));
 
-        if ($response->status() != Response::HTTP_OK) {
-            throw new CustomException('Webhook failed', json_decode($response));
-        } else {
-            $data = $this->updateDocumentSentStatus($data, $newFileName, $verifyCode);
-        }
-
-        Storage::disk('local')->delete($newFileName);
-
-        return $data;
+        return $response;
     }
 
     /**
@@ -241,14 +277,18 @@ class DocumentSignatureMutator
      */
     protected function addFooterDocument($data, $newFileName, $verifyCode)
     {
-        $addFooter = Http::post(config('sikd.add_footer_url'), [
-            'pdf' => $data->documentSignature->url,
-            'qrcode' => config('sikd.url') . 'FilesUploaded/ttd/sudah_ttd/' . $newFileName,
-            'category' => $data->documentSignature->documentSignatureType->document_paper_type,
-            'code' => $verifyCode
-        ]);
+        try {
+            $addFooter = Http::post(config('sikd.add_footer_url'), [
+                'pdf' => $data->documentSignature->url,
+                'qrcode' => config('sikd.url') . 'FilesUploaded/ttd/sudah_ttd/' . $newFileName,
+                'category' => $data->documentSignature->documentSignatureType->document_paper_type,
+                'code' => $verifyCode
+            ]);
 
-        return $addFooter;
+            return $addFooter;
+        } catch (\Throwable $th) {
+            throw new CustomException('Add footer document failed', $th->getMessage());
+        }
     }
 
     /**
