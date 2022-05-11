@@ -385,7 +385,7 @@ class People extends Authenticatable
      */
     private function dispositionViceDirectorQuery($query, $userPosition, $positionsGroup)
     {
-        // Check if the user is belong to 'Kepala Subbagian' or 'Kepala Subbidang'
+        // Check if the user is belong to 'Wakil Direktur'
         $positionsSubGroup = array($positionsGroup[5][9]);
         $isPosition = $this->isBelongToGroup($userPosition, $positionsSubGroup);
         if ($isPosition) {
