@@ -24,6 +24,8 @@ class DraftHistoryQuery
     {
         $inboxReceiverCorrection = InboxReceiverCorrection::where('NId', $args['draftId'])
                                                         ->where('ReceiverAs', '!=', 'to_koreksi')
+                                                        ->where('ReceiverAs', '!=', 'to')
+                                                        ->with(['sender', 'receiver'])
                                                         ->orderBy('id', 'DESC')
                                                         ->get();
 
@@ -34,15 +36,20 @@ class DraftHistoryQuery
             );
         }
 
-        $draft = Draft::where('NId_Temp', $args['draftId'])->first();
         $inboxReceiver = null;
-        if ($draft->Ket === 'outboxnotadinas') {
-            $inboxReceiver = InboxReceiver::where('NId', $args['draftId'])
-                                    ->where('ReceiverAs', 'LIKE', '%to%')
-                                    ->where('ReceiverAS', 'NOT LIKE', 'to_draft%')
-                                    ->orderBy('id', 'DESC')
-                                    ->get();
-        }
+        $inboxReceiver = InboxReceiver::with(['sender', 'receiver'])
+                                ->orWhere(function ($query) use ($args) {
+                                    $query->where('NId', $args['draftId'])
+                                        ->where('ReceiverAs', 'LIKE', '%to%')
+                                        ->where('ReceiverAs', 'NOT LIKE', 'to_draft%');
+                                })
+                                ->orWhere(function ($query) use ($args) {
+                                    $query->where('NId', $args['draftId'])
+                                        ->where('ReceiverAs', 'bcc')
+                                        ->where('ReceiverAs', 'NOT LIKE', 'to_draft%');
+                                })
+                                ->orderBy('id', 'DESC')
+                                ->get();
 
         $data = collect([
             'inboxReceiverCorrection' => $inboxReceiverCorrection,

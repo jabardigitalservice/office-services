@@ -306,11 +306,12 @@ class DraftSignatureMutator
     {
         $receiver = $this->getTargetInboxReceiver($draft);
         $labelReceiverAs = ($draft->ket === 'outboxnotadinas') ? 'to_notadinas' : 'to_forward';
-        $this->doForwardToInboxReceiver($draft, $receiver, $labelReceiverAs);
+        $groupId = auth()->user()->PeopleId . Carbon::now();
+        $this->doForwardToInboxReceiver($draft, $receiver, $labelReceiverAs, $groupId);
 
         if ($draft->RoleId_Cc != null) {
             $peopleCCIds = People::whereIn('PrimaryRoleId', explode(',', $draft->RoleId_Cc))->get();
-            $this->doForwardToInboxReceiver($draft, $peopleCCIds, 'bcc');
+            $this->doForwardToInboxReceiver($draft, $peopleCCIds, 'bcc', $groupId);
         }
 
         return $receiver;
@@ -321,16 +322,17 @@ class DraftSignatureMutator
      *
      * @param  mixed $draft
      * @param  mixed $receiver
-     * @param  mixed $receiverAs
+     * @param  string $receiverAs
+     * @param  string $groupId
      * @return void
      */
-    protected function doForwardToInboxReceiver($draft, $receiver, $receiverAs)
+    protected function doForwardToInboxReceiver($draft, $receiver, $receiverAs, $groupId)
     {
         foreach ($receiver as $key => $value) {
             $InboxReceiver = new InboxReceiver();
             $InboxReceiver->NId           = $draft->NId_Temp;
             $InboxReceiver->NKey          = TableSetting::first()->tb_key;
-            $InboxReceiver->GIR_Id        = auth()->user()->PeopleId . Carbon::now();
+            $InboxReceiver->GIR_Id        = $groupId;
             $InboxReceiver->From_Id       = auth()->user()->PeopleId;
             $InboxReceiver->RoleId_From   = auth()->user()->PrimaryRoleId;
             $InboxReceiver->To_Id         = $value->PeopleId;
