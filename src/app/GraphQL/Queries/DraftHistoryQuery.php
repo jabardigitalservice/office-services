@@ -37,16 +37,23 @@ class DraftHistoryQuery
         }
 
         $inboxReceiver = null;
+        $draft = Draft::where('NId_Temp', $args['draftId'])->first();
         $inboxReceiver = InboxReceiver::with(['sender', 'receiver'])
-                                ->orWhere(function ($query) use ($args) {
-                                    $query->where('NId', $args['draftId'])
-                                        ->where('ReceiverAs', 'LIKE', '%to%')
-                                        ->where('ReceiverAs', 'NOT LIKE', 'to_draft%');
+                                ->orWhere(function ($query) use ($args, $draft) {
+                                    $query->where('NId', $args['draftId']);
+                                    $query->where('ReceiverAs', 'LIKE', '%to%');
+                                    $query->where('ReceiverAs', 'NOT LIKE', 'to_draft%');
+                                    if ($draft->Ket != 'outboxnotadinas') {
+                                        $query->where('ReceiverAs', '<>', 'to_forward');
+                                    }
                                 })
-                                ->orWhere(function ($query) use ($args) {
-                                    $query->where('NId', $args['draftId'])
-                                        ->where('ReceiverAs', 'bcc')
-                                        ->where('ReceiverAs', 'NOT LIKE', 'to_draft%');
+                                ->orWhere(function ($query) use ($args, $draft) {
+                                    $query->where('NId', $args['draftId']);
+                                    $query->where('ReceiverAs', 'bcc');
+                                    $query->where('ReceiverAs', 'NOT LIKE', 'to_draft%');
+                                    if ($draft->Ket != 'outboxnotadinas') {
+                                        $query->where('ReceiverAs', '<>', 'to_forward');
+                                    }
                                 })
                                 ->orderBy('id', 'DESC')
                                 ->get();

@@ -309,7 +309,7 @@ class DraftSignatureMutator
         $groupId = auth()->user()->PeopleId . Carbon::now();
         $this->doForwardToInboxReceiver($draft, $receiver, $labelReceiverAs, $groupId);
 
-        if ($draft->RoleId_Cc != null) {
+        if ($draft->RoleId_Cc != null && $draft->Ket == 'outboxnotadinas') {
             $peopleCCIds = People::whereIn('PrimaryRoleId', explode(',', $draft->RoleId_Cc))->get();
             $this->doForwardToInboxReceiver($draft, $peopleCCIds, 'bcc', $groupId);
         }
