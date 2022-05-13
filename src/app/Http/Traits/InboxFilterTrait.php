@@ -5,6 +5,7 @@ namespace App\Http\Traits;
 use App\Enums\InboxFilterTypeEnum;
 use App\Enums\InboxReceiverScopeType;
 use App\Enums\ListTypeEnum;
+use App\Enums\PeopleGroupTypeEnum;
 use Illuminate\Support\Arr;
 
 /**
@@ -106,6 +107,16 @@ trait InboxFilterTrait
         if ($receiverTypes) {
             $arrayReceiverTypes = explode(", ", $receiverTypes);
             $query->whereIn('ReceiverAs', $arrayReceiverTypes);
+
+            // If the list is registration (semua naskah)
+            // then the forwaded letter from UK should be hidden
+            if (count($arrayReceiverTypes) == count($this->getRegistrationTypeData())) {
+                $query->where(
+                    fn($query) => $query
+                        ->orWhere('ReceiverAs', '!=', 'to_forward')
+                        ->whereHas('receiver', fn($query) => $query->where('GroupId', '!=', PeopleGroupTypeEnum::UK()))
+                );
+            }
         }
     }
 
@@ -361,5 +372,28 @@ trait InboxFilterTrait
     private function urgencyQuery($query, $keysFilter)
     {
         $query->select('UrgensiId')->from('master_urgensi')->whereIn('UrgensiName', $keysFilter);
+    }
+
+     /**
+     * Receiver type for registration (semua naskah) list,
+     *
+     * @return Array
+     */
+    public function getRegistrationTypeData()
+    {
+        return array(
+            'cc1',
+            'to_undangan',
+            'to_sprint',
+            'to_konsep',
+            'to_notadinas',
+            'to_usul',
+            'to_forward',
+            'to',
+            'to_memo',
+            'to_nadin',
+            'to_reply',
+            'to_keluar',
+        );
     }
 }
