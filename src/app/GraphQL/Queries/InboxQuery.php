@@ -110,7 +110,8 @@ class InboxQuery
             $scope == InboxReceiverScopeType::INTERNAL_DISPOSITION() ||
             $scope == InboxReceiverScopeType::REGIONAL_DISPOSITION()
         ) {
-            $query->whereIn('ReceiverAs', array('cc1', 'to'));
+            $query->whereHas('inboxDetail', fn($query) => $query->where('Pengirim', 'eksternal'));
+            $query->whereIn('ReceiverAs', $this->getReceiverAsRegistrationData());
         } elseif ($scope == InboxReceiverScopeType::REGIONAL()) {
             $query->whereHas('inboxDetail', fn($query) => $query->where('Pengirim', 'eksternal'));
         }
@@ -211,5 +212,28 @@ class InboxQuery
             case InboxReceiverScopeType::INTERNAL_DISPOSITION():
                 return '=';
         }
+    }
+
+     /**
+     * Letter receiver type for registration list
+     *
+     * @return Array
+     */
+    private function getReceiverAsRegistrationData()
+    {
+        return array(
+           'cc1',
+           'to',
+           'to_undangan',
+           'to_sprint',
+           'to_notadinas',
+           'to_reply',
+           'to_usul',
+           'to_forward',
+           'to_keluar',
+           'to_nadin',
+           'to_konsep',
+           'to_memo',
+        );
     }
 }

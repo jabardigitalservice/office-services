@@ -278,8 +278,8 @@ class People extends Authenticatable
                     $query->where('PeoplePosition', 'NOT LIKE', $position . '%');
                 }
             }
-            $this->dispositionChiefDepartmentQuery($query, $userPosition, $positionsGroup);
             $this->dispositionSubDepartmentQuery($query, $userPosition, $positionsGroup);
+            $this->dispositionViceDirectorQuery($query, $userPosition, $positionsGroup);
             return 'GROUP_5';
         }
     }
@@ -349,28 +349,6 @@ class People extends Authenticatable
     }
 
     /**
-     * Filter people for Positions Group 5 - Chief Department disposition proposed
-     *
-     * @param  Object  $query
-     * @param  String  $userPosition
-     * @param  Array   $positionsGroup
-     *
-     * @return Void
-     */
-    private function dispositionChiefDepartmentQuery($query, $userPosition, $positionsGroup)
-    {
-        $positionsSubGroup = array(
-            $positionsGroup[5][0],
-            $positionsGroup[5][4]
-        );
-
-        $isPosition = $this->isBelongToGroup($userPosition, $positionsSubGroup);
-        if ($isPosition) {
-            $query->where('PrimaryRoleId', 'LIKE', auth()->user()->PrimaryRoleId . '.%');
-        }
-    }
-
-    /**
      * Filter people for Positions Group 5 - Sub Department disposition proposed
      *
      * @param  Object  $query
@@ -392,8 +370,26 @@ class People extends Authenticatable
         $isPosition = $this->isBelongToGroup($userPosition, $positionsSubGroup);
         if ($isPosition) {
             $query->where('PeoplePosition', 'NOT LIKE', $positionsGroup[5][0] . '.%');
-            $query->where('PeoplePosition', 'NOT LIKE', $positionsGroup[5][0] . '.%');
             $query->where('PeoplePosition', 'NOT LIKE', $positionsGroup[5][3] . '.%');
+        }
+    }
+
+    /**
+     * Filter people for Positions Group 5 - Vice Director disposition proposed
+     *
+     * @param  Object  $query
+     * @param  String  $userPosition
+     * @param  Array   $positionsGroup
+     *
+     * @return Void
+     */
+    private function dispositionViceDirectorQuery($query, $userPosition, $positionsGroup)
+    {
+        // Check if the user is belong to 'Wakil Direktur'
+        $positionsSubGroup = array($positionsGroup[5][9]);
+        $isPosition = $this->isBelongToGroup($userPosition, $positionsSubGroup);
+        if ($isPosition) {
+            $query->where('PrimaryRoleId', 'LIKE', auth()->user()->RoleAtasan . '.%');
         }
     }
 
