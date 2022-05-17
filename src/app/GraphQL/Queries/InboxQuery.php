@@ -67,6 +67,7 @@ class InboxQuery
         $signatureCount = $this->unreadCountSignatureQuery($context);
         $draftCount = $this->draftUnreadCountQuery($context);
         $registrationCount = $internalDispositionCount;
+        $carboncopyCount = $this->carbonCopyUnreadCountQuery($context);
 
         $count = [
             'forward'       => $forwardCount,
@@ -76,6 +77,7 @@ class InboxQuery
             'signature'     => $signatureCount,
             'draft'         => $draftCount,
             'registration'  => $registrationCount,
+            'carboncopy'    => $carboncopyCount
         ];
 
         return $count;
@@ -174,6 +176,21 @@ class InboxQuery
                 $draftQuery->select('NId_Temp')
                     ->from('konsep_naskah');
             });
+
+        return $query->count();
+    }
+
+    /**
+     * @param \Nuwave\Lighthouse\Support\Contracts\GraphQLContext|null $context
+     *
+     * @return Integer
+     */
+    private function carbonCopyUnreadCountQuery(GraphQLContext $context)
+    {
+        $userId = $context->user->PeopleId;
+        $query = InboxReceiver::where('To_Id', $userId)
+            ->where('ReceiverAs', '=', 'bcc')
+            ->where('StatusReceive', 'unread');
 
         return $query->count();
     }
