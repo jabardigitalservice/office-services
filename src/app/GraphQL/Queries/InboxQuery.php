@@ -110,7 +110,6 @@ class InboxQuery
             $scope == InboxReceiverScopeType::INTERNAL_DISPOSITION() ||
             $scope == InboxReceiverScopeType::REGIONAL_DISPOSITION()
         ) {
-            $query->whereHas('inboxDetail', fn($query) => $query->where('Pengirim', 'eksternal'));
             $query->whereIn('ReceiverAs', $this->getReceiverAsRegistrationData());
         } elseif ($scope == InboxReceiverScopeType::REGIONAL()) {
             $query->whereHas('inboxDetail', fn($query) => $query->where('Pengirim', 'eksternal'));
