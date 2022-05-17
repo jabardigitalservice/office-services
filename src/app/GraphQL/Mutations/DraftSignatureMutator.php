@@ -316,13 +316,15 @@ class DraftSignatureMutator
 
     protected function forwardToInboxReceiver($draft)
     {
-        $receiver = $this->getTargetInboxReceiver($draft);
-        $labelReceiverAs = ($draft->ket === 'outboxnotadinas') ? 'to_notadinas' : 'to_forward';
-        $this->doForwardToInboxReceiver($draft, $receiver, $labelReceiverAs);
+        $draftReceiverAsToTarget = config('constants.draftReceiverAsToTarget');
+        $receiver = $this->getTargetInboxReceiver($draft, $draftReceiverAsToTarget);
+        $labelReceiverAs = (in_array($draft->ket, array_keys($draftReceiverAsToTarget))) ? $draftReceiverAsToTarget[$draft->Ket] : 'to_forward';
+        $groupId = auth()->user()->PeopleId . Carbon::now();
+        $this->doForwardToInboxReceiver($draft, $receiver, $labelReceiverAs, $groupId);
 
-        if ($draft->RoleId_Cc != null) {
+        if ($draft->RoleId_Cc != null && in_array($draft->ket, array_keys($draftReceiverAsToTarget))) {
             $peopleCCIds = People::whereIn('PrimaryRoleId', explode(',', $draft->RoleId_Cc))->get();
-            $this->doForwardToInboxReceiver($draft, $peopleCCIds, 'bcc');
+            $this->doForwardToInboxReceiver($draft, $peopleCCIds, 'bcc', $groupId);
         }
 
         return $receiver;
@@ -333,16 +335,17 @@ class DraftSignatureMutator
      *
      * @param  mixed $draft
      * @param  mixed $receiver
-     * @param  mixed $receiverAs
+     * @param  string $receiverAs
+     * @param  string $groupId
      * @return void
      */
-    protected function doForwardToInboxReceiver($draft, $receiver, $receiverAs)
+    protected function doForwardToInboxReceiver($draft, $receiver, $receiverAs, $groupId)
     {
         foreach ($receiver as $key => $value) {
             $InboxReceiver = new InboxReceiver();
             $InboxReceiver->NId           = $draft->NId_Temp;
             $InboxReceiver->NKey          = TableSetting::first()->tb_key;
-            $InboxReceiver->GIR_Id        = auth()->user()->PeopleId . Carbon::now();
+            $InboxReceiver->GIR_Id        = $groupId;
             $InboxReceiver->From_Id       = auth()->user()->PeopleId;
             $InboxReceiver->RoleId_From   = auth()->user()->PrimaryRoleId;
             $InboxReceiver->To_Id         = $value->PeopleId;
@@ -363,12 +366,13 @@ class DraftSignatureMutator
      * getTargetInboxReceiver
      *
      * @param  mixed $draft
+     * @param  array $draftReceiverAsToTarget
      * @return array
      */
 
-    protected function getTargetInboxReceiver($draft)
+    protected function getTargetInboxReceiver($draft, $draftReceiverAsToTarget)
     {
-        if ($draft->Ket === 'outboxnotadinas') {
+        if (in_array($draft->ket, array_keys($draftReceiverAsToTarget))) {
             $peopleIds = People::whereIn('PeopleId', explode(',', $draft->RoleId_To))->get();
         } else {
             $peopleIds = People::whereHas('role', function ($role) {
