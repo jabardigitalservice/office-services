@@ -394,6 +394,11 @@ trait InboxFilterTrait
             'to_nadin',
             'to_reply',
             'to_keluar',
+            'to_edaran',
+            'to_pengumuman',
+            'to_rekomendasi',
+            'to_super_tugas_keluar',
+            'to_surat_izin_keluar',
         );
     }
 }
