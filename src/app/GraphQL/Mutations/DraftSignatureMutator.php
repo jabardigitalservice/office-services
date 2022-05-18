@@ -193,7 +193,7 @@ class DraftSignatureMutator
         $draftReceiverAsToTarget = config('constants.draftReceiverAsToTarget');
         $this->forwardToInboxReceiver($draft, $draftReceiverAsToTarget);
         if (in_array($draft->ket, array_keys($draftReceiverAsToTarget))) {
-            $this->forwardSaveInboxReceiverCorrection($draft);
+            $this->forwardSaveInboxReceiverCorrection($draft, $draftReceiverAsToTarget);
         }
         return $signature;
     }
@@ -395,11 +395,12 @@ class DraftSignatureMutator
      * forwardSaveInboxReceiverCorrection
      *
      * @param  mixed $draft
+     * @param  array $draftReceiverAsToTarget
      * @return void
      */
-    protected function forwardSaveInboxReceiverCorrection($draft)
+    protected function forwardSaveInboxReceiverCorrection($draft, $draftReceiverAsToTarget)
     {
-        $receiver = $this->getTargetInboxReceiver($draft);
+        $receiver = $this->getTargetInboxReceiver($draft, $draftReceiverAsToTarget);
         foreach ($receiver as $key => $value) {
             $InboxReceiverCorrection = new InboxReceiverCorrection();
             $InboxReceiverCorrection->NId           = $draft->NId_Temp;
