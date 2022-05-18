@@ -189,8 +189,9 @@ class DraftSignatureMutator
         $this->doUpdateInboxReceiverCorrection($draft);
         //Forward the document to TU / UK
         $this->forwardToInbox($draft);
-        $this->forwardToInboxReceiver($draft);
-        if ($draft->Ket !== 'outboxnotadinas') {
+        $draftReceiverAsToTarget = config('constants.draftReceiverAsToTarget');
+        $this->forwardToInboxReceiver($draft, $draftReceiverAsToTarget);
+        if (in_array($draft->ket, array_keys($draftReceiverAsToTarget))) {
             $this->forwardSaveInboxReceiverCorrection($draft);
         }
         return $signature;
@@ -314,9 +315,8 @@ class DraftSignatureMutator
      * @return void
      */
 
-    protected function forwardToInboxReceiver($draft)
+    protected function forwardToInboxReceiver($draft, $draftReceiverAsToTarget)
     {
-        $draftReceiverAsToTarget = config('constants.draftReceiverAsToTarget');
         $receiver = $this->getTargetInboxReceiver($draft, $draftReceiverAsToTarget);
         $labelReceiverAs = (in_array($draft->ket, array_keys($draftReceiverAsToTarget))) ? $draftReceiverAsToTarget[$draft->Ket] : 'to_forward';
         $groupId = auth()->user()->PeopleId . Carbon::now();
