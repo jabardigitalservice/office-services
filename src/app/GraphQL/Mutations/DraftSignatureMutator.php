@@ -6,6 +6,7 @@ use App\Enums\ActionLabelTypeEnum;
 use App\Enums\DraftConceptStatusTypeEnum;
 use App\Enums\InboxReceiverCorrectionTypeEnum;
 use App\Enums\PeopleGroupTypeEnum;
+use App\Enums\PeopleIsActiveEnum;
 use App\Exceptions\CustomException;
 use App\Http\Traits\DraftTrait;
 use App\Http\Traits\SignatureTrait;
@@ -323,7 +324,9 @@ class DraftSignatureMutator
         $this->doForwardToInboxReceiver($draft, $receiver, $labelReceiverAs, $groupId);
 
         if ($draft->RoleId_Cc != null && in_array($draft->ket, array_keys($draftReceiverAsToTarget))) {
-            $peopleCCIds = People::whereIn('PrimaryRoleId', explode(',', $draft->RoleId_Cc))->get();
+            $peopleCCIds = People::whereIn('PrimaryRoleId', explode(',', $draft->RoleId_Cc))
+                            ->where('PeopleIsActive', PeopleIsActiveEnum::ACTIVE()->value)
+                            ->get();
             $this->doForwardToInboxReceiver($draft, $peopleCCIds, 'bcc', $groupId);
         }
 
@@ -373,12 +376,16 @@ class DraftSignatureMutator
     protected function getTargetInboxReceiver($draft, $draftReceiverAsToTarget)
     {
         if (in_array($draft->ket, array_keys($draftReceiverAsToTarget))) {
-            $peopleIds = People::whereIn('PeopleId', explode(',', $draft->RoleId_To))->get();
+            $peopleIds = People::whereIn('PeopleId', explode(',', $draft->RoleId_To))
+                        ->where('PeopleIsActive', PeopleIsActiveEnum::ACTIVE()->value)
+                        ->get();
         } else {
             $peopleIds = People::whereHas('role', function ($role) {
                 $role->where('RoleCode', auth()->user()->role->RoleCode);
                 $role->where('GRoleId', auth()->user()->role->GRoleId);
-            })->where('GroupId', PeopleGroupTypeEnum::UK()->value)->get();
+            })->where('GroupId', PeopleGroupTypeEnum::UK()->value)
+            ->where('PeopleIsActive', PeopleIsActiveEnum::ACTIVE()->value)
+            ->get();
         }
 
         return $peopleIds;
