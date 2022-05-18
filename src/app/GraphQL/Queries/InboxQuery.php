@@ -238,18 +238,23 @@ class InboxQuery
     private function getReceiverAsRegistrationData()
     {
         return array(
-           'cc1',
-           'to',
-           'to_undangan',
-           'to_sprint',
-           'to_notadinas',
-           'to_reply',
-           'to_usul',
-           'to_forward',
-           'to_keluar',
-           'to_nadin',
-           'to_konsep',
-           'to_memo',
+            'cc1',
+            'to',
+            'to_undangan',
+            'to_sprint',
+            'to_notadinas',
+            'to_reply',
+            'to_usul',
+            'to_forward',
+            'to_keluar',
+            'to_nadin',
+            'to_konsep',
+            'to_memo',
+            'to_edaran',
+            'to_pengumuman',
+            'to_rekomendasi',
+            'to_super_tugas_keluar',
+            'to_surat_izin_keluar',
         );
     }
 }
