@@ -53,6 +53,7 @@ input InboxHistoryFilterInput {
     inboxId: String!
     withAuthCheck: Boolean!
     status: String
+    excludeStatus: String
 }
 
 input DistributeDocumentToInboxInput {
