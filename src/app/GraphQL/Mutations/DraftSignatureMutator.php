@@ -192,7 +192,7 @@ class DraftSignatureMutator
         $this->forwardToInbox($draft);
         $draftReceiverAsToTarget = config('constants.draftReceiverAsToTarget');
         $this->forwardToInboxReceiver($draft, $draftReceiverAsToTarget);
-        if (in_array($draft->ket, array_keys($draftReceiverAsToTarget))) {
+        if (!in_array($draft->ket, array_keys($draftReceiverAsToTarget))) {
             $this->forwardSaveInboxReceiverCorrection($draft, $draftReceiverAsToTarget);
         }
         return $signature;
