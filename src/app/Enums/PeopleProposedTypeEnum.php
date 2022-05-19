@@ -7,6 +7,7 @@ use Spatie\Enum\Enum;
 /**
  * @method static self FORWARD()
  * @method static self DISPOSITION()
+ * @method static self DIRECT_DISPOSITION()
  * @method static self FORWARD_DOC_SIGNATURE()
  * @method static self FORWARD_DRAFT()
  * @method static self NUMBERING_UK()

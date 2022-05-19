@@ -18,6 +18,7 @@ input PeopleFilterInput {
 enum ProposedTypes {
     FORWARD
     DISPOSITION
+    DIRECT_DISPOSITION
     FORWARD_DOC_SIGNATURE
     FORWARD_DRAFT
     NUMBERING_UK
