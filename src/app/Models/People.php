@@ -147,6 +147,8 @@ class People extends Authenticatable
         $positionGroup = $this->dispositionGroup4Query($query, $userPosition, $positions) ?? $positionGroup;
         $positionGroup = $this->dispositionGroup5Query($query, $userPosition, $positions) ?? $positionGroup;
         $this->dispositionGroupDefaultQuery($query, $positionGroup);
+        $query->orderBy('PrimaryRoleId', 'asc');
+        $query->orderBy('PeopleId', 'asc');
     }
 
     /**
