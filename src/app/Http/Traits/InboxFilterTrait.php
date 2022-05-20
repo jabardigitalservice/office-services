@@ -106,18 +106,36 @@ trait InboxFilterTrait
         $receiverTypes = $filter["receiverTypes"] ?? null;
         if ($receiverTypes) {
             $arrayReceiverTypes = explode(", ", $receiverTypes);
-            $query->whereIn('ReceiverAs', $arrayReceiverTypes);
-
-            // If the list is registration (semua naskah)
-            // then the forwaded letter from UK should be hidden
-            if (count($arrayReceiverTypes) == count($this->getRegistrationTypeData())) {
-                $query->where(
-                    fn($query) => $query
-                        ->whereHas('sender', fn($query) => $query->where('GroupId', '!=', PeopleGroupTypeEnum::UK()))
-                        ->orWhere('ReceiverAs', '!=', 'to_forward')
-                );
+            if (in_array('nondisposition', $arrayReceiverTypes)) {
+                $this->nondispositionQuery($query, $arrayReceiverTypes);
+            } else {
+                $query->whereIn('ReceiverAs', $arrayReceiverTypes);
             }
         }
+    }
+
+    /**
+     * Filtering nondisposition types
+     * Nondisposition is letter that:
+     * - not a draft
+     * - not a bcc/cc1
+     * - not a forwarded letter from the UK
+     *
+     * @param Object $query
+     * @param Array $filter
+     *
+     * @return Void
+     */
+    private function nondispositionQuery($query, $arrayReceiverTypes)
+    {
+        $query->where(fn($query) => $query
+            ->where('ReceiverAs', 'not like', 'to_draft%')
+            ->where('ReceiverAs', '!=', 'bcc')
+            ->where('ReceiverAs', '!=', 'cc1')
+            ->where(fn($query) => $query
+                ->whereHas('sender', fn($query) => $query->where('GroupId', '!=', PeopleGroupTypeEnum::UK()))
+                ->orWhere('ReceiverAs', '!=', 'to_forward'))
+            ->orWhereIn('ReceiverAs', $arrayReceiverTypes));
     }
 
     /**
@@ -372,33 +390,5 @@ trait InboxFilterTrait
     private function urgencyQuery($query, $keysFilter)
     {
         $query->select('UrgensiId')->from('master_urgensi')->whereIn('UrgensiName', $keysFilter);
-    }
-
-     /**
-     * Receiver type for registration (semua naskah) list,
-     *
-     * @return Array
-     */
-    public function getRegistrationTypeData()
-    {
-        return array(
-            'cc1',
-            'to_undangan',
-            'to_sprint',
-            'to_konsep',
-            'to_notadinas',
-            'to_usul',
-            'to_forward',
-            'to',
-            'to_memo',
-            'to_nadin',
-            'to_reply',
-            'to_keluar',
-            'to_edaran',
-            'to_pengumuman',
-            'to_rekomendasi',
-            'to_super_tugas_keluar',
-            'to_surat_izin_keluar',
-        );
     }
 }
