@@ -192,7 +192,7 @@ class DraftSignatureMutator
         $this->forwardToInbox($draft);
         $draftReceiverAsToTarget = config('constants.draftReceiverAsToTarget');
         $this->forwardToInboxReceiver($draft, $draftReceiverAsToTarget);
-        if (!in_array($draft->ket, array_keys($draftReceiverAsToTarget))) {
+        if (!in_array($draft->Ket, array_keys($draftReceiverAsToTarget))) {
             $this->forwardSaveInboxReceiverCorrection($draft, $draftReceiverAsToTarget);
         }
         return $signature;
@@ -319,11 +319,11 @@ class DraftSignatureMutator
     protected function forwardToInboxReceiver($draft, $draftReceiverAsToTarget)
     {
         $receiver = $this->getTargetInboxReceiver($draft, $draftReceiverAsToTarget);
-        $labelReceiverAs = (in_array($draft->ket, array_keys($draftReceiverAsToTarget))) ? $draftReceiverAsToTarget[$draft->Ket] : 'to_forward';
+        $labelReceiverAs = (in_array($draft->Ket, array_keys($draftReceiverAsToTarget))) ? $draftReceiverAsToTarget[$draft->Ket] : 'to_forward';
         $groupId = auth()->user()->PeopleId . Carbon::now();
         $this->doForwardToInboxReceiver($draft, $receiver, $labelReceiverAs, $groupId);
 
-        if ($draft->RoleId_Cc != null && in_array($draft->ket, array_keys($draftReceiverAsToTarget))) {
+        if ($draft->RoleId_Cc != null && in_array($draft->Ket, array_keys($draftReceiverAsToTarget))) {
             $peopleCCIds = People::whereIn('PrimaryRoleId', explode(',', $draft->RoleId_Cc))
                             ->where('PeopleIsActive', PeopleIsActiveEnum::ACTIVE()->value)
                             ->get();
@@ -375,7 +375,7 @@ class DraftSignatureMutator
 
     protected function getTargetInboxReceiver($draft, $draftReceiverAsToTarget)
     {
-        if (in_array($draft->ket, array_keys($draftReceiverAsToTarget))) {
+        if (in_array($draft->Ket, array_keys($draftReceiverAsToTarget))) {
             $peopleIds = People::whereIn('PeopleId', explode(',', $draft->RoleId_To))
                         ->where('PeopleIsActive', PeopleIsActiveEnum::ACTIVE()->value)
                         ->get();
