@@ -113,8 +113,8 @@ trait InboxFilterTrait
             if (count($arrayReceiverTypes) == count($this->getRegistrationTypeData())) {
                 $query->where(
                     fn($query) => $query
+                        ->whereHas('sender', fn($query) => $query->where('GroupId', '!=', PeopleGroupTypeEnum::UK()))
                         ->orWhere('ReceiverAs', '!=', 'to_forward')
-                        ->whereHas('receiver', fn($query) => $query->where('GroupId', '!=', PeopleGroupTypeEnum::UK()))
                 );
             }
         }
