@@ -326,6 +326,7 @@ class DraftSignatureMutator
         if ($draft->RoleId_Cc != null && in_array($draft->Ket, array_keys($draftReceiverAsToTarget))) {
             $peopleCCIds = People::whereIn('PrimaryRoleId', explode(',', $draft->RoleId_Cc))
                             ->where('PeopleIsActive', PeopleIsActiveEnum::ACTIVE()->value)
+                            ->where('GroupId', '!=', PeopleGroupTypeEnum::TU()->value)
                             ->get();
             $this->doForwardToInboxReceiver($draft, $peopleCCIds, 'bcc', $groupId);
         }
