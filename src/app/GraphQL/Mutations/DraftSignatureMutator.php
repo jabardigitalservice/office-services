@@ -4,11 +4,13 @@ namespace App\GraphQL\Mutations;
 
 use App\Enums\ActionLabelTypeEnum;
 use App\Enums\DraftConceptStatusTypeEnum;
+use App\Enums\FcmNotificationActionTypeEnum;
 use App\Enums\InboxReceiverCorrectionTypeEnum;
 use App\Enums\PeopleGroupTypeEnum;
 use App\Enums\PeopleIsActiveEnum;
 use App\Exceptions\CustomException;
 use App\Http\Traits\DraftTrait;
+use App\Http\Traits\SendNotificationTrait;
 use App\Http\Traits\SignatureTrait;
 use App\Models\Draft;
 use App\Models\Inbox;
@@ -27,6 +29,7 @@ use Illuminate\Support\Facades\Storage;
 class DraftSignatureMutator
 {
     use DraftTrait;
+    use SendNotificationTrait;
     use SignatureTrait;
 
     /**
@@ -345,7 +348,12 @@ class DraftSignatureMutator
      */
     protected function doForwardToInboxReceiver($draft, $receiver, $receiverAs, $groupId)
     {
+        $receiverIds = [];
         foreach ($receiver as $key => $value) {
+            if ($receiverAs != 'to_forward') {
+                array_push($receiverIds, $value->PeopleId);
+            }
+
             $InboxReceiver = new InboxReceiver();
             $InboxReceiver->NId           = $draft->NId_Temp;
             $InboxReceiver->NKey          = TableSetting::first()->tb_key;
@@ -361,6 +369,10 @@ class DraftSignatureMutator
             $InboxReceiver->Status        = '0';
             $InboxReceiver->action_label  = ActionLabelTypeEnum::REVIEW();
             $InboxReceiver->save();
+        }
+
+        if (!empty($receiverIds)) {
+            $this->doSendForwardNotification($draft, $groupId, $receiverIds);
         }
 
         return true;
@@ -419,5 +431,36 @@ class DraftSignatureMutator
             $InboxReceiverCorrection->save();
         }
         return $InboxReceiverCorrection;
+    }
+
+    /**
+     * doSendForwardNotification
+     *
+     * @param  mixed $draft
+     * @param  string $groupId
+     * @param  array $receiverIds
+     * @return void
+     */
+    protected function doSendForwardNotification($draft, $groupId, $receiverIds)
+    {
+        $people = auth()->user()->PeopleName;
+        $draftType = $draft->draftType->JenisName;
+        $draftTitle = $draft->Hal;
+
+        $body = $people . ' telah mengrimkan ' . $draftType . ' terkait dengan ' . $draftTitle . '. Klik disini untuk membaca dan menindaklanjuti pesan.';
+        $messageAttribute = [
+            'notification' => [
+                'title' => '',
+                'body' => str_replace('&nbsp;', ' ', strip_tags($body))
+            ],
+            'data' => [
+                'inboxId' => $draft->NId_Temp,
+                'groupId' => $groupId,
+                'peopleIds' => $receiverIds,
+                'action' => FcmNotificationActionTypeEnum::INBOX_DETAIL(),
+            ]
+        ];
+
+        $this->setupInboxReceiverNotification($messageAttribute);
     }
 }
