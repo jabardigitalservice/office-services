@@ -350,6 +350,7 @@ class DraftSignatureMutator
     {
         $receiverIds = [];
         foreach ($receiver as $key => $value) {
+            // get people id for send the notification if draft direct send to target (NOT to_forward status = to UK)
             if ($receiverAs != 'to_forward') {
                 array_push($receiverIds, $value->PeopleId);
             }
