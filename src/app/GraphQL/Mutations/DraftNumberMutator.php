@@ -39,19 +39,21 @@ class DraftNumberMutator
         }
 
         $draftNumber = Arr::get($args, 'input.number') . '/' . $draft->classification->ClCode . '/' . $draft->RoleCode;
-        $checkNumber = Draft::where('nosurat', $draftNumber)->first();
+        $checkNumber = Draft::where('nosurat', $draftNumber)
+                            ->where('NId_Temp', '!=', Arr::get($args, 'input.draftId'))->first();
         if ($checkNumber) {
             throw new CustomException('Letter number already exists', 'Letter number already exists, please change with other number.');
         }
 
-        $tableKey = TableSetting::first()->tb_key;
-        $this->createInboxReceiver($draft, $receiver, $tableKey);
-        $createInboxCorrection = $this->createInboxReceiverCorrection($draft, $receiver, $tableKey);
-        $this->sendNotification($draft, $receiver);
-
         $draft->Number  = Arr::get($args, 'input.number');
         $draft->nosurat = $draftNumber;
         $draft->save();
+
+        $tableKey = TableSetting::first()->tb_key;
+        $groupId = auth()->user()->PeopleId . Carbon::now();
+        $this->createInboxReceiver($draft, $receiver, $tableKey, $groupId);
+        $createInboxCorrection = $this->createInboxReceiverCorrection($draft, $receiver, $tableKey, $groupId);
+        $this->doSendNotification($draft, $receiver, $createInboxCorrection->GIR_Id);
 
         return $createInboxCorrection;
     }
@@ -61,15 +63,16 @@ class DraftNumberMutator
      *
      * @param  mixed $draft
      * @param  mixed $receiver
-     * @param  mixed $tableKey
-     * @return void
+     * @param  string $tableKey
+     * @param  string $groupId
+     * @return object
      */
-    protected function createInboxReceiverCorrection($draft, $receiver, $tableKey)
+    protected function createInboxReceiverCorrection($draft, $receiver, $tableKey, $groupId)
     {
         $InboxReceiverCorrection = new InboxReceiverCorrection();
         $InboxReceiverCorrection->NId           = $draft->NId_Temp;
         $InboxReceiverCorrection->NKey          = $tableKey;
-        $InboxReceiverCorrection->GIR_Id        = auth()->user()->PeopleId . Carbon::now();
+        $InboxReceiverCorrection->GIR_Id        = $groupId;
         $InboxReceiverCorrection->From_Id       = auth()->user()->PeopleId;
         $InboxReceiverCorrection->RoleId_From   = auth()->user()->PrimaryRoleId;
         $InboxReceiverCorrection->To_Id         = $receiver->PeopleId;
@@ -89,15 +92,16 @@ class DraftNumberMutator
      *
      * @param  mixed $draft
      * @param  mixed $receiver
-     * @param  mixed $tableKey
-     * @return void
+     * @param  string $tableKey
+     * @param  string $groupId
+     * @return object
      */
-    protected function createInboxReceiver($draft, $receiver, $tableKey)
+    protected function createInboxReceiver($draft, $receiver, $tableKey, $groupId)
     {
         $InboxReceiver = new InboxReceiver();
         $InboxReceiver->NId           = $draft->NId_Temp;
         $InboxReceiver->NKey          = $tableKey;
-        $InboxReceiver->GIR_Id        = auth()->user()->PeopleId . Carbon::now();
+        $InboxReceiver->GIR_Id        = $groupId;
         $InboxReceiver->From_Id       = auth()->user()->PeopleId;
         $InboxReceiver->RoleId_From   = auth()->user()->PrimaryRoleId;
         $InboxReceiver->To_Id         = $receiver->PeopleId;
@@ -112,12 +116,17 @@ class DraftNumberMutator
         return $InboxReceiver;
     }
 
-    protected function sendNotification($draft, $receiver)
+    /**
+     * doSendNotification
+     *
+     * @param  mixed $draft
+     * @param  mixed $receiver
+     * @param  string $groupId
+     * @return void
+     */
+    protected function doSendNotification($draft, $receiver, $groupId)
     {
         $about = str_replace('&nbsp;', ' ', strip_tags($draft->Hal));
-        $peopleId = substr($draft->GIR_Id, 0, -19);
-        $dateString = substr($draft->GIR_Id, -19);
-        $date = parseDateTimeFormat($dateString, 'dmyhis');
         $body = 'Terdapat ' . $draft->type->JenisName . ' terkait dengan ' . $about . ' yang harus segera Anda tanda tangani secara digital. Klik disini untuk membaca dan menindaklanjuti pesan.';
 
         $messageAttribute = [
@@ -127,7 +136,7 @@ class DraftNumberMutator
             ],
             'data' => [
                 'inboxId' => $draft->NId_Temp,
-                'groupId' => $peopleId . $date,
+                'groupId' => $groupId,
                 'peopleIds' => [$receiver->PeopleId],
                 'receiverAs' => 'meneruskan',
                 'action' => FcmNotificationActionTypeEnum::DRAFT_DETAIL(),
