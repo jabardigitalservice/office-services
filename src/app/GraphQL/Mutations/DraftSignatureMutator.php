@@ -324,14 +324,19 @@ class DraftSignatureMutator
         $receiver = $this->getTargetInboxReceiver($draft, $draftReceiverAsToTarget);
         $labelReceiverAs = (in_array($draft->Ket, array_keys($draftReceiverAsToTarget))) ? $draftReceiverAsToTarget[$draft->Ket] : 'to_forward';
         $groupId = auth()->user()->PeopleId . Carbon::now();
-        $this->doForwardToInboxReceiver($draft, $receiver, $labelReceiverAs, $groupId);
+        $allReceiverIds = $this->doForwardToInboxReceiver($draft, $receiver, $labelReceiverAs, $groupId);
 
         if ($draft->RoleId_Cc != null && in_array($draft->Ket, array_keys($draftReceiverAsToTarget))) {
             $peopleCCIds = People::whereIn('PrimaryRoleId', explode(',', $draft->RoleId_Cc))
                             ->where('PeopleIsActive', PeopleIsActiveEnum::ACTIVE()->value)
                             ->where('GroupId', '!=', PeopleGroupTypeEnum::TU()->value)
                             ->get();
-            $this->doForwardToInboxReceiver($draft, $peopleCCIds, 'bcc', $groupId);
+            $sendToTargetCC = $this->doForwardToInboxReceiver($draft, $peopleCCIds, 'bcc', $groupId);
+            $allReceiverIds = array_merge($allReceiverIds, $sendToTargetCC);
+        }
+
+        if (!empty($allReceiverIds)) {
+            $this->doSendForwardNotification($draft, $groupId, $allReceiverIds);
         }
 
         return $receiver;
@@ -372,11 +377,7 @@ class DraftSignatureMutator
             $InboxReceiver->save();
         }
 
-        if (!empty($receiverIds)) {
-            $this->doSendForwardNotification($draft, $groupId, $receiverIds);
-        }
-
-        return true;
+        return $receiverIds;
     }
 
     /**
