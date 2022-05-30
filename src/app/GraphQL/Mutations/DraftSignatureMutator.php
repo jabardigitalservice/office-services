@@ -448,6 +448,11 @@ class DraftSignatureMutator
         $people = auth()->user()->PeopleName;
         $draftType = $draft->draftType->JenisName;
         $draftTitle = $draft->Hal;
+        // set group id value
+        $peopleId = substr($groupId, 0, -19);
+        $dateString = substr($groupId, -19);
+        $date = parseDateTimeFormat($dateString, 'dmyhis');
+        $groupId = $peopleId . $date;
 
         $body = $people . ' telah mengrimkan ' . $draftType . ' terkait dengan ' . $draftTitle . '. Klik disini untuk membaca dan menindaklanjuti pesan.';
         $messageAttribute = [
