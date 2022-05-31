@@ -454,7 +454,7 @@ class DraftSignatureMutator
         $date = parseDateTimeFormat($dateString, 'dmyhis');
         $groupId = $peopleId . $date;
 
-        $body = $people . ' telah mengrimkan ' . $draftType . ' terkait dengan ' . $draftTitle . '. Klik disini untuk membaca dan menindaklanjuti pesan.';
+        $body = $people . ' telah mengirimkan ' . $draftType . ' terkait dengan ' . $draftTitle . '. Klik disini untuk membaca dan menindaklanjuti pesan.';
         $messageAttribute = [
             'notification' => [
                 'title' => '',
