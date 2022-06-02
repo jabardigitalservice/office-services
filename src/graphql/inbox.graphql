@@ -7,6 +7,7 @@ type Inbox {
     date: DateTime @rename(attribute: "NTglReg")
     fromName: String @rename(attribute: "Namapengirim")
     fromOrg: String @rename(attribute: "Instansipengirim")
+    fromScope: String @rename(attribute: "AsalNaskah")
     about: String @rename(attribute: "Hal")
     type: DocumentType @belongsTo
     madeFromDraft: Boolean @rename(attribute: "made_from_draft")
