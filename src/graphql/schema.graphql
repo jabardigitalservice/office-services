@@ -10,6 +10,7 @@ type Query {
         @guard
 
     inboxes(
+        orderBy: _ @orderBy(columns: ["ReceiveDate"])
         search: String @builder(method: "App\\Models\\InboxReceiver@search")
         filter: FilterInput @builder(method: "App\\Models\\InboxReceiver@filter")
     ): [InboxReceiver!]!
