@@ -64,6 +64,7 @@ class People extends Authenticatable
             PeopleProposedTypeEnum::FORWARD()->value,
             PeopleProposedTypeEnum::FORWARD_DRAFT()->value => $this->filterForward($query),
             PeopleProposedTypeEnum::DISPOSITION()->value => $this->filterDisposition($query),
+            PeopleProposedTypeEnum::DIRECT_DISPOSITION()->value => $this->filterDirectDisposition($query),
             PeopleProposedTypeEnum::FORWARD_DOC_SIGNATURE()->value => $this->filterForwardSignature($query),
             PeopleProposedTypeEnum::NUMBERING_UK()->value => $this->filterNumberingByUK($query),
             PeopleProposedTypeEnum::NUMBERING_TU()->value => $this->filterNumberingByTU($query),
@@ -146,6 +147,21 @@ class People extends Authenticatable
         $positionGroup = $this->dispositionGroup4Query($query, $userPosition, $positions) ?? $positionGroup;
         $positionGroup = $this->dispositionGroup5Query($query, $userPosition, $positions) ?? $positionGroup;
         $this->dispositionGroupDefaultQuery($query, $positionGroup);
+        $query->where('RoleAtasan', '!=', auth()->user()->PrimaryRoleId);
+        $query->orderBy('PrimaryRoleId', 'asc');
+        $query->orderBy('PeopleId', 'asc');
+    }
+
+    /**
+     * Filter people for disposition proposed directly to their inferior (bawahan) position.
+     *
+     * @param  Object  $query
+     *
+     * @return Void
+     */
+    private function filterDirectDisposition($query)
+    {
+        $this->dispositionGroupDefaultQuery($query, null);
     }
 
     /**

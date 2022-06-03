@@ -26,6 +26,7 @@ type DocumentSignatureSentHistory {
     documentSignatureDistribute: [InboxReceiver]
     documentSignatureForward: [DocumentSignatureForward]
     documentSignatureSent: [DocumentSignatureSent]
+    documentSignatureSelf: DocumentSignature
 }
 
 input documentSignatureSentsInput {

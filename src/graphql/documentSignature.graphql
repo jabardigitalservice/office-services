@@ -1,6 +1,9 @@
 type DocumentSignature {
     id: String!
     name: String @rename(attribute: "nama_file")
+    createdBy: People! @belongsTo(relation: "people")
+    createdAt: String @rename(attribute: "tanggal")
+    updatedAt: String @rename(attribute: "tanggal_update")
     url: String
     code: String
     validation: Validation @field(resolver: "App\\GraphQL\\Types\\DocumentSignatureType@validate")

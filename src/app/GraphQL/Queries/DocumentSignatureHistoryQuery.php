@@ -23,19 +23,17 @@ class DocumentSignatureHistoryQuery
      */
     public function history($rootValue, array $args, GraphQLContext $context)
     {
-        $documentSignatureSent = DocumentSignatureSent::where('ttd_id', $args['documentSignatureId'])
-                                    ->with(['sender', 'receiver'])
-                                    ->orderBy('urutan', 'ASC')
-                                    ->get();
+        $documentSignatureSent = $this->getDocumentSignatureSent($args);
+        $documentSignatureForward = $this->getDocumentSignatureForward($args);
+        $documentSignature = DocumentSignature::where('id', $args['documentSignatureId'])->first();
 
-        $documentSignatureForward = DocumentSignatureForward::where('ttd_id', $args['documentSignatureId'])
-                                    ->with(['sender', 'receiver'])
-                                    ->orderBy('urutan', 'ASC')
-                                    ->get();
+        $signedSelf = null;
+        if ($documentSignature && $documentSignature->is_signed_self) {
+            $signedSelf = $documentSignature;
+        }
 
         $inboxId = null;
         if (count($documentSignatureSent) == 0) {
-            $documentSignature = DocumentSignature::where('id', $args['documentSignatureId'])->first();
             if ($documentSignature) {
                 $inboxId = optional($documentSignature->inboxFile)->NId;
             }
@@ -56,8 +54,41 @@ class DocumentSignatureHistoryQuery
             'documentSignatureDistribute' => $documentSignatureDistribute,
             'documentSignatureForward' => $documentSignatureForward,
             'documentSignatureSent' => $documentSignatureSent,
+            'documentSignatureSelf' => $signedSelf,
         ]);
 
         return $data;
+    }
+
+    /**
+     * getDocumentSignatureSent
+     *
+     * @param  mixed $args
+     * @return object
+     */
+    protected function getDocumentSignatureSent($args)
+    {
+        $documentSignatureSent = DocumentSignatureSent::where('ttd_id', $args['documentSignatureId'])
+                                    ->with(['sender', 'receiver'])
+                                    ->orderBy('urutan', 'ASC')
+                                    ->get();
+
+        return $documentSignatureSent;
+    }
+
+    /**
+     * getDocumentSignatureForward
+     *
+     * @param  mixed $args
+     * @return object
+     */
+    protected function getDocumentSignatureForward($args)
+    {
+        $documentSignatureForward = DocumentSignatureForward::where('ttd_id', $args['documentSignatureId'])
+                                    ->with(['sender', 'receiver'])
+                                    ->orderBy('urutan', 'ASC')
+                                    ->get();
+
+        return $documentSignatureForward;
     }
 }

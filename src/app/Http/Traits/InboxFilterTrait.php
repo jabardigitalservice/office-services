@@ -106,18 +106,36 @@ trait InboxFilterTrait
         $receiverTypes = $filter["receiverTypes"] ?? null;
         if ($receiverTypes) {
             $arrayReceiverTypes = explode(", ", $receiverTypes);
-            $query->whereIn('ReceiverAs', $arrayReceiverTypes);
-
-            // If the list is registration (semua naskah)
-            // then the forwaded letter from UK should be hidden
-            if (count($arrayReceiverTypes) == count($this->getRegistrationTypeData())) {
-                $query->where(
-                    fn($query) => $query
-                        ->orWhere('ReceiverAs', '!=', 'to_forward')
-                        ->whereHas('receiver', fn($query) => $query->where('GroupId', '!=', PeopleGroupTypeEnum::UK()))
-                );
+            if (in_array('nondisposition', $arrayReceiverTypes)) {
+                $this->nondispositionQuery($query, $arrayReceiverTypes);
+            } else {
+                $query->whereIn('ReceiverAs', $arrayReceiverTypes);
             }
         }
+    }
+
+    /**
+     * Filtering nondisposition types
+     * Nondisposition is letter that:
+     * - not a draft
+     * - not a bcc/cc1
+     * - not a forwarded letter from the UK
+     *
+     * @param Object $query
+     * @param Array $filter
+     *
+     * @return Void
+     */
+    private function nondispositionQuery($query, $arrayReceiverTypes)
+    {
+        $query->where(fn($query) => $query
+            ->where('ReceiverAs', 'not like', 'to_draft%')
+            ->where('ReceiverAs', '!=', 'bcc')
+            ->where('ReceiverAs', '!=', 'cc1')
+            ->where(fn($query) => $query
+                ->whereHas('sender', fn($query) => $query->where('GroupId', '!=', PeopleGroupTypeEnum::UK()))
+                ->orWhere('ReceiverAs', '!=', 'to_forward'))
+            ->orWhereIn('ReceiverAs', $arrayReceiverTypes));
     }
 
     /**
@@ -135,15 +153,13 @@ trait InboxFilterTrait
     {
         $scope = $filter["scope"] ?? null;
         if ($scope) {
-            $userGroupRole = auth()->user()->role->GRoleId;
-            $departmentId = $this->generateDeptId(auth()->user()->PrimaryRoleId);
             switch ($scope) {
                 case InboxReceiverScopeType::REGIONAL():
-                    $this->queryRegionalScope($query, $userGroupRole, $departmentId);
+                    $this->queryRegionalScope($query);
                     break;
 
                 case InboxReceiverScopeType::INTERNAL():
-                    $this->queryInternalScope($query, $userGroupRole, $departmentId);
+                    $this->queryInternalScope($query);
                     break;
             }
         }
@@ -168,6 +184,7 @@ trait InboxFilterTrait
 
     /**
      * Query REGIONAL scope filter
+     * Letters sent by UK
      *
      * @param Object $query
      * @param String $groupRole
@@ -175,17 +192,14 @@ trait InboxFilterTrait
      *
      * @return Void
      */
-    private function queryRegionalScope($query, $groupRole, $deptId)
+    private function queryRegionalScope($query)
     {
-        if (in_array($groupRole, config('constants.sekdaRoleIdGroups'))) {
-            $query->where('RoleId_From', '!=', 'uk.1')
-                ->where('RoleId_From', '!=', 'uk.1.1.1');
-        };
-        $query->where('RoleId_From', 'NOT LIKE', $deptId . '%');
+        $query->whereHas('sender', fn($query) => $query->where('GroupId', PeopleGroupTypeEnum::UK()));
     }
 
     /**
      * Query INTERNAL scope filter
+     * Letter sent not by UK
      *
      * @param Object $query
      * @param String $groupRole
@@ -193,36 +207,9 @@ trait InboxFilterTrait
      *
      * @return Void
      */
-    private function queryInternalScope($query, $groupRole, $deptId)
+    private function queryInternalScope($query)
     {
-        if (in_array($groupRole, config('constants.sekdaRoleIdGroups'))) {
-            $query->where(
-                fn($query) => $query->where('RoleId_From', 'LIKE', $deptId . '%')
-                    ->orWhere('RoleId_From', '=', 'uk.1')
-                    ->orWhere('RoleId_From', '=', 'uk.1.1.1')
-            );
-        } else {
-            $query->where('RoleId_From', 'LIKE', $deptId . '%');
-        }
-    }
-
-    /**
-     * Generate department id from user roleId
-     *
-     * @param String $roleId
-     *
-     * @return String
-     */
-    private function generateDeptId($roleId)
-    {
-        // If the user is not uk.setda
-        if ($roleId != 'uk.1.1.1.1.1') {
-            $arrayRoleId = explode(".", $roleId);
-            $arrayDepartmentId = array_slice($arrayRoleId, 0, 3);
-            $departmentId = join(".", $arrayDepartmentId);
-            return $departmentId;
-        }
-        return $roleId;
+        $query->whereHas('sender', fn($query) => $query->where('GroupId', '!=', PeopleGroupTypeEnum::UK()));
     }
 
     /**
@@ -372,28 +359,5 @@ trait InboxFilterTrait
     private function urgencyQuery($query, $keysFilter)
     {
         $query->select('UrgensiId')->from('master_urgensi')->whereIn('UrgensiName', $keysFilter);
-    }
-
-     /**
-     * Receiver type for registration (semua naskah) list,
-     *
-     * @return Array
-     */
-    public function getRegistrationTypeData()
-    {
-        return array(
-            'cc1',
-            'to_undangan',
-            'to_sprint',
-            'to_konsep',
-            'to_notadinas',
-            'to_usul',
-            'to_forward',
-            'to',
-            'to_memo',
-            'to_nadin',
-            'to_reply',
-            'to_keluar',
-        );
     }
 }

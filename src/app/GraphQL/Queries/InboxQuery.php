@@ -67,6 +67,7 @@ class InboxQuery
         $signatureCount = $this->unreadCountSignatureQuery($context);
         $draftCount = $this->draftUnreadCountQuery($context);
         $registrationCount = $internalDispositionCount;
+        $carboncopyCount = $this->carbonCopyUnreadCountQuery($context);
 
         $count = [
             'forward'       => $forwardCount,
@@ -76,6 +77,7 @@ class InboxQuery
             'signature'     => $signatureCount,
             'draft'         => $draftCount,
             'registration'  => $registrationCount,
+            'carboncopy'    => $carboncopyCount
         ];
 
         return $count;
@@ -110,7 +112,6 @@ class InboxQuery
             $scope == InboxReceiverScopeType::INTERNAL_DISPOSITION() ||
             $scope == InboxReceiverScopeType::REGIONAL_DISPOSITION()
         ) {
-            $query->whereHas('inboxDetail', fn($query) => $query->where('Pengirim', 'eksternal'));
             $query->whereIn('ReceiverAs', $this->getReceiverAsRegistrationData());
         } elseif ($scope == InboxReceiverScopeType::REGIONAL()) {
             $query->whereHas('inboxDetail', fn($query) => $query->where('Pengirim', 'eksternal'));
@@ -179,6 +180,21 @@ class InboxQuery
         return $query->count();
     }
 
+    /**
+     * @param \Nuwave\Lighthouse\Support\Contracts\GraphQLContext|null $context
+     *
+     * @return Integer
+     */
+    private function carbonCopyUnreadCountQuery(GraphQLContext $context)
+    {
+        $userId = $context->user->PeopleId;
+        $query = InboxReceiver::where('To_Id', $userId)
+            ->where('ReceiverAs', '=', 'bcc')
+            ->where('StatusReceive', 'unread');
+
+        return $query->count();
+    }
+
      /**
      * @param Array $positionList
      * @param String $position
@@ -222,18 +238,23 @@ class InboxQuery
     private function getReceiverAsRegistrationData()
     {
         return array(
-           'cc1',
-           'to',
-           'to_undangan',
-           'to_sprint',
-           'to_notadinas',
-           'to_reply',
-           'to_usul',
-           'to_forward',
-           'to_keluar',
-           'to_nadin',
-           'to_konsep',
-           'to_memo',
+            'cc1',
+            'to',
+            'to_undangan',
+            'to_sprint',
+            'to_notadinas',
+            'to_reply',
+            'to_usul',
+            'to_forward',
+            'to_keluar',
+            'to_nadin',
+            'to_konsep',
+            'to_memo',
+            'to_edaran',
+            'to_pengumuman',
+            'to_rekomendasi',
+            'to_super_tugas_keluar',
+            'to_surat_izin_keluar',
         );
     }
 }

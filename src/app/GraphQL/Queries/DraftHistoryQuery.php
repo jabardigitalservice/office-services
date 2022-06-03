@@ -24,6 +24,8 @@ class DraftHistoryQuery
     {
         $inboxReceiverCorrection = InboxReceiverCorrection::where('NId', $args['draftId'])
                                                         ->where('ReceiverAs', '!=', 'to_koreksi')
+                                                        ->where('ReceiverAs', '!=', 'to')
+                                                        ->with(['sender', 'receiver'])
                                                         ->orderBy('id', 'DESC')
                                                         ->get();
 
@@ -34,15 +36,27 @@ class DraftHistoryQuery
             );
         }
 
-        $draft = Draft::where('NId_Temp', $args['draftId'])->first();
         $inboxReceiver = null;
-        if ($draft->Ket === 'outboxnotadinas') {
-            $inboxReceiver = InboxReceiver::where('NId', $args['draftId'])
-                                    ->where('ReceiverAs', 'LIKE', '%to%')
-                                    ->where('ReceiverAS', 'NOT LIKE', 'to_draft%')
-                                    ->orderBy('id', 'DESC')
-                                    ->get();
-        }
+        $draft = Draft::where('NId_Temp', $args['draftId'])->first();
+        $inboxReceiver = InboxReceiver::with(['sender', 'receiver'])
+                                ->orWhere(function ($query) use ($args, $draft) {
+                                    $query->where('NId', $args['draftId']);
+                                    $query->where('ReceiverAs', 'LIKE', '%to%');
+                                    $query->where('ReceiverAs', 'NOT LIKE', 'to_draft%');
+                                    if ($draft->Ket != 'outboxnotadinas') {
+                                        $query->where('ReceiverAs', '<>', 'to_forward');
+                                    }
+                                })
+                                ->orWhere(function ($query) use ($args, $draft) {
+                                    $query->where('NId', $args['draftId']);
+                                    $query->where('ReceiverAs', 'bcc');
+                                    $query->where('ReceiverAs', 'NOT LIKE', 'to_draft%');
+                                    if ($draft->Ket != 'outboxnotadinas') {
+                                        $query->where('ReceiverAs', '<>', 'to_forward');
+                                    }
+                                })
+                                ->orderBy('id', 'DESC')
+                                ->get();
 
         $data = collect([
             'inboxReceiverCorrection' => $inboxReceiverCorrection,

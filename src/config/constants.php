@@ -51,4 +51,15 @@ return [
         'XxJyPn38Yh.40'
     ],
 
+    //receiver as on draft for direct sent to target (not forward to UK)
+    'draftReceiverAsToTarget' => [
+        'outboxnotadinas'       => 'to_notadinas',
+        'outboxsprint'          => 'to_sprint',
+        'outboxpengumuman'      => 'to_pengumuman',
+        'outboxsuratizin'       => 'to_surat_izin_keluar',
+        'outboxsprintgub'       => 'to_sprint_gub',
+        'outboxrekomendasi'     => 'to_rekomendasi',
+        'outboxsupertugas'      => 'to_super_tugas_keluar',
+    ],
+
 ];

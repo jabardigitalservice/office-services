@@ -11,9 +11,11 @@ type Draft {
     address: String @rename(attribute: "Alamat")
     folder: String @rename(attribute: "Ket")
     file: String @rename(attribute: "DraftFile")
+    roleCode: String @rename(attribute: "RoleCode")
     type: DocumentType @belongsTo
     urgency: DocumentUrgency @belongsTo
     classified: MasterClassified @belongsTo
+    classification: Classification @belongsTo
     createdBy: People @belongsTo
     reviewer: People @belongsTo
 }
@@ -27,3 +29,4 @@ input DraftSignatureInput {
 #import documentType.graphql
 #import documentUrgency.graphql
 #import masterClassified.graphql
+#import classification.graphql

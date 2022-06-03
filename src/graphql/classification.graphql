@@ -1,0 +1,6 @@
+type Classification {
+    id: String! @rename(attribute: "ClId")
+    parentId: String! @rename(attribute: "ClParentId")
+    code: String @rename(attribute: "ClCode")
+    name: String @rename(attribute: "ClName")
+}

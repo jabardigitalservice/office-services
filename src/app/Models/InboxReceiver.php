@@ -49,7 +49,6 @@ class InboxReceiver extends Model
     {
         return $query->where('NId', $filter['inboxId'])
             ->where(function ($query) use ($filter) {
-                $status = $filter['status'] ?? null;
                 if ($filter['withAuthCheck']) {
                     $query->whereIn('GIR_Id', function ($query) {
                         $query->select('GIR_Id')
@@ -58,9 +57,17 @@ class InboxReceiver extends Model
                     })
                     ->orWhere('RoleId_From', 'like', auth()->user()->PrimaryRoleId . '%');
                 }
+            })
+            ->where(function ($query) use ($filter) {
+                $status = $filter['status'] ?? null;
+                $excludeStatus = $filter['excludeStatus'] ?? null;
                 if ($status) {
                     $status = explode(', ', $status);
                     $query->whereIn('ReceiverAs', $status);
+                }
+                if ($excludeStatus) {
+                    $excludeStatus = explode(', ', $excludeStatus);
+                    $query->whereNotIn('ReceiverAs', $excludeStatus);
                 }
             });
     }
@@ -156,8 +163,16 @@ class InboxReceiver extends Model
 
     public function getReceiverAsLabelAttribute()
     {
+        $nonDispositionLabel = '';
+        if (
+            $this->inboxDetail->NTipe == InboxTypeEnum::INBOX()->value ||
+            $this->inboxDetail->NTipe == InboxTypeEnum::OUTBOXNOTADINAS()->value
+        ) {
+            $nonDispositionLabel = ' Non Disposisi';
+        }
+
         $label = match ($this->ReceiverAs) {
-            'to'                    => ($this->inboxDetail->NTipe == InboxTypeEnum::INBOX()->value) ? 'Naskah Masuk Non Disposisi' : 'Naskah Masuk',
+            'to'                    => 'Naskah Masuk' . $nonDispositionLabel,
             'to_undangan'           => 'Undangan',
             'to_sprint'             => 'Perintah',
             'to_notadinas'          => 'Nota Dinas',

@@ -4,10 +4,13 @@ namespace App\GraphQL\Mutations;
 
 use App\Enums\ActionLabelTypeEnum;
 use App\Enums\DraftConceptStatusTypeEnum;
+use App\Enums\FcmNotificationActionTypeEnum;
 use App\Enums\InboxReceiverCorrectionTypeEnum;
 use App\Enums\PeopleGroupTypeEnum;
+use App\Enums\PeopleIsActiveEnum;
 use App\Exceptions\CustomException;
 use App\Http\Traits\DraftTrait;
+use App\Http\Traits\SendNotificationTrait;
 use App\Http\Traits\SignatureTrait;
 use App\Models\Draft;
 use App\Models\Inbox;
@@ -26,6 +29,7 @@ use Illuminate\Support\Facades\Storage;
 class DraftSignatureMutator
 {
     use DraftTrait;
+    use SendNotificationTrait;
     use SignatureTrait;
 
     /**
@@ -71,45 +75,53 @@ class DraftSignatureMutator
         $verifyCode = strtoupper(substr(sha1(uniqid(mt_rand(), true)), 0, 10));
         $pdfFile = $this->addFooterDocument($draft, $verifyCode);
 
-        $response = Http::withHeaders([
-            'Authorization' => 'Basic ' . $setupConfig['auth'],
-            'Cookie' => 'JSESSIONID=' . $setupConfig['cookies'],
-        ])->attach('file', $pdfFile, $draft->document_file_name)->post($url, [
-            'nik'           => $setupConfig['nik'],
-            'passphrase'    => $passphrase,
-            'tampilan'      => 'invisible',
-            'image'         => 'false',
-        ]);
+        try {
+            $response = Http::withHeaders([
+                'Authorization' => 'Basic ' . $setupConfig['auth'],
+                'Cookie' => 'JSESSIONID=' . $setupConfig['cookies'],
+            ])->attach('file', $pdfFile, $draft->document_file_name)->post($url, [
+                'nik'           => $setupConfig['nik'],
+                'passphrase'    => $passphrase,
+                'tampilan'      => 'invisible',
+                'image'         => 'false',
+            ]);
 
-        if ($response->status() != Response::HTTP_OK) {
-            throw new CustomException('Document failed', 'Signature failed, check your file again');
-        } else {
-            //Save new file & update status
-            $draft = $this->saveNewFile($response, $draft, $verifyCode);
+            if ($response->status() != Response::HTTP_OK) {
+                throw new CustomException('Document failed', 'Signature failed, check your file again');
+            } else {
+                //Save new file & update status
+                $draft = $this->saveNewFile($response, $draft, $verifyCode);
+            }
+            //Save log
+            $this->createPassphraseSessionLog($response);
+
+            return $draft;
+        } catch (\Throwable $th) {
+            throw new CustomException('Connect API for sign document failed', $th->getMessage());
         }
-        //Save log
-        $this->createPassphraseSessionLog($response);
-
-        return $draft;
     }
 
     /**
      * addFooterDocument
      *
-     * @param  mixed $data
-     * @param  mixed $newFileName
+     * @param  mixed $draft
+     * @param  mixed $verifyCode
      * @return void
      */
     protected function addFooterDocument($draft, $verifyCode)
     {
-        $addFooter = Http::post(config('sikd.add_footer_url'), [
-            'pdf' => $draft->draft_file . '?esign=true',
-            'qrcode' => config('sikd.url') . 'administrator/anri_mail_tl/log_naskah_masuk_pdf/' . $draft->NId_Temp,
-            'category' => $draft->category_footer,
-            'code' => $verifyCode
-        ]);
+        try {
+            $addFooter = Http::post(config('sikd.add_footer_url'), [
+                'pdf' => $draft->draft_file . '?esign=true',
+                'qrcode' => config('sikd.url') . 'administrator/anri_mail_tl/log_naskah_masuk_pdf/' . $draft->NId_Temp,
+                'category' => $draft->category_footer,
+                'code' => $verifyCode
+            ]);
 
-        return $addFooter;
+            return $addFooter;
+        } catch (\Throwable $th) {
+            throw new CustomException('Add footer document failed', $th->getMessage());
+        }
     }
 
     /**
@@ -124,14 +136,18 @@ class DraftSignatureMutator
     {
         //save signed data
         Storage::disk('local')->put($draft->document_file_name, $pdf->body());
-        //transfer to existing service
-        $response = $this->doTransferFile($draft);
-        if ($response->status() != Response::HTTP_OK) {
-            throw new CustomException('Webhook failed', json_decode($response));
+
+        try {
+            //transfer to existing service
+            $response = $this->doTransferFile($draft);
+            if ($response->status() != Response::HTTP_OK) {
+                throw new CustomException('Webhook failed', json_decode($response));
+            }
+            $this->doSaveSignature($draft, $verifyCode);
+        } catch (\Throwable $th) {
+            throw new CustomException('Connect API for webhook store file failed', $th->getMessage());
         }
-        $this->doSaveSignature($draft, $verifyCode);
         //remove temp data
-        Storage::disk('local')->delete($draft->NId_Temp . '.png');
         Storage::disk('local')->delete($draft->document_file_name);
 
         return $draft;
@@ -177,9 +193,10 @@ class DraftSignatureMutator
         $this->doUpdateInboxReceiverCorrection($draft);
         //Forward the document to TU / UK
         $this->forwardToInbox($draft);
-        $this->forwardToInboxReceiver($draft);
-        if ($draft->Ket !== 'outboxnotadinas') {
-            $this->forwardSaveInboxReceiverCorrection($draft);
+        $draftReceiverAsToTarget = config('constants.draftReceiverAsToTarget');
+        $this->forwardToInboxReceiver($draft, $draftReceiverAsToTarget);
+        if (!in_array($draft->Ket, array_keys($draftReceiverAsToTarget))) {
+            $this->forwardSaveInboxReceiverCorrection($draft, $draftReceiverAsToTarget);
         }
         return $signature;
     }
@@ -302,15 +319,24 @@ class DraftSignatureMutator
      * @return void
      */
 
-    protected function forwardToInboxReceiver($draft)
+    protected function forwardToInboxReceiver($draft, $draftReceiverAsToTarget)
     {
-        $receiver = $this->getTargetInboxReceiver($draft);
-        $labelReceiverAs = ($draft->ket === 'outboxnotadinas') ? 'to_notadinas' : 'to_forward';
-        $this->doForwardToInboxReceiver($draft, $receiver, $labelReceiverAs);
+        $receiver = $this->getTargetInboxReceiver($draft, $draftReceiverAsToTarget);
+        $labelReceiverAs = (in_array($draft->Ket, array_keys($draftReceiverAsToTarget))) ? $draftReceiverAsToTarget[$draft->Ket] : 'to_forward';
+        $groupId = auth()->user()->PeopleId . Carbon::now();
+        $allReceiverIds = $this->doForwardToInboxReceiver($draft, $receiver, $labelReceiverAs, $groupId);
 
-        if ($draft->RoleId_Cc != null) {
-            $peopleCCIds = People::whereIn('PrimaryRoleId', explode(',', $draft->RoleId_Cc))->get();
-            $this->doForwardToInboxReceiver($draft, $peopleCCIds, 'bcc');
+        if ($draft->RoleId_Cc != null && in_array($draft->Ket, array_keys($draftReceiverAsToTarget))) {
+            $peopleCCIds = People::whereIn('PrimaryRoleId', explode(',', $draft->RoleId_Cc))
+                            ->where('PeopleIsActive', PeopleIsActiveEnum::ACTIVE()->value)
+                            ->where('GroupId', '!=', PeopleGroupTypeEnum::TU()->value)
+                            ->get();
+            $sendToTargetCC = $this->doForwardToInboxReceiver($draft, $peopleCCIds, 'bcc', $groupId);
+            $allReceiverIds = array_merge($allReceiverIds, $sendToTargetCC);
+        }
+
+        if (!empty($allReceiverIds)) {
+            $this->doSendForwardNotification($draft, $groupId, $allReceiverIds);
         }
 
         return $receiver;
@@ -321,16 +347,23 @@ class DraftSignatureMutator
      *
      * @param  mixed $draft
      * @param  mixed $receiver
-     * @param  mixed $receiverAs
+     * @param  string $receiverAs
+     * @param  string $groupId
      * @return void
      */
-    protected function doForwardToInboxReceiver($draft, $receiver, $receiverAs)
+    protected function doForwardToInboxReceiver($draft, $receiver, $receiverAs, $groupId)
     {
+        $receiverIds = [];
         foreach ($receiver as $key => $value) {
+            // get people id for send the notification if draft direct send to target (NOT to_forward status = to UK)
+            if ($receiverAs != 'to_forward') {
+                array_push($receiverIds, $value->PeopleId);
+            }
+
             $InboxReceiver = new InboxReceiver();
             $InboxReceiver->NId           = $draft->NId_Temp;
             $InboxReceiver->NKey          = TableSetting::first()->tb_key;
-            $InboxReceiver->GIR_Id        = auth()->user()->PeopleId . Carbon::now();
+            $InboxReceiver->GIR_Id        = $groupId;
             $InboxReceiver->From_Id       = auth()->user()->PeopleId;
             $InboxReceiver->RoleId_From   = auth()->user()->PrimaryRoleId;
             $InboxReceiver->To_Id         = $value->PeopleId;
@@ -344,25 +377,30 @@ class DraftSignatureMutator
             $InboxReceiver->save();
         }
 
-        return true;
+        return $receiverIds;
     }
 
     /**
      * getTargetInboxReceiver
      *
      * @param  mixed $draft
+     * @param  array $draftReceiverAsToTarget
      * @return array
      */
 
-    protected function getTargetInboxReceiver($draft)
+    protected function getTargetInboxReceiver($draft, $draftReceiverAsToTarget)
     {
-        if ($draft->Ket === 'outboxnotadinas') {
-            $peopleIds = People::whereIn('PeopleId', explode(',', $draft->RoleId_To))->get();
+        if (in_array($draft->Ket, array_keys($draftReceiverAsToTarget))) {
+            $peopleIds = People::whereIn('PeopleId', explode(',', $draft->RoleId_To))
+                        ->where('PeopleIsActive', PeopleIsActiveEnum::ACTIVE()->value)
+                        ->get();
         } else {
             $peopleIds = People::whereHas('role', function ($role) {
                 $role->where('RoleCode', auth()->user()->role->RoleCode);
                 $role->where('GRoleId', auth()->user()->role->GRoleId);
-            })->where('GroupId', PeopleGroupTypeEnum::UK()->value)->get();
+            })->where('GroupId', PeopleGroupTypeEnum::UK()->value)
+            ->where('PeopleIsActive', PeopleIsActiveEnum::ACTIVE()->value)
+            ->get();
         }
 
         return $peopleIds;
@@ -372,11 +410,12 @@ class DraftSignatureMutator
      * forwardSaveInboxReceiverCorrection
      *
      * @param  mixed $draft
+     * @param  array $draftReceiverAsToTarget
      * @return void
      */
-    protected function forwardSaveInboxReceiverCorrection($draft)
+    protected function forwardSaveInboxReceiverCorrection($draft, $draftReceiverAsToTarget)
     {
-        $receiver = $this->getTargetInboxReceiver($draft);
+        $receiver = $this->getTargetInboxReceiver($draft, $draftReceiverAsToTarget);
         foreach ($receiver as $key => $value) {
             $InboxReceiverCorrection = new InboxReceiverCorrection();
             $InboxReceiverCorrection->NId           = $draft->NId_Temp;
@@ -394,5 +433,41 @@ class DraftSignatureMutator
             $InboxReceiverCorrection->save();
         }
         return $InboxReceiverCorrection;
+    }
+
+    /**
+     * doSendForwardNotification
+     *
+     * @param  mixed $draft
+     * @param  string $groupId
+     * @param  array $receiverIds
+     * @return void
+     */
+    protected function doSendForwardNotification($draft, $groupId, $receiverIds)
+    {
+        $people = auth()->user()->PeopleName;
+        $draftType = $draft->draftType->JenisName;
+        $draftTitle = $draft->Hal;
+        // set group id value
+        $peopleId = substr($groupId, 0, -19);
+        $dateString = substr($groupId, -19);
+        $date = parseDateTimeFormat($dateString, 'dmyhis');
+        $groupId = $peopleId . $date;
+
+        $body = $people . ' telah mengirimkan ' . $draftType . ' terkait dengan ' . $draftTitle . '. Klik disini untuk membaca dan menindaklanjuti pesan.';
+        $messageAttribute = [
+            'notification' => [
+                'title' => '',
+                'body' => str_replace('&nbsp;', ' ', strip_tags($body))
+            ],
+            'data' => [
+                'inboxId' => $draft->NId_Temp,
+                'groupId' => $groupId,
+                'peopleIds' => $receiverIds,
+                'action' => FcmNotificationActionTypeEnum::INBOX_DETAIL(),
+            ]
+        ];
+
+        $this->setupInboxReceiverNotification($messageAttribute);
     }
 }
