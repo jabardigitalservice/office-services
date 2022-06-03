@@ -104,14 +104,16 @@ trait InboxFilterTrait
     private function filterByReceiverTypes($query, $filter)
     {
         $receiverTypes = $filter["receiverTypes"] ?? null;
+        $arrayReceiverTypes = explode(", ", $receiverTypes);
         if ($receiverTypes) {
-            $arrayReceiverTypes = explode(", ", $receiverTypes);
             if (in_array('nondisposition', $arrayReceiverTypes)) {
                 $this->nondispositionQuery($query, $arrayReceiverTypes);
             } else {
                 $query->whereIn('ReceiverAs', $arrayReceiverTypes);
             }
         }
+
+        $this->filterByScope($query, $filter, $receiverTypes, $arrayReceiverTypes);
     }
 
     /**
@@ -146,20 +148,22 @@ trait InboxFilterTrait
      *
      * @param Object $query
      * @param Array $filter
+     * @param String $receiverTypes
+     * @param Array $arrayReceiverTypes
      *
      * @return Void
      */
-    private function filterByScope($query, $filter)
+    private function filterByScope($query, $filter, $receiverTypes, $arrayReceiverTypes)
     {
         $scope = $filter["scope"] ?? null;
         if ($scope) {
             switch ($scope) {
                 case InboxReceiverScopeType::REGIONAL():
-                    $this->queryRegionalScope($query);
+                    $this->queryRegionalScope($query, $receiverTypes, $arrayReceiverTypes);
                     break;
 
                 case InboxReceiverScopeType::INTERNAL():
-                    $this->queryInternalScope($query);
+                    $this->queryInternalScope($query, $receiverTypes, $arrayReceiverTypes);
                     break;
             }
         }
@@ -184,32 +188,48 @@ trait InboxFilterTrait
 
     /**
      * Query REGIONAL scope filter
-     * Letters sent by UK
+     * Letters forwarded by UK
+     * Letters sent by different user role code
      *
      * @param Object $query
-     * @param String $groupRole
-     * @param String $deptId
+     * @param String $receiverTypes
+     * @param Array $arrayReceiverTypes
      *
      * @return Void
      */
-    private function queryRegionalScope($query)
+    private function queryRegionalScope($query, $receiverTypes, $arrayReceiverTypes)
     {
-        $query->whereHas('sender', fn($query) => $query->where('GroupId', PeopleGroupTypeEnum::UK()));
+        if ($receiverTypes && $arrayReceiverTypes[0] == 'to_forward') {
+            $query->whereHas('sender', fn($query) => $query
+                ->where('GroupId', PeopleGroupTypeEnum::UK()));
+        } else {
+            $query->whereHas('sender', fn($query) => $query
+                ->whereHas('role', fn($query) => $query
+                    ->where('RoleCode', '!=', auth()->user()->role->RoleCode)));
+        }
     }
 
     /**
      * Query INTERNAL scope filter
-     * Letter sent not by UK
+     * Letters forwarded not by UK
+     * Letters sent by the same user role codec
      *
      * @param Object $query
-     * @param String $groupRole
-     * @param String $deptId
+     * @param String $receiverTypes
+     * @param Array $arrayReceiverTypes
      *
      * @return Void
      */
-    private function queryInternalScope($query)
+    private function queryInternalScope($query, $receiverTypes, $arrayReceiverTypes)
     {
-        $query->whereHas('sender', fn($query) => $query->where('GroupId', '!=', PeopleGroupTypeEnum::UK()));
+        if ($receiverTypes && $arrayReceiverTypes[0] == 'to_forward') {
+            $query->whereHas('sender', fn($query) => $query
+                ->where('GroupId', '!=', PeopleGroupTypeEnum::UK()));
+        } else {
+            $query->whereHas('sender', fn($query) => $query
+                ->whereHas('role', fn($query) => $query
+                    ->where('RoleCode', '=', auth()->user()->role->RoleCode)));
+        }
     }
 
     /**
