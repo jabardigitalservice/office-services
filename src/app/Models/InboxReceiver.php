@@ -114,6 +114,7 @@ class InboxReceiver extends Model
         $this->filterByFolder($query, $filter);
         $this->filterByForwardStatus($query, $filter);
         $this->filterByReceiverTypes($query, $filter);
+        $this->filterByScope($query, $filter);
         $this->filterByFollowedUpStatus($query, $filter);
         $this->filterByActionLabel($query, $filter);
         return $query;
