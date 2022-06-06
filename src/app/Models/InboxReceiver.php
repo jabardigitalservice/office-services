@@ -53,7 +53,8 @@ class InboxReceiver extends Model
                     $query->whereIn('GIR_Id', function ($query) {
                         $query->select('GIR_Id')
                             ->from('inbox_receiver')
-                            ->where('RoleId_To', 'like', auth()->user()->PrimaryRoleId . '%');
+                            ->where('RoleId_To', 'like', auth()->user()->PrimaryRoleId . '%')
+                            ->orWhere('To_Id', auth()->user()->PeopleId);
                     })
                     ->orWhere('RoleId_From', 'like', auth()->user()->PrimaryRoleId . '%');
                 }
