@@ -162,6 +162,10 @@ trait InboxFilterTrait
                 case InboxReceiverScopeType::INTERNAL():
                     $this->queryInternalScope($query);
                     break;
+
+                case InboxReceiverScopeType::EXTERNAL():
+                    $this->queryExternalScope($query);
+                    break;
             }
         }
     }
@@ -203,8 +207,6 @@ trait InboxFilterTrait
      * Letter sent not by UK
      *
      * @param Object $query
-     * @param String $groupRole
-     * @param String $deptId
      *
      * @return Void
      */
@@ -219,11 +221,24 @@ trait InboxFilterTrait
     }
 
     /**
+     * Query EXTERNAL scope filter
+     * Letters sent from external West Java government
+     *
+     * @param Object $query
+     *
+     * @return Void
+     */
+    private function queryExternalScope($query)
+    {
+        $query->where('ReceiverAs', 'to')
+            ->whereHas('inboxDetail', fn($query) => $query
+                ->where('AsalNaskah', 'eksternal'));
+    }
+
+    /**
      * Query INTERNAL scope filter for Governor
      *
      * @param Object $query
-     * @param String $groupRole
-     * @param String $deptId
      *
      * @return Void
      */
