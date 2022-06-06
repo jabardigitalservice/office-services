@@ -6,6 +6,7 @@ use App\Enums\InboxFilterTypeEnum;
 use App\Enums\InboxReceiverScopeType;
 use App\Enums\ListTypeEnum;
 use App\Enums\PeopleGroupTypeEnum;
+use App\Enums\PeopleRoleIdTypeEnum;
 use Illuminate\Support\Arr;
 
 /**
@@ -209,7 +210,37 @@ trait InboxFilterTrait
      */
     private function queryInternalScope($query)
     {
-        $query->whereHas('sender', fn($query) => $query->where('GroupId', '!=', PeopleGroupTypeEnum::UK()));
+        $userRoleId = auth()->user()->PrimaryRoleId;
+        if ($userRoleId == PeopleRoleIdTypeEnum::GOVERNOR()) {
+            $this->queryInternalScopeGovernor($query);
+        } else {
+            $query->whereHas('sender', fn($query) => $query->where('GroupId', '!=', PeopleGroupTypeEnum::UK()));
+        }
+    }
+
+    /**
+     * Query INTERNAL scope filter for Governor
+     *
+     * @param Object $query
+     * @param String $groupRole
+     * @param String $deptId
+     *
+     * @return Void
+     */
+    private function queryInternalScopeGovernor($query)
+    {
+        $query->where(
+            fn($query) => $query
+                ->whereNotIn('ReceiverAs', ['bcc', 'to'])
+                ->where('ReceiverAs', 'not like', 'to_draft%')
+                ->orWhere(
+                    fn($query) => $query
+                        ->where('ReceiverAs', 'to')
+                        ->whereHas('inboxDetail', fn($query) => $query
+                            ->whereNull('AsalNaskah')
+                            ->orWhere('AsalNaskah', '!=', 'eksternal'))
+                )
+        );
     }
 
     /**
