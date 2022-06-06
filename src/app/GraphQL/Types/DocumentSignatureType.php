@@ -28,7 +28,7 @@ class DocumentSignatureType
             ];
         };
 
-        $signers = $this->getSigners($signaturesResponse, $rootValue);
+        $signers = $this->getSigners($rootValue);
 
         $validation = [
             'isValid' => true,
@@ -61,24 +61,9 @@ class DocumentSignatureType
      *
      * @return Array
      */
-    protected function getSigners($signaturesDetails, $data)
+    protected function getSigners($data)
     {
-        $signatures = $signaturesDetails->details;
-        $regex = "/=.[0-9]+/i";
-
-        $signersIds = [];
-        foreach ($signatures as $signature) {
-            $signer = $signature->info_signer->signer_dn;
-            preg_match($regex, $signer, $rawSignerId);
-            $signerId = explode("=", $rawSignerId[0])[1];
-            array_push($signersIds, $signerId);
-        }
-
-        $signers = People::whereIn('NIP', $signersIds)->get();
-
-        if ($signers->isEmpty()) {
-            $signers = $this->getSignersByData($data);
-        }
+        $signers = $this->getSignersByData($data);
 
         return $signers;
     }

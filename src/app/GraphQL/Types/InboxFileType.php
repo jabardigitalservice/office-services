@@ -32,7 +32,7 @@ class InboxFileType
             ];
         };
 
-        $signers = $this->getSigners($signaturesResponse, $rootValue);
+        $signers = $this->getSigners($rootValue);
 
         $validation = [
             'isValid' => true,
@@ -65,43 +65,28 @@ class InboxFileType
     }
 
     /**
-     * @param Object $signaturesDetails
+     * @param Object $draft
      *
      * @return Array
      */
-    protected function getSigners($signaturesDetails, $draft)
+    protected function getSigners($draft)
     {
-        $signatures = $signaturesDetails->details;
-        $regex = "/=.[0-9]+/i";
-
-        $signersIds = [];
-        foreach ($signatures as $signature) {
-            $signer = $signature->info_signer->signer_dn;
-            preg_match($regex, $signer, $rawSignerId);
-            $signerId = explode("=", $rawSignerId[0])[1];
-            array_push($signersIds, $signerId);
-        }
-
-        $signers = People::whereIn('NIP', $signersIds)->get();
+        $signers = People::whereIn('PeopleId', function ($inboxReceiverCorrection) use ($draft) {
+                        $inboxReceiverCorrection->select('From_Id')
+                                                ->from('inbox_receiver_koreksi')
+                                                ->where('Nid', $draft->NId)
+                                                ->where('ReceiverAs', InboxReceiverCorrectionTypeEnum::SIGNED()->value);
+        })->get();
 
         if ($signers->isEmpty()) {
-            $signers = People::whereIn('PeopleId', function ($inboxReceiverCorrection) use ($draft) {
-                            $inboxReceiverCorrection->select('From_Id')
-                                                    ->from('inbox_receiver_koreksi')
-                                                    ->where('Nid', $draft->NId)
-                                                    ->where('ReceiverAs', InboxReceiverCorrectionTypeEnum::SIGNED()->value);
+            $documentSignature = DocumentSignature::where('file', $draft->FileName_fake)->first();
+            $signers = People::whereIn('PeopleId', function ($query) use ($documentSignature) {
+                $query->select('PeopleIDTujuan')
+                    ->from('m_ttd_kirim')
+                    ->where('status', SignatureStatusTypeEnum::SUCCESS()->value)
+                    ->where('ttd_id', $documentSignature->id)
+                    ->whereIn('PeopleIDTujuan', $documentSignature->documentSignatureSents->pluck('PeopleIDTujuan'));
             })->get();
-
-            if ($signers->isEmpty()) {
-                $documentSignature = DocumentSignature::where('file', $draft->FileName_fake)->first();
-                $signers = People::whereIn('PeopleId', function ($query) use ($documentSignature) {
-                    $query->select('PeopleIDTujuan')
-                        ->from('m_ttd_kirim')
-                        ->where('status', SignatureStatusTypeEnum::SUCCESS()->value)
-                        ->where('ttd_id', $documentSignature->id)
-                        ->whereIn('PeopleIDTujuan', $documentSignature->documentSignatureSents->pluck('PeopleIDTujuan'));
-                })->get();
-            }
         }
 
         return $signers;
