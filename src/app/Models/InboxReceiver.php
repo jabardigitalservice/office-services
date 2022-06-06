@@ -164,13 +164,13 @@ class InboxReceiver extends Model
 
     public function getReceiverAsLabelAttribute()
     {
-        $nonDispositionLabel = 'Naskah Masuk';
+        $toLabel = 'Naskah Masuk';
         if ($this->ReceiverAs == 'to') {
             if (
                 $this->inboxDetail->NTipe == InboxTypeEnum::INBOX()->value ||
                 $this->inboxDetail->NTipe == InboxTypeEnum::OUTBOXNOTADINAS()->value
             ) {
-                $nonDispositionLabel = 'Naskah Masuk Non Disposisi';
+                $toLabel = 'Naskah Masuk Non Disposisi';
             }
         }
 
@@ -181,7 +181,7 @@ class InboxReceiver extends Model
         }
 
         $label = match ($this->ReceiverAs) {
-            'to'                    => $nonDispositionLabel,
+            'to'                    => $toLabel,
             'to_notadinas',
             'to_sprint',
             'to_sprintgub',
