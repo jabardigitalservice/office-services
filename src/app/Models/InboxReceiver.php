@@ -174,7 +174,7 @@ class InboxReceiver extends Model
             }
         }
 
-        if ($this->sender->GroupId != '3' && $this->ReceiverAs == 'to_forward') {
+        if ($this->sender->GroupId != PeopleGroupTypeEnum::UK()->value && $this->ReceiverAs == 'to_forward') {
             $toForwardLabel = 'Naskah Masuk Non Disposis';
         } else {
             $toForwardLabel = 'Teruskan';
