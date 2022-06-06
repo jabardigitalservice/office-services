@@ -164,34 +164,55 @@ class InboxReceiver extends Model
 
     public function getReceiverAsLabelAttribute()
     {
-        $nonDispositionLabel = '';
-        if (
-            $this->inboxDetail->NTipe == InboxTypeEnum::INBOX()->value ||
-            $this->inboxDetail->NTipe == InboxTypeEnum::OUTBOXNOTADINAS()->value
-        ) {
-            $nonDispositionLabel = ' Non Disposisi';
+        $toLabel = 'Naskah Masuk';
+        if ($this->ReceiverAs == 'to') {
+            if (
+                $this->inboxDetail->NTipe == InboxTypeEnum::INBOX()->value ||
+                $this->inboxDetail->NTipe == InboxTypeEnum::OUTBOXNOTADINAS()->value
+            ) {
+                $toLabel = 'Naskah Masuk Non Disposisi';
+            }
+        }
+
+        if ($this->sender->GroupId != PeopleGroupTypeEnum::UK()->value && $this->ReceiverAs == 'to_forward') {
+            $toForwardLabel = 'Naskah Masuk Non Disposis';
+        } else {
+            $toForwardLabel = 'Teruskan';
         }
 
         $label = match ($this->ReceiverAs) {
-            'to'                    => 'Naskah Masuk' . $nonDispositionLabel,
-            'to_undangan'           => 'Undangan',
-            'to_sprint'             => 'Perintah',
-            'to_notadinas'          => 'Nota Dinas',
+            'to'                    => $toLabel,
+            'to_notadinas',
+            'to_sprint',
+            'to_sprintgub',
+            'to_supertugas',
+            'to_pengumuman',
+            'to_suratizin',
+            'to_rekomendasi'        => 'Naskah Masuk Non Disposisi',
+            'to_forward'            => $toForwardLabel,
+            'to_undangan'           => 'Surat Undangan',
+            'to_edaran'             => 'Surat Edaran',
+            'to_instruksigub'       => 'Surat Instruksi Gubernur',
+            'to_keluar'             => 'Surat Dinas',
+            'to_sket'               => 'Surat Keterangan',
             'to_reply'              => 'Naskah Dinas',
             'to_usul'               => 'Jawaban Nota Dinas',
-            'to_forward'            => 'Teruskan',
-            'cc1'                   => 'Disposisi',
-            'bcc'                   => 'Tembusan',
-            'to_keluar'             => 'Surat Dinas Keluar',
             'to_nadin'              => 'Naskah Dinas Lainnya',
             'to_konsep'             => 'Konsep Naskah',
             'to_memo'               => 'Memo',
+            'cc1'                   => 'Disposisi',
+            'bcc'                   => 'Tembusan',
             'to_draft_notadinas'    => 'Konsep Nota Dinas',
-            'to_draft_sprint'       => 'Konsep Surat Perintah',
-            'to_draft_undangan'     => 'Konsep Undangan',
-            'to_draft_keluar'       => 'Konsep surat Dinas',
-            'to_draft_sket'         => 'Konsep surat Keterangan',
+            'to_draft_sprint'       => 'Konsep Surat Perintah Perangkat Daerah',
+            'to_draft_sprintgub'    => 'Konsep Surat Perintah Gubernur',
+            'to_draft_undangan'     => 'Konsep Surat Undangan',
+            'to_draft_edaran'       => 'Konsep Surat Edaran',
+            'to_draft_instruksigub' => 'Konsep Surat Instruksi Gubernur',
+            'to_draft_supertugas'   => 'Konsep Surat Pernyataan Melaksanakan Tugas',
+            'to_draft_keluar'       => 'Konsep Surat Dinas',
+            'to_draft_sket'         => 'Konsep Surat Keterangan',
             'to_draft_pengumuman'   => 'Konsep Pengumuman',
+            'to_draft_suratizin'    => 'Konsep Surat Izin',
             'to_draft_rekomendasi'  => 'Konsep Surat Rekomendasi',
             default                 => 'Konsep Naskah Dinas Lainnya'
         };
