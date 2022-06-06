@@ -67,6 +67,7 @@ type Query {
 
     # You can use this @field code for experiment query leveling -> @field(resolver: "DocumentSignatureQuery@list")
     documentSignatureSents(
+        orderBy: _ @orderBy(columns: ["tgl"])
         search: String @builder(method: "App\\Models\\DocumentSignatureSent@search")
         filter: documentSignatureSentsInput @builder(method: "App\\Models\\DocumentSignatureSent@filter")
     ): [DocumentSignatureSent!]!
