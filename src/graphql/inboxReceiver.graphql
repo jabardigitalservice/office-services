@@ -47,6 +47,7 @@ input ForwardInput {
 enum ScopeType {
     REGIONAL @enum(value: "REGIONAL")
     INTERNAL @enum(value: "INTERNAL")
+    EXTERNAL @enum(value: "EXTERNAL")
 }
 
 input InboxHistoryFilterInput {
