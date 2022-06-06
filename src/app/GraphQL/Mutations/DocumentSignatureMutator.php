@@ -121,7 +121,7 @@ class DocumentSignatureMutator
     protected function pdfFile($data, $newFileName, $verifyCode)
     {
         if ($data->documentSignature->has_footer == false) {
-            $pdfFile = $this->addFooterDocument($data, $newFileName, $verifyCode);
+            $pdfFile = $this->addFooterDocument($data, $verifyCode);
         } else {
             $pdfFile = file_get_contents($data->documentSignature->url);
         }
@@ -271,16 +271,16 @@ class DocumentSignatureMutator
     /**
      * addFooterDocument
      *
-     * @param  mixed $data
-     * @param  mixed $newFileName
+     * @param  mixed  $data
+     * @param  string $verifyCode
      * @return void
      */
-    protected function addFooterDocument($data, $newFileName, $verifyCode)
+    protected function addFooterDocument($data, $verifyCode)
     {
         try {
             $addFooter = Http::post(config('sikd.add_footer_url'), [
                 'pdf' => $data->documentSignature->url,
-                'qrcode' => config('sikd.url') . 'FilesUploaded/ttd/sudah_ttd/' . $newFileName,
+                'qrcode' => config('sikd.url') . 'v/' . $verifyCode,
                 'category' => $data->documentSignature->documentSignatureType->document_paper_type,
                 'code' => $verifyCode
             ]);

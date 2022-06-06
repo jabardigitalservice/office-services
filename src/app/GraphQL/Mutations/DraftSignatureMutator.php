@@ -105,7 +105,7 @@ class DraftSignatureMutator
      * addFooterDocument
      *
      * @param  mixed $draft
-     * @param  mixed $verifyCode
+     * @param  string $verifyCode
      * @return void
      */
     protected function addFooterDocument($draft, $verifyCode)
@@ -113,7 +113,7 @@ class DraftSignatureMutator
         try {
             $addFooter = Http::post(config('sikd.add_footer_url'), [
                 'pdf' => $draft->draft_file . '?esign=true',
-                'qrcode' => config('sikd.url') . 'administrator/anri_mail_tl/log_naskah_masuk_pdf/' . $draft->NId_Temp,
+                'qrcode' => config('sikd.url') . 'v/' . $verifyCode,
                 'category' => $draft->category_footer,
                 'code' => $verifyCode
             ]);
