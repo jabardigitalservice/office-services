@@ -6,6 +6,8 @@ type DocumentSignature {
     updatedAt: String @rename(attribute: "tanggal_update")
     url: String
     code: String
+    attachment: String
+    note: String @rename(attribute: "catatan")
     validation: Validation @field(resolver: "App\\GraphQL\\Types\\DocumentSignatureType@validate")
     inboxFile: InboxFile @belongsTo
     documentSignatureSents: [DocumentSignatureSent]

@@ -30,6 +30,16 @@ class DocumentSignature extends Model
         return $file;
     }
 
+    public function getAttachmentAttribute()
+    {
+        if ($this->lampiran != null) {
+            $path = config('sikd.base_path_file');
+            return $path . 'ttd/lampiran/' . $this->lampiran;
+        }
+
+        return null;
+    }
+
     public function people()
     {
         return $this->belongsTo(People::class, 'PeopleID', 'PeopleId');
