@@ -68,20 +68,18 @@ class DocumentSignatureSent extends Model
         $userId = auth()->user()->PeopleId;
         switch ($objective) {
             case ObjectiveTypeEnum::IN():
-                $query->where(
-                    fn ($query) => $query
-                        ->where('PeopleIDTujuan', $userId)
-                        ->orWhere('PeopleID', $userId)
-                        ->where('status', '!=', SignatureStatusTypeEnum::WAITING()->value)
+                $query->where(fn($query) => $query
+                    ->where('PeopleIDTujuan', $userId)
+                    ->orWhere('PeopleID', $userId)
+                    ->where('status', '!=', SignatureStatusTypeEnum::WAITING()->value)
                 );
                 break;
 
             case ObjectiveTypeEnum::OUT():
-                $query->where(
-                    fn ($query) => $query
-                        ->where('PeopleID', $userId)
-                        ->orWhere('PeopleIDTujuan', $userId)
-                        ->where('status', '!=', SignatureStatusTypeEnum::WAITING()->value)
+                $query->where(fn($query) => $query
+                    ->where('PeopleID', $userId)
+                    ->orWhere('PeopleIDTujuan', $userId)
+                    ->where('status', '!=', SignatureStatusTypeEnum::WAITING()->value)
                 );
                 break;
         }
@@ -97,27 +95,27 @@ class DocumentSignatureSent extends Model
         $withReceiverId = [];
         if ($withReceiver) {
             $withReceiverId = DocumentSignatureSent::where('PeopleIDTujuan', auth()->user()->PeopleId)
-                ->where(function ($query) use ($read) {
-                    if (is_bool($read)) {
-                        $query->where('is_receiver_read', $read);
-                    }
-                })
-                ->with(['sender', 'receiver'])
-                ->pluck('id');
+                    ->where(function ($query) use ($read) {
+                        if (is_bool($read)) {
+                            $query->where('is_receiver_read', $read);
+                        }
+                    })
+                    ->with(['sender', 'receiver'])
+                    ->pluck('id');
         }
 
         //show data on inbox sender if document signature is already actioned
         $withSenderId = [];
         if ($withSender) {
             $withSenderId = DocumentSignatureSent::where('PeopleID', auth()->user()->PeopleId)
-                ->where('status', '!=', SignatureStatusTypeEnum::WAITING()->value)
-                ->where(function ($query) use ($read) {
-                    if (is_bool($read)) {
-                        $query->where('is_sender_read', $read);
-                    }
-                })
-                ->with(['sender', 'receiver'])
-                ->pluck('id');
+                    ->where('status', '!=', SignatureStatusTypeEnum::WAITING()->value)
+                    ->where(function ($query) use ($read) {
+                        if (is_bool($read)) {
+                            $query->where('is_sender_read', $read);
+                        }
+                    })
+                    ->with(['sender', 'receiver'])
+                    ->pluck('id');
         }
 
         $query->whereIn('id', Arr::collapse([$withReceiverId, $withSenderId]));
@@ -131,8 +129,8 @@ class DocumentSignatureSent extends Model
         if ($search) {
             $query->whereIn('ttd_id', function ($inboxQuery) use ($search) {
                 $inboxQuery->select('id')
-                    ->from('m_ttd')
-                    ->where('nama_file', 'LIKE', '%' . $search . '%');
+                ->from('m_ttd')
+                ->where('nama_file', 'LIKE', '%' . $search . '%');
             });
         }
 
