@@ -113,7 +113,7 @@ class DraftSignatureMutator
         try {
             $addFooter = Http::post(config('sikd.add_footer_url'), [
                 'pdf' => $draft->draft_file . '?esign=true',
-                'qrcode' => config('sikd.url') . 'v/' . $verifyCode,
+                'qrcode' => config('sikd.url') . 'verification/document/tte/' . $verifyCode . '?source=qrcode',
                 'category' => $draft->category_footer,
                 'code' => $verifyCode
             ]);

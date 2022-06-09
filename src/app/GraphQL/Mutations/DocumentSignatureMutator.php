@@ -280,7 +280,7 @@ class DocumentSignatureMutator
         try {
             $addFooter = Http::post(config('sikd.add_footer_url'), [
                 'pdf' => $data->documentSignature->url,
-                'qrcode' => config('sikd.url') . 'v/' . $verifyCode,
+                'qrcode' => config('sikd.url') . 'verification/document/tte/' . $verifyCode . '?source=qrcode',
                 'category' => $data->documentSignature->documentSignatureType->document_paper_type,
                 'code' => $verifyCode
             ]);
