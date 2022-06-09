@@ -172,6 +172,7 @@ class DocumentSignatureSent extends Model
     public function outboxFilter($query, $filter)
     {
         $this->filterByStatus($query, $filter);
+        $this->filterByType($query, $filter);
         return $query;
     }
 
@@ -181,6 +182,18 @@ class DocumentSignatureSent extends Model
         if ($statuses || $statuses == '0') {
             $arrayStatuses = explode(", ", $statuses);
             $query->whereIn('status', $arrayStatuses);
+        }
+    }
+
+    private function filterByType($query, $filter)
+    {
+        $types = $filter['types'] ?? null;
+        if ($types) {
+            $arrayTypes = explode(', ', $types);
+            $query->whereHas(
+                'documentSignature',
+                fn ($query) => $query->whereIn('type_id', $arrayTypes)
+            );
         }
     }
 }

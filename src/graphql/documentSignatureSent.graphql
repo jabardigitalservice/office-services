@@ -39,6 +39,7 @@ input documentSignatureSentsInput {
 
 input outboxDocumentSignatureSentsInput {
     statuses: String
+    types: String
 }
 
 input documentSignatureSentTimelineInput {
