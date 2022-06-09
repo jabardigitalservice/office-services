@@ -118,7 +118,7 @@ class DocumentSignatureSent extends Model
                     ->pluck('id');
         }
 
-        $query->whereIn('id', Arr::collapse([$withReceiverId, $withSenderId]));
+        $query->whereIn('id', Arr::collapse([$withReceiverId, $withSenderId]))->where('next', 1);
 
         $this->filterByStatus($query, $filter);
         return $query;
