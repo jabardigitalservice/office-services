@@ -36,8 +36,6 @@ class DocumentSignatureMutator
         $documentSignatureSentId = Arr::get($args, 'input.documentSignatureSentId');
         $passphrase = Arr::get($args, 'input.passphrase');
         $documentSignatureSent = DocumentSignatureSent::findOrFail($documentSignatureSentId);
-        $f = $this->forwardReceiver($documentSignatureSent);
-        dd($f);
 
         if ($documentSignatureSent->status != SignatureStatusTypeEnum::WAITING()->value) {
             throw new CustomException('User already signed this document', 'Status of this document is already signed');
