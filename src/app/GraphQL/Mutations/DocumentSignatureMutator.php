@@ -364,15 +364,15 @@ class DocumentSignatureMutator
                 if ($type == 'UK') {
                     $peopleGroupType = PeopleGroupTypeEnum::UK()->value;
                     $whereField = 'GRoleId';
-                    $whereParams = auth()->user()->role->GRoleId;
+                    $whereParams = $documentSignatureSent->sender->role->GRoleId;
                 }
                 if ($type == 'TU') {
                     $peopleGroupType = PeopleGroupTypeEnum::TU()->value;
                     $whereField = 'Code_Tu';
-                    $whereParams = auth()->user()->role->Code_Tu;
+                    $whereParams = $documentSignatureSent->sender->role->Code_Tu;
                 }
-                $receiver = People::whereHas('role', function ($role) use ($whereField, $whereParams) {
-                    $role->where('RoleCode', auth()->user()->role->RoleCode);
+                $receiver = People::whereHas('role', function ($role) use ($whereField, $whereParams, $documentSignatureSent) {
+                    $role->where('RoleCode', $documentSignatureSent->sender->role->RoleCode);
                     $role->where($whereField, $whereParams);
                 })->where('GroupId', $peopleGroupType)->pluck('PeopleId');
                 break;
