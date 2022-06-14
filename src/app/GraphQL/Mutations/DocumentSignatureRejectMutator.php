@@ -25,14 +25,9 @@ class DocumentSignatureRejectMutator
     public function reject($rootValue, array $args)
     {
         $documentSignatureSentId = Arr::get($args, 'input.documentSignatureSentId');
-        $note = Arr::get($args, 'input.note');
+        $note                    = Arr::get($args, 'input.note');
 
-        $documentSignatureSent = tap(DocumentSignatureSent::where('id', $documentSignatureSentId))->update([
-            'status' => SignatureStatusTypeEnum::REJECT()->value,
-            'catatan' => $note,
-            'tgl' => setDateTimeNowValue(),
-            'is_sender_read' => false
-        ])->first();
+        $documentSignatureSent = DocumentSignatureSent::where('id', $documentSignatureSentId)->first();
 
         if (!$documentSignatureSent) {
             throw new CustomException(
@@ -40,6 +35,13 @@ class DocumentSignatureRejectMutator
                 'Docuement with this id not found'
             );
         }
+
+        $documentSignatureSent->status              = SignatureStatusTypeEnum::REJECT()->value;
+        $documentSignatureSent->catatan             = $note;
+        $documentSignatureSent->tgl                 = setDateTimeNowValue();
+        $documentSignatureSent->is_sender_read      = false;
+        $documentSignatureSent->forward_receiver_id = $documentSignatureSent->PeopleID;
+        $documentSignatureSent->save();
 
         $this->doSendNotification($documentSignatureSentId);
 

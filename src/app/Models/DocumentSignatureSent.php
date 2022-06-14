@@ -48,6 +48,11 @@ class DocumentSignatureSent extends Model
         return $this->belongsTo(People::class, 'previous_sender_id', 'PeopleId');
     }
 
+    public function forward()
+    {
+        return $this->belongsTo(People::class, 'forward_receiver_id', 'PeopleId');
+    }
+
     public function receiverPersonalAccessTokens()
     {
         return $this->hasMany(PersonalAccessToken::class, 'tokenable_id', 'PeopleIDTujuan');
