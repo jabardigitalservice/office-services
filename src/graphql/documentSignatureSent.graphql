@@ -12,6 +12,7 @@ type DocumentSignatureSent {
     sender: People! @with(relation: "sender")
     receiver: People! @with(relation: "receiver")
     previous: People @with(relation: "previous")
+    forward: People @with(relation: "forward")
     read: Boolean @field(resolver: "App\\GraphQL\\Types\\DocumentSignatureSentType@isRead")
     statusRead: Boolean @field(resolver: "App\\GraphQL\\Types\\DocumentSignatureSentType@statusRead")
     isLastSigned: Boolean @field(resolver: "App\\GraphQL\\Types\\DocumentSignatureSentType@isLastSigned")
