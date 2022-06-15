@@ -134,7 +134,7 @@ trait InboxFilterTrait
             ->where('ReceiverAs', '!=', 'bcc')
             ->where('ReceiverAs', '!=', 'cc1')
             ->where(fn($query) => $query
-                ->whereHas('sender', fn($query) => $query->where('GroupId', '!=', PeopleGroupTypeEnum::UK()))
+                ->whereRelation('sender', 'GroupId', '!=', PeopleGroupTypeEnum::UK())
                 ->orWhere('ReceiverAs', '!=', 'to_forward'))
             ->orWhereIn('ReceiverAs', $arrayReceiverTypes));
     }
