@@ -156,11 +156,11 @@ trait InboxFilterTrait
         if ($scope) {
             switch ($scope) {
                 case InboxReceiverScopeType::REGIONAL():
-                    $this->queryRegionalScope($query);
+                    $this->queryRegionalScope($query, $filter);
                     break;
 
                 case InboxReceiverScopeType::INTERNAL():
-                    $this->queryInternalScope($query);
+                    $this->queryInternalScope($query, $filter);
                     break;
 
                 case InboxReceiverScopeType::EXTERNAL():
@@ -189,34 +189,46 @@ trait InboxFilterTrait
 
     /**
      * Query REGIONAL scope filter
-     * Letters sent by UK
+     * Letters forwarded by UK
+     * Letters sent by different user role code
      *
      * @param Object $query
-     * @param String $groupRole
-     * @param String $deptId
+     * @param Array $filter
      *
      * @return Void
      */
-    private function queryRegionalScope($query)
+    private function queryRegionalScope($query, $filter)
     {
-        $query->whereHas('sender', fn($query) => $query->where('GroupId', PeopleGroupTypeEnum::UK()));
+        $receiverTypes = $filter['receiverTypes'] ?? null;
+        $arrayReceiverTypes = explode(', ', $receiverTypes);
+        if ($receiverTypes && $arrayReceiverTypes[0] == 'to_forward') {
+            $query->whereRelation('sender', 'GroupId', '=', PeopleGroupTypeEnum::UK());
+        } else {
+            $query->whereRelation('sender.role', 'RoleCode', '!=', auth()->user()->role->RoleCode);
+        }
     }
 
     /**
      * Query INTERNAL scope filter
-     * Letter sent not by UK
+     * Letters forwarded not by UK
+     * Letters sent by the same user role code
      *
      * @param Object $query
+     * @param Array $filter
      *
      * @return Void
      */
-    private function queryInternalScope($query)
+    private function queryInternalScope($query, $filter)
     {
+        $receiverTypes = $filter['receiverTypes'] ?? null;
+        $arrayReceiverTypes = explode(', ', $receiverTypes);
         $userRoleId = auth()->user()->PrimaryRoleId;
         if ($userRoleId == PeopleRoleIdTypeEnum::GOVERNOR()) {
-            $this->queryInternalScopeGovernor($query);
+            $query->whereRelation('sender.role', 'RoleCode', '=', auth()->user()->role->RoleCode);
+        } elseif ($receiverTypes && $arrayReceiverTypes[0] == 'to_forward') {
+            $query->whereRelation('sender', 'GroupId', '!=', PeopleGroupTypeEnum::UK());
         } else {
-            $query->whereHas('sender', fn($query) => $query->where('GroupId', '!=', PeopleGroupTypeEnum::UK()));
+            $query->whereRelation('sender.role', 'RoleCode', '=', auth()->user()->role->RoleCode);
         }
     }
 
@@ -231,8 +243,7 @@ trait InboxFilterTrait
     private function queryExternalScope($query)
     {
         $query->where('ReceiverAs', 'to')
-            ->whereHas('inboxDetail', fn($query) => $query
-                ->where('AsalNaskah', 'eksternal'));
+            ->whereRelation('inboxDetail', 'AsalNaskah', '=', 'eksternal');
     }
 
     /**
