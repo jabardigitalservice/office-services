@@ -371,9 +371,11 @@ class DocumentSignatureMutator
                     $whereField = 'Code_Tu';
                     $whereParams = $documentSignatureSent->sender->role->Code_Tu;
                 }
-                $receiver = People::whereHas('role', function ($role) use ($whereField, $whereParams, $documentSignatureSent) {
+                $receiver = People::whereHas('role', function ($role) use ($whereField, $whereParams, $documentSignatureSent, $type) {
                     $role->where('RoleCode', $documentSignatureSent->sender->role->RoleCode);
-                    $role->where($whereField, $whereParams);
+                    if (($documentSignatureSent->sender->PrimaryRoleId != 'uk.1' || $documentSignatureSent->sender->PrimaryRoleId != 'uk.1.1.1') && $type != 'UK') {
+                        $role->where($whereField, $whereParams);
+                    }
                 })->where('GroupId', $peopleGroupType)->pluck('PeopleId');
                 break;
 
