@@ -80,34 +80,31 @@ class DocumentSignatureMutator
         $verifyCode = strtoupper(substr(sha1(uniqid(mt_rand(), true)), 0, 10));
         $pdfFile = $this->pdfFile($data, $newFileName, $verifyCode);
 
-        try {
-            $response = Http::withHeaders([
-                'Authorization' => 'Basic ' . $setupConfig['auth'],
-                'Cookie' => 'JSESSIONID=' . $setupConfig['cookies'],
-            ])->attach(
-                'file',
-                $pdfFile,
-                $data->documentSignature->file
-            )->post($url, [
-                'nik'           => $setupConfig['nik'],
-                'passphrase'    => $passphrase,
-                'tampilan'      => 'invisible',
-                'image'         => 'false',
-            ]);
+        $response = Http::withHeaders([
+            'Authorization' => 'Basic ' . $setupConfig['auth'],
+            'Cookie' => 'JSESSIONID=' . $setupConfig['cookies'],
+        ])->attach(
+            'file',
+            $pdfFile,
+            $data->documentSignature->file
+        )->post($url, [
+            'nik'           => $setupConfig['nik'],
+            'passphrase'    => $passphrase,
+            'tampilan'      => 'invisible',
+            'image'         => 'false',
+        ]);
 
-            if ($response->status() != Response::HTTP_OK) {
-                throw new CustomException('Document failed', 'Signature failed, check your file again');
-            } else {
-                //Save new file & update status
-                $data = $this->saveNewFile($response, $data, $newFileName, $verifyCode);
-            }
-            //Save log
-            $this->createPassphraseSessionLog($response);
-
-            return $data;
-        } catch (\Throwable $th) {
-            throw new CustomException('Connect API for sign document failed', $th->getMessage());
+        if ($response->status() != Response::HTTP_OK) {
+            $bodyResponse = json_decode($response->body());
+            throw new CustomException('Signature failed', $bodyResponse->error);
+        } else {
+            //Save new file & update status
+            $data = $this->saveNewFile($response, $data, $newFileName, $verifyCode);
         }
+        //Save log
+        $this->createPassphraseSessionLog($response);
+
+        return $data;
     }
 
     /**
