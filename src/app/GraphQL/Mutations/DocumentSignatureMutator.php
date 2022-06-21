@@ -365,8 +365,8 @@ class DocumentSignatureMutator
                 }
                 if ($type == 'TU') {
                     $peopleGroupType = PeopleGroupTypeEnum::TU()->value;
-                    $whereField = 'Code_Tu';
-                    $whereParams = $documentSignatureSent->sender->role->Code_Tu;
+                    $whereField = 'RoleId';
+                    $whereParams = $documentSignatureSent->sender->role->RoleId;
                 }
                 $receiver = People::whereHas('role', function ($role) use ($whereField, $whereParams, $documentSignatureSent, $type) {
                     $role->where('RoleCode', $documentSignatureSent->sender->role->RoleCode);
