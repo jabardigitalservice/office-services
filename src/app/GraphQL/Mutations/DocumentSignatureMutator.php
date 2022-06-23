@@ -399,16 +399,18 @@ class DocumentSignatureMutator
         // If still not exist
         // Find people TU role with tiered top parent role id
         $foundTUAccount              = false;
-        $removeRolePattern           = 2;
+        $removeRolePattern           = 2; // substr last string, remove number and dots from role id
         $findByTieredTopParentRoleId = null;
         do {
+            // example uk.1.2.3.4.5 will be uk.1.2.3.4
             $TieredTopParentRoleId = substr($documentSignatureSent->sender->PrimaryRoleId, 0, -$removeRolePattern);
+
             $findByTieredTopParentRoleId = $this->queryFindPeopleRoleTU($documentSignatureSent, 'RoleId', $TieredTopParentRoleId);
             if (count($findByTieredTopParentRoleId) != 0) {
                 $foundTUAccount = true;
             } else {
                 $foundTUAccount = false;
-                $removeRolePattern = $removeRolePattern + 2;
+                $removeRolePattern = $removeRolePattern + 2; // add 2 number for remove number and dots from role id
             }
         } while ($foundTUAccount == false);
 
