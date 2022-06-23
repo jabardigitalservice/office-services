@@ -357,29 +357,84 @@ class DocumentSignatureMutator
         $type = optional($documentSignatureSent->documentSignature->documentSignatureType)->document_forward_target;
         switch ($type) {
             case 'UK':
-            case 'TU':
-                if ($type == 'UK') {
-                    $peopleGroupType = PeopleGroupTypeEnum::UK()->value;
-                    $whereField = 'GRoleId';
-                    $whereParams = $documentSignatureSent->sender->role->GRoleId;
-                }
-                if ($type == 'TU') {
-                    $peopleGroupType = PeopleGroupTypeEnum::TU()->value;
-                    $whereField = 'RoleId';
-                    $whereParams = $documentSignatureSent->sender->role->RoleId;
-                }
-                $receiver = People::whereHas('role', function ($role) use ($whereField, $whereParams, $documentSignatureSent, $type) {
+                $receiver = People::whereHas('role', function ($role) use ($documentSignatureSent) {
                     $role->where('RoleCode', $documentSignatureSent->sender->role->RoleCode);
-                    if (($documentSignatureSent->sender->PrimaryRoleId != 'uk.1' || $documentSignatureSent->sender->PrimaryRoleId != 'uk.1.1.1') && $type != 'UK') {
-                        $role->where($whereField, $whereParams);
+                    if (($documentSignatureSent->sender->PrimaryRoleId != 'uk.1' || $documentSignatureSent->sender->PrimaryRoleId != 'uk.1.1.1')) {
+                        $role->where('GRoleId', $documentSignatureSent->sender->role->GRoleId);
                     }
-                })->where('GroupId', $peopleGroupType)->pluck('PeopleId');
+                })->where('GroupId', PeopleGroupTypeEnum::UK()->value)->pluck('PeopleId');
+
+                break;
+            case 'TU':
+                $receiver = $this->findPeopleRoleTUForwardReceiver($documentSignatureSent);
                 break;
 
             default:
                 $receiver = null;
                 break;
         }
+
+        return $receiver;
+    }
+
+    /**
+     * findPeopleRoleTUForwardReceiver
+     *
+     * @param  object $documentSignatureSent
+     * @return mixed
+     */
+    public function findPeopleRoleTUForwardReceiver($documentSignatureSent)
+    {
+        // Find people TU role with code tu
+        $findByCode = $this->queryFindPeopleRoleTU($documentSignatureSent, 'Code_TU', $documentSignatureSent->sender->role->Code_Tu);
+        if ($findByCode) {
+            return $findByCode;
+        }
+        // If still not exist
+        // Find people TU role with role id
+        $findByRoleId = $this->queryFindPeopleRoleTU($documentSignatureSent, 'RoleId', $documentSignatureSent->sender->PrimaryRoleId);
+        if ($findByRoleId) {
+            return $findByRoleId;
+        }
+        // If still not exist
+        // Find people TU role with parent role id
+        $findByParentRoleId = $this->queryFindPeopleRoleTU($documentSignatureSent, 'RoleId', $documentSignatureSent->sender->RoleAtasan);
+        if ($findByParentRoleId) {
+            return $findByParentRoleId;
+        }
+        // If still not exist
+        // Find people TU role with tiered top parent role id
+        $foundTUAccount              = false;
+        $removeRolePattern           = 2;
+        $findByTieredTopParentRoleId = null;
+        do {
+            $TieredTopParentRoleId = substr($documentSignatureSent->sender->PrimaryRoleId, 0, -$removeRolePattern);
+            $findByTieredTopParentRoleId = $this->queryFindPeopleRoleTU($documentSignatureSent, 'RoleId', $TieredTopParentRoleId);
+            if ($findByTieredTopParentRoleId) {
+                $foundTUAccount = true;
+            } else {
+                $foundTUAccount = false;
+                $removeRolePattern = $removeRolePattern + 2;
+            }
+        } while ($foundTUAccount == false);
+
+        return $findByTieredTopParentRoleId;
+    }
+
+    /**
+     * queryFindPeopleRoleTU
+     *
+     * @param  object $documentSignatureSent
+     * @param  string $whereField
+     * @param  string $whereParams
+     * @return void
+     */
+    public function queryFindPeopleRoleTU($documentSignatureSent, $whereField, $whereParams)
+    {
+        $receiver = People::whereHas('role', function ($role) use ($documentSignatureSent, $whereField, $whereParams) {
+            $role->where('RoleCode', $documentSignatureSent->sender->role->RoleCode);
+            $role->where($whereField, $whereParams);
+        })->where('GroupId', PeopleGroupTypeEnum::TU()->value)->pluck('PeopleId');
 
         return $receiver;
     }
