@@ -388,7 +388,6 @@ class DocumentSignatureMutator
      */
     public function findPeopleRoleTUForwardReceiver($documentSignatureSent)
     {
-        // If still not exist
         // Find people TU role with role id
         $findByRoleId = $this->queryFindPeopleRoleTU($documentSignatureSent, 'RoleId', $documentSignatureSent->sender->PrimaryRoleId);
         if (count($findByRoleId) != 0) {
