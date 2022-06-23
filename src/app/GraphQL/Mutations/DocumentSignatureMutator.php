@@ -41,6 +41,9 @@ class DocumentSignatureMutator
             throw new CustomException('User already signed this document', 'Status of this document is already signed');
         }
 
+        $receiver = $this->forwardReceiver($documentSignatureSent);
+        dd($receiver);
+
         $checkParent = DocumentSignatureSent::where('ttd_id', $documentSignatureSent->ttd_id)
             ->where('urutan', $documentSignatureSent->urutan - 1)
             ->first();
@@ -385,21 +388,16 @@ class DocumentSignatureMutator
      */
     public function findPeopleRoleTUForwardReceiver($documentSignatureSent)
     {
-        // Find people TU role with code tu
-        $findByCode = $this->queryFindPeopleRoleTU($documentSignatureSent, 'Code_TU', $documentSignatureSent->sender->role->Code_Tu);
-        if ($findByCode) {
-            return $findByCode;
-        }
         // If still not exist
         // Find people TU role with role id
         $findByRoleId = $this->queryFindPeopleRoleTU($documentSignatureSent, 'RoleId', $documentSignatureSent->sender->PrimaryRoleId);
-        if ($findByRoleId) {
+        if (count($findByRoleId) != 0) {
             return $findByRoleId;
         }
         // If still not exist
         // Find people TU role with parent role id
         $findByParentRoleId = $this->queryFindPeopleRoleTU($documentSignatureSent, 'RoleId', $documentSignatureSent->sender->RoleAtasan);
-        if ($findByParentRoleId) {
+        if (count($findByParentRoleId) != 0) {
             return $findByParentRoleId;
         }
         // If still not exist
@@ -410,7 +408,7 @@ class DocumentSignatureMutator
         do {
             $TieredTopParentRoleId = substr($documentSignatureSent->sender->PrimaryRoleId, 0, -$removeRolePattern);
             $findByTieredTopParentRoleId = $this->queryFindPeopleRoleTU($documentSignatureSent, 'RoleId', $TieredTopParentRoleId);
-            if ($findByTieredTopParentRoleId) {
+            if (count($findByTieredTopParentRoleId) != 0) {
                 $foundTUAccount = true;
             } else {
                 $foundTUAccount = false;
@@ -427,7 +425,7 @@ class DocumentSignatureMutator
      * @param  object $documentSignatureSent
      * @param  string $whereField
      * @param  string $whereParams
-     * @return void
+     * @return mixed
      */
     public function queryFindPeopleRoleTU($documentSignatureSent, $whereField, $whereParams)
     {
