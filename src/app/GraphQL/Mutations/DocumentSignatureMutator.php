@@ -41,9 +41,6 @@ class DocumentSignatureMutator
             throw new CustomException('User already signed this document', 'Status of this document is already signed');
         }
 
-        $receiver = $this->forwardReceiver($documentSignatureSent);
-        dd($receiver);
-
         $checkParent = DocumentSignatureSent::where('ttd_id', $documentSignatureSent->ttd_id)
             ->where('urutan', $documentSignatureSent->urutan - 1)
             ->first();
