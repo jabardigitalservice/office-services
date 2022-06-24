@@ -17,11 +17,11 @@ class ValidationDocumentQuery
     {
         switch ($args['filter']['type']) {
             case ValidationDocumentTypeEnum::QRCODE():
-                $code = $this->getValidationByQRCode($args);
+                return $this->getValidationByQRCode($args);
                 break;
 
             case ValidationDocumentTypeEnum::CODE():
-                $code = $args['filter']['value'];
+                return $this->getValidationByCode($args['filter']['value']);
                 break;
 
             default:
@@ -31,8 +31,6 @@ class ValidationDocumentQuery
                 );
                 break;
         }
-
-        return $this->getValidationByCode($code);
     }
 
     /**
@@ -45,9 +43,30 @@ class ValidationDocumentQuery
     {
         $splitValue = explode('/', $args['filter']['value']);
         $latestSlug = end($splitValue);
-        $codeFromUrl = explode('?', $latestSlug);
 
-        return reset($codeFromUrl);
+        $inboxFile = InboxFile::where('NId', $latestSlug)
+                            ->orWhere('FileName_fake', $latestSlug)
+                            ->where('Id_dokumen', '<>', '')->first();
+
+        $documentSignature = null;
+        if (!$inboxFile) {
+            $documentSignature = DocumentSignature::where('file', $latestSlug)->first();
+        }
+
+        if ($documentSignature != null || $inboxFile != null) {
+            $data = collect([
+                'documentSignature' => $documentSignature,
+                'inboxFile' => $inboxFile
+            ]);
+
+            return $data;
+        } else {
+            $splitValue = explode('/', $args['filter']['value']);
+            $latestSlug = end($splitValue);
+            $codeFromUrl = explode('?', $latestSlug);
+
+            return $this->getValidationByCode(reset($codeFromUrl));
+        }
     }
 
     /**
