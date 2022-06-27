@@ -35,6 +35,7 @@ class SendNotificationController extends Controller
                     'groupId' => $request->groupId,
                     'peopleIds' => $request->peopleIds,
                     'action' => $request->action,
+                    'list' => $request->list
                 ];
 
                 $doNotification = $this->setupInboxReceiverNotification($messageAttribute);
@@ -43,7 +44,9 @@ class SendNotificationController extends Controller
             case FcmNotificationActionTypeEnum::DOC_SIGNATURE_DETAIL():
                 $messageAttribute['data'] = [
                     'documentSignatureSentId' => $request['documentSignatureSentId'],
-                    'target' => $request['target']
+                    'target' => $request['target'],
+                    'action' => $request->action,
+                    'list' => $request->list
                 ];
 
                 $doNotification = $this->setupDocumentSignatureSentNotification($messageAttribute);
@@ -57,6 +60,7 @@ class SendNotificationController extends Controller
                     'receiverAs' => $request->receiverAs,
                     'peopleIds' => $request->peopleIds,
                     'action' => $request->action,
+                    'list' => $request->list
                 ];
 
                 $doNotification = $this->setupInboxReceiverNotification($messageAttribute);
