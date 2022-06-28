@@ -206,8 +206,6 @@ class InboxMutator
             $list = FcmNotificationListTypeEnum::DRAFT_INSIDE();
         }
 
-        dd($list);
-
         $body = $body . '. Klik disini untuk membaca dan menindaklanjuti pesan.';
         $peopleId = substr($inboxData['groupId'], 0, -19);
         $dateString = substr($inboxData['groupId'], -19);
