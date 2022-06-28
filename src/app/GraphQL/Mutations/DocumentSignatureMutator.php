@@ -16,6 +16,7 @@ use App\Models\People;
 use Carbon\Carbon;
 use Illuminate\Http\Response;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
 
@@ -41,7 +42,7 @@ class DocumentSignatureMutator
         if ($documentSignatureSent->status != SignatureStatusTypeEnum::WAITING()->value) {
             throw new CustomException('User already signed this document', 'Status of this document is already signed');
         }
-
+        $this->forwardReceiver($documentSignatureSent);
         $checkParent = DocumentSignatureSent::where('ttd_id', $documentSignatureSent->ttd_id)
             ->where('urutan', $documentSignatureSent->urutan - 1)
             ->first();
@@ -151,16 +152,12 @@ class DocumentSignatureMutator
         //save to storage path for temporary file
         Storage::disk('local')->put($newFileName, $pdf->body());
 
-        try {
-            //transfer to existing service
-            $response = $this->doTransferFile($newFileName);
-            if ($response->status() != Response::HTTP_OK) {
-                throw new CustomException('Webhook failed', json_decode($response));
-            } else {
-                $data = $this->updateDocumentSentStatus($data, $newFileName, $verifyCode);
-            }
-        } catch (\Throwable $th) {
-            throw new CustomException('Connect API for webhook store file failed', $th->getMessage());
+        //transfer to existing service
+        $response = $this->doTransferFile($newFileName);
+        if ($response->status() != Response::HTTP_OK) {
+            throw new CustomException('Connect API for webhook store file failed', json_decode($response));
+        } else {
+            $data = $this->updateDocumentSentStatus($data, $newFileName, $verifyCode);
         }
 
         Storage::disk('local')->delete($newFileName);
@@ -197,48 +194,55 @@ class DocumentSignatureMutator
      */
     protected function updateDocumentSentStatus($data, $newFileName, $verifyCode)
     {
-        //change filename with _signed & update stastus
-        if ($data->documentSignature->has_footer == false) {
-            $updateFileData = DocumentSignature::where('id', $data->ttd_id)->update([
-                'status' => SignatureStatusTypeEnum::SUCCESS()->value,
-                'file' => $newFileName,
-                'code' => $verifyCode,
-                'has_footer' => true,
-            ]);
-        } else {
-            $updateFileData = DocumentSignature::where('id', $data->ttd_id)->update([
-                'status' => SignatureStatusTypeEnum::SUCCESS()->value,
-            ]);
-        }
-
-        //update status document sent to 1 (signed)
-        $updateDocumentSent = tap(DocumentSignatureSent::where('id', $data->id))->update([
-            'status' => SignatureStatusTypeEnum::SUCCESS()->value,
-            'next' => 1,
-            'tgl_ttd' => setDateTimeNowValue(),
-            'is_sender_read' => false
-        ])->first();
-
-        //check if any next siganture require
-        $nextDocumentSent = DocumentSignatureSent::where('ttd_id', $data->ttd_id)
-                                                ->where('urutan', $data->urutan + 1)
-                                                ->first();
-        if ($nextDocumentSent) {
-            DocumentSignatureSent::where('id', $nextDocumentSent->id)->update([
-                'next' => 1
-            ]);
-            //Send notification to next people
-            $this->doSendNotification($nextDocumentSent->id);
-        } else {
-            $documentSignatureForwardIds = $this->doForward($data);
-            if (!$documentSignatureForwardIds) {
-                throw new CustomException(
-                    'Forward document failed',
-                    'Return ids is missing. Please try again.'
-                );
+        DB::beginTransaction();
+        try {
+            //change filename with _signed & update stastus
+            if ($data->documentSignature->has_footer == false) {
+                $updateFileData = DocumentSignature::where('id', $data->ttd_id)->update([
+                    'status' => SignatureStatusTypeEnum::SUCCESS()->value,
+                    'file' => $newFileName,
+                    'code' => $verifyCode,
+                    'has_footer' => true,
+                ]);
+            } else {
+                $updateFileData = DocumentSignature::where('id', $data->ttd_id)->update([
+                    'status' => SignatureStatusTypeEnum::SUCCESS()->value,
+                ]);
             }
-            //Send notification to sender
-            $this->doSendForwardNotification($data->id, $data->receiver->PeopleName);
+
+            //update status document sent to 1 (signed)
+            $updateDocumentSent = tap(DocumentSignatureSent::where('id', $data->id))->update([
+                'status' => SignatureStatusTypeEnum::SUCCESS()->value,
+                'next' => 1,
+                'tgl_ttd' => setDateTimeNowValue(),
+                'is_sender_read' => false
+            ])->first();
+
+            //check if any next siganture require
+            $nextDocumentSent = DocumentSignatureSent::where('ttd_id', $data->ttd_id)
+                                                    ->where('urutan', $data->urutan + 1)
+                                                    ->first();
+            if ($nextDocumentSent) {
+                DocumentSignatureSent::where('id', $nextDocumentSent->id)->update([
+                    'next' => 1
+                ]);
+                //Send notification to next people
+                $this->doSendNotification($nextDocumentSent->id);
+            } else {
+                $documentSignatureForwardIds = $this->doForward($data);
+                if (!$documentSignatureForwardIds) {
+                    throw new CustomException(
+                        'Forward document failed',
+                        'Return ids is missing. Please try again.'
+                    );
+                }
+                //Send notification to sender
+                $this->doSendForwardNotification($data->id, $data->receiver->PeopleName);
+            }
+            DB::commit();
+        } catch (\Throwable $th) {
+            DB::rollBack();
+            throw new CustomException('Connect API for webhook store file failed', $th->getMessage());
         }
 
         return $updateDocumentSent;
@@ -362,11 +366,10 @@ class DocumentSignatureMutator
             case 'UK':
                 $receiver = People::whereHas('role', function ($role) use ($documentSignatureSent) {
                     $role->where('RoleCode', $documentSignatureSent->sender->role->RoleCode);
-                    if (($documentSignatureSent->sender->PrimaryRoleId != 'uk.1' || $documentSignatureSent->sender->PrimaryRoleId != 'uk.1.1.1')) {
+                    if (!in_array($documentSignatureSent->sender->PrimaryRoleId, array('uk.1', 'uk.1.1.1'))) {
                         $role->where('GRoleId', $documentSignatureSent->sender->role->GRoleId);
                     }
                 })->where('GroupId', PeopleGroupTypeEnum::UK()->value)->pluck('PeopleId');
-
                 break;
             case 'TU':
                 $receiver = $this->findPeopleRoleTUForwardReceiver($documentSignatureSent);
