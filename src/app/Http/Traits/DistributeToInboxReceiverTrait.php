@@ -3,6 +3,7 @@
 namespace App\Http\Traits;
 
 use App\Enums\FcmNotificationActionTypeEnum;
+use App\Enums\FcmNotificationListTypeEnum;
 use App\Models\InboxReceiver;
 use App\Models\People;
 use Carbon\Carbon;
@@ -69,6 +70,7 @@ trait DistributeToInboxReceiverTrait
                 'groupId' => $inboxId,
                 'peopleIds' => explode(', ', $stringReceiversIds),
                 'action' => FcmNotificationActionTypeEnum::INBOX_DETAIL(),
+                'list' => FcmNotificationListTypeEnum::DRAFT_OUTSIDE()
             ]
         ];
 

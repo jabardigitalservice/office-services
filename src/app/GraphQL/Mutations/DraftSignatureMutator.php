@@ -5,6 +5,7 @@ namespace App\GraphQL\Mutations;
 use App\Enums\ActionLabelTypeEnum;
 use App\Enums\DraftConceptStatusTypeEnum;
 use App\Enums\FcmNotificationActionTypeEnum;
+use App\Enums\FcmNotificationListTypeEnum;
 use App\Enums\InboxReceiverCorrectionTypeEnum;
 use App\Enums\PeopleGroupTypeEnum;
 use App\Enums\PeopleIsActiveEnum;
@@ -462,6 +463,7 @@ class DraftSignatureMutator
                 'groupId' => $groupId,
                 'peopleIds' => $receiverIds,
                 'action' => FcmNotificationActionTypeEnum::INBOX_DETAIL(),
+                'list' => FcmNotificationListTypeEnum::DRAFT_INSIDE()
             ]
         ];
 

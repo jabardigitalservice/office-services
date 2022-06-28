@@ -3,6 +3,7 @@
 namespace App\GraphQL\Mutations;
 
 use App\Enums\DocumentSignatureSentNotificationTypeEnum;
+use App\Enums\FcmNotificationListTypeEnum;
 use App\Enums\PeopleGroupTypeEnum;
 use App\Enums\SignatureStatusTypeEnum;
 use App\Http\Traits\SendNotificationTrait;
@@ -258,7 +259,8 @@ class DocumentSignatureMutator
             ],
             'data' => [
                 'documentSignatureSentId' => $nextDocumentSentId,
-                'target' => DocumentSignatureSentNotificationTypeEnum::RECEIVER()
+                'target' => DocumentSignatureSentNotificationTypeEnum::RECEIVER(),
+                'list' => FcmNotificationListTypeEnum::SIGNATURE()
             ]
         ];
 
@@ -304,7 +306,8 @@ class DocumentSignatureMutator
             ],
             'data' => [
                 'documentSignatureSentId' => $id,
-                'target' => DocumentSignatureSentNotificationTypeEnum::SENDER()
+                'target' => DocumentSignatureSentNotificationTypeEnum::SENDER(),
+                'list' => FcmNotificationListTypeEnum::SIGNATURE()
             ]
         ];
 
