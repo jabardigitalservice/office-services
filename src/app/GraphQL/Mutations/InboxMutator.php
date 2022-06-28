@@ -4,6 +4,7 @@ namespace App\GraphQL\Mutations;
 
 use App\Enums\ActionLabelTypeEnum;
 use App\Enums\FcmNotificationActionTypeEnum;
+use App\Enums\FcmNotificationListTypeEnum;
 use App\Enums\PeopleGroupTypeEnum;
 use App\Enums\PeopleProposedTypeEnum;
 use App\Http\Traits\SendNotificationTrait;
@@ -185,17 +186,24 @@ class InboxMutator
         $sender = auth()->user()->PeopleName;
         $title = '';
         $body = $dept . ' telah mengirimkan surat terkait dengan ' . $inbox->Hal;
+        $list = FcmNotificationListTypeEnum::INBOX_INTERNAL();
 
         if ($action == PeopleProposedTypeEnum::FORWARD()) {
+            $receiver = People::find($inboxData['receiversIds'][0]);
             $actionMessage = FcmNotificationActionTypeEnum::INBOX_DETAIL();
+            if (!$this->isSameDepartment(auth()->user(), $receiver)) {
+                $list = FcmNotificationListTypeEnum::INBOX_REGIONAL();
+            }
         } elseif ($action == PeopleProposedTypeEnum::DISPOSITION()) {
             $title = 'Disposisi Naskah';
             $body = $sender . ' telah mendisposisikan ' . $inbox->type->JenisName . ' terkait dengan ' . $inbox->Hal;
             $actionMessage = FcmNotificationActionTypeEnum::DISPOSITION_DETAIL();
+            $list = FcmNotificationListTypeEnum::DISPOSITION();
         } elseif ($this->isDraftScope($action)) {
             $title = 'Review Naskah';
             $body = 'Terdapat ' . $inbox->type->JenisName . ' terkait dengan ' . $inbox->Hal . ' yang harus segera Anda periksa';
             $actionMessage = FcmNotificationActionTypeEnum::DRAFT_DETAIL();
+            $list = FcmNotificationListTypeEnum::DRAFT_INSIDE();
         }
 
         $body = $body . '. Klik disini untuk membaca dan menindaklanjuti pesan.';
@@ -213,6 +221,7 @@ class InboxMutator
                 'groupId' => $peopleId . $date,
                 'peopleIds' => $inboxData['receiversIds'],
                 'action' => $actionMessage,
+                'list' => $list,
             ]
         ];
 
@@ -447,5 +456,17 @@ class InboxMutator
             PeopleProposedTypeEnum::NUMBERING_TU()->value   => true,
             default                                         => false
         };
+    }
+
+    /**
+     * Check if the sender and the receiver are the same department
+     * @param Object $sender
+     * @param Object $receiver
+     *
+     * @return Boolean
+     */
+    private function isSameDepartment($sender, $receiver)
+    {
+        return ($sender->role->rolecode == $receiver->role->rolecode);
     }
 }

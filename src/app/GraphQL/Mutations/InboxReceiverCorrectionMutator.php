@@ -4,6 +4,7 @@ namespace App\GraphQL\Mutations;
 
 use App\Enums\ActionLabelTypeEnum;
 use App\Enums\FcmNotificationActionTypeEnum;
+use App\Enums\FcmNotificationListTypeEnum;
 use App\Http\Traits\SendNotificationTrait;
 use App\Models\Draft;
 use App\Models\InboxCorrection;
@@ -159,6 +160,7 @@ class InboxReceiverCorrectionMutator
                 'peopleIds' => $draftData['receiversIds'],
                 'receiverAs' => 'koreksi',
                 'action' => FcmNotificationActionTypeEnum::DRAFT_REVIEW(),
+                'list' => FcmNotificationListTypeEnum::DRAFT_INSIDE()
             ]
         ];
 

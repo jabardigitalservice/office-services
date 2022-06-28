@@ -4,6 +4,7 @@ namespace App\GraphQL\Mutations;
 
 use App\Enums\ActionLabelTypeEnum;
 use App\Enums\FcmNotificationActionTypeEnum;
+use App\Enums\FcmNotificationListTypeEnum;
 use App\Exceptions\CustomException;
 use App\Http\Traits\SendNotificationTrait;
 use App\Models\Draft;
@@ -140,6 +141,7 @@ class DraftNumberMutator
                 'peopleIds' => [$receiver->PeopleId],
                 'receiverAs' => 'meneruskan',
                 'action' => FcmNotificationActionTypeEnum::DRAFT_DETAIL(),
+                'list' => FcmNotificationListTypeEnum::DRAFT_INSIDE()
             ]
         ];
 
