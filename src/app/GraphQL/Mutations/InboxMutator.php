@@ -5,8 +5,10 @@ namespace App\GraphQL\Mutations;
 use App\Enums\ActionLabelTypeEnum;
 use App\Enums\FcmNotificationActionTypeEnum;
 use App\Enums\FcmNotificationListTypeEnum;
+use App\Enums\InboxOriginTypeEnum;
 use App\Enums\PeopleGroupTypeEnum;
 use App\Enums\PeopleProposedTypeEnum;
+use App\Enums\PeopleRoleIdTypeEnum;
 use App\Http\Traits\SendNotificationTrait;
 use App\Models\Draft;
 use App\Models\Inbox;
@@ -184,21 +186,23 @@ class InboxMutator
         $inbox = $this->definePrimaryModel($action, $inboxData['inboxId']);
         $dept = $inbox->createdBy->role->rolecode->rolecode_sort;
         $sender = auth()->user()->PeopleName;
+        $receiver = People::find($inboxData['receiversIds'][0]);
+
         $title = '';
         $body = $dept . ' telah mengirimkan surat terkait dengan ' . $inbox->Hal;
         $list = FcmNotificationListTypeEnum::INBOX_INTERNAL();
 
         if ($action == PeopleProposedTypeEnum::FORWARD()) {
-            $receiver = People::find($inboxData['receiversIds'][0]);
             $actionMessage = FcmNotificationActionTypeEnum::INBOX_DETAIL();
             if (!$this->isSameDepartment(auth()->user(), $receiver)) {
                 $list = FcmNotificationListTypeEnum::INBOX_REGIONAL();
             }
+            $list = $this->getGovernorNotifList($list, $receiver->PrimaryRoleId, $inbox);
         } elseif ($action == PeopleProposedTypeEnum::DISPOSITION()) {
             $title = 'Disposisi Naskah';
             $body = $sender . ' telah mendisposisikan ' . $inbox->type->JenisName . ' terkait dengan ' . $inbox->Hal;
             $actionMessage = FcmNotificationActionTypeEnum::DISPOSITION_DETAIL();
-            $list = FcmNotificationListTypeEnum::DISPOSITION();
+            $list = $this->getGovernorNotifList($list, $receiver->PrimaryRoleId, $inbox);
         } elseif ($this->isDraftScope($action)) {
             $title = 'Review Naskah';
             $body = 'Terdapat ' . $inbox->type->JenisName . ' terkait dengan ' . $inbox->Hal . ' yang harus segera Anda periksa';
@@ -468,5 +472,24 @@ class InboxMutator
     private function isSameDepartment($sender, $receiver)
     {
         return ($sender->role->rolecode == $receiver->role->rolecode);
+    }
+
+    /**
+     * Define governor notification list type
+     * @param FcmNotificationListTypeEnum $list
+     * @param String $receiverRoleId
+     * @param Inbox $inbox
+     *
+     * @return Void
+     */
+    private function getGovernorNotifList($list, $receiverRoleId, $inbox)
+    {
+        if ($receiverRoleId == PeopleRoleIdTypeEnum::GOVERNOR()) {
+            $list = FcmNotificationListTypeEnum::INBOX_INTERNAL_GUB();
+            if ($inbox->AsalNaskah == InboxOriginTypeEnum::EXTERNAL()) {
+                $list = FcmNotificationListTypeEnum::INBOX_EXTERNAL_GUB();
+            }
+        }
+        return $list;
     }
 }
