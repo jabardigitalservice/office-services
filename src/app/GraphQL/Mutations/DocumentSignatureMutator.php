@@ -153,7 +153,7 @@ class DocumentSignatureMutator
         Storage::disk('local')->put($newFileName, $pdf->body());
 
         //transfer to existing service
-        $response = $this->doTransferFile($newFileName);
+        $response = $this->doTransferFile($data, $newFileName);
         if ($response->status() != Response::HTTP_OK) {
             throw new CustomException('Connect API for webhook store file failed', json_decode($response));
         } else {
@@ -168,21 +168,59 @@ class DocumentSignatureMutator
     /**
      * doTransferFile
      *
+     * @param  collection $data
      * @param  string $newFileName
      * @return mixed
      */
-    public function doTransferFile($newFileName)
+    protected function doTransferFile($data, $newFileName)
     {
+        // setup body request
+        $documentRequest = [
+            'first_tier' => false,
+            'last_tier' => false,
+            'document_name' => $data->documentSignature->file // original name file before renamed
+        ];
+        // check if this esign is first tier
+        if ($data->urutan == 1) {
+            $documentRequest['first_tier'] = true;
+        }
+        // check if this esign is last tier
+        $nextDocumentSent = $this->findNextDocumentSent($data);
+        if (!$nextDocumentSent) {
+            $documentRequest['last_tier'] = true;
+            $documentRequest['document_name'] = $data->documentSignature->tmp_draft_file;
+        }
+
         $fileSignatured = fopen(Storage::path($newFileName), 'r');
+        /**
+         * This code will running :
+         * Transfer file to service existing
+         * Remove original file (first tier) and original with draft label file (last tier)
+        **/
         $response = Http::withHeaders([
             'Secret' => config('sikd.webhook_secret'),
         ])->attach(
             'signature',
             $fileSignatured,
             $newFileName
-        )->post(config('sikd.webhook_url'));
+        )->post(config('sikd.webhook_url'), $documentRequest);
 
         return $response;
+    }
+
+    /**
+     * findNextDocumentSent
+     *
+     * @param  collection $data
+     * @return collection
+     */
+    protected function findNextDocumentSent($data)
+    {
+        $nextDocumentSent = DocumentSignatureSent::where('ttd_id', $data->ttd_id)
+                                                    ->where('urutan', $data->urutan + 1)
+                                                    ->first();
+
+        return $nextDocumentSent;
     }
 
     /**
@@ -219,9 +257,7 @@ class DocumentSignatureMutator
             ])->first();
 
             //check if any next siganture require
-            $nextDocumentSent = DocumentSignatureSent::where('ttd_id', $data->ttd_id)
-                                                    ->where('urutan', $data->urutan + 1)
-                                                    ->first();
+            $nextDocumentSent = $this->findNextDocumentSent($data);
             if ($nextDocumentSent) {
                 DocumentSignatureSent::where('id', $nextDocumentSent->id)->update([
                     'next' => 1
@@ -281,8 +317,11 @@ class DocumentSignatureMutator
     protected function addFooterDocument($data, $verifyCode)
     {
         try {
-            $addFooter = Http::post(config('sikd.add_footer_url'), [
-                'pdf' => $data->documentSignature->url,
+            $addFooter = Http::attach(
+                'pdf',
+                file_get_contents($data->documentSignature->url),
+                $data->documentSignature->file
+            )->post(config('sikd.add_footer_url'), [
                 'qrcode' => config('sikd.url') . 'verification/document/tte/' . $verifyCode . '?source=qrcode',
                 'category' => $data->documentSignature->documentSignatureType->document_paper_type,
                 'code' => $verifyCode
