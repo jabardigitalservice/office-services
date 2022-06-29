@@ -153,7 +153,7 @@ class DocumentSignatureMutator
         Storage::disk('local')->put($newFileName, $pdf->body());
 
         //transfer to existing service
-        $response = $this->doTransferFile($data, $newFileName);
+        $response = $this->doTransferFile($newFileName);
         if ($response->status() != Response::HTTP_OK) {
             throw new CustomException('Connect API for webhook store file failed', json_decode($response));
         } else {
@@ -168,31 +168,14 @@ class DocumentSignatureMutator
     /**
      * doTransferFile
      *
-     * @param  collection $data
      * @param  string $newFileName
      * @return mixed
      */
-    protected function doTransferFile($data, $newFileName)
+    protected function doTransferFile($newFileName)
     {
-        // setup body request
-        $documentRequest = [
-            'first_tier' => false,
-            'last_tier' => false,
-            'document_name' => $data->documentSignature->file // original name file before renamed
-        ];
-        // check if this esign is first tier
-        if ($data->urutan == 1) {
-            $documentRequest['first_tier'] = true;
-        }
-        // check if this esign is last tier
-        $nextDocumentSent = $this->findNextDocumentSent($data);
-        if (!$nextDocumentSent) {
-            $documentRequest['last_tier'] = true;
-            $documentRequest['document_name'] = $data->documentSignature->tmp_draft_file;
-        }
-
         $fileSignatured = fopen(Storage::path($newFileName), 'r');
         /**
+         * TODO
          * This code will running :
          * Transfer file to service existing
          * Remove original file (first tier) and original with draft label file (last tier)
@@ -203,7 +186,7 @@ class DocumentSignatureMutator
             'signature',
             $fileSignatured,
             $newFileName
-        )->post(config('sikd.webhook_url'), $documentRequest);
+        )->post(config('sikd.webhook_url'));
 
         return $response;
     }
