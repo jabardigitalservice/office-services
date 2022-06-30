@@ -171,9 +171,15 @@ class DocumentSignatureMutator
      * @param  string $newFileName
      * @return mixed
      */
-    public function doTransferFile($newFileName)
+    protected function doTransferFile($newFileName)
     {
         $fileSignatured = fopen(Storage::path($newFileName), 'r');
+        /**
+         * TODO
+         * This code will running :
+         * Transfer file to service existing
+         * Remove original file (first tier) and original with draft label file (last tier)
+        **/
         $response = Http::withHeaders([
             'Secret' => config('sikd.webhook_secret'),
         ])->attach(
@@ -183,6 +189,21 @@ class DocumentSignatureMutator
         )->post(config('sikd.webhook_url'));
 
         return $response;
+    }
+
+    /**
+     * findNextDocumentSent
+     *
+     * @param  collection $data
+     * @return collection
+     */
+    protected function findNextDocumentSent($data)
+    {
+        $nextDocumentSent = DocumentSignatureSent::where('ttd_id', $data->ttd_id)
+                                                    ->where('urutan', $data->urutan + 1)
+                                                    ->first();
+
+        return $nextDocumentSent;
     }
 
     /**
@@ -219,9 +240,7 @@ class DocumentSignatureMutator
             ])->first();
 
             //check if any next siganture require
-            $nextDocumentSent = DocumentSignatureSent::where('ttd_id', $data->ttd_id)
-                                                    ->where('urutan', $data->urutan + 1)
-                                                    ->first();
+            $nextDocumentSent = $this->findNextDocumentSent($data);
             if ($nextDocumentSent) {
                 DocumentSignatureSent::where('id', $nextDocumentSent->id)->update([
                     'next' => 1
@@ -281,8 +300,11 @@ class DocumentSignatureMutator
     protected function addFooterDocument($data, $verifyCode)
     {
         try {
-            $addFooter = Http::post(config('sikd.add_footer_url'), [
-                'pdf' => $data->documentSignature->url,
+            $addFooter = Http::attach(
+                'pdf',
+                file_get_contents($data->documentSignature->url),
+                $data->documentSignature->file
+            )->post(config('sikd.add_footer_url'), [
                 'qrcode' => config('sikd.url') . 'verification/document/tte/' . $verifyCode . '?source=qrcode',
                 'category' => $data->documentSignature->documentSignatureType->document_paper_type,
                 'code' => $verifyCode
