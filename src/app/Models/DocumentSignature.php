@@ -30,6 +30,19 @@ class DocumentSignature extends Model
         return $file;
     }
 
+    public function getUrlPublicAttribute()
+    {
+        $path = config('sikd.base_path_file');
+        $file = $path . 'ttd/draft/' . $this->tmp_draft_file;
+        $headers = @get_headers($file);
+        if ($headers && in_array('Content-Type: application/pdf', $headers)) {
+            $file = $file;
+        } else {
+            $file = $path . 'ttd/sudah_ttd/' . $this->file;
+        }
+        return $file;
+    }
+
     public function getAttachmentAttribute()
     {
         if ($this->lampiran != null) {

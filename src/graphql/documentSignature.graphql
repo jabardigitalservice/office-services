@@ -4,7 +4,7 @@ type DocumentSignature {
     createdBy: People! @belongsTo(relation: "people")
     createdAt: String @rename(attribute: "tanggal")
     updatedAt: String @rename(attribute: "tanggal_update")
-    url: String
+    url: String @rename(attribute: "url_public")
     code: String
     attachment: String
     note: String @rename(attribute: "catatan")
