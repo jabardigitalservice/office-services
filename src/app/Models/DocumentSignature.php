@@ -32,7 +32,10 @@ class DocumentSignature extends Model
         $path = config('sikd.base_path_file');
         $file = $this->checkFile($path . 'ttd/draft/' . $this->tmp_draft_file);
         if ($file == false) {
-            $file = $path . 'ttd/sudah_ttd/' . $this->file;
+            $file = $this->checkFile($path . 'ttd/sudah_ttd/' . $this->file);
+            if ($file == false) { // handle for old data
+                $file = $path . 'ttd/blm_ttd/' . $this->file;
+            }
         }
         return $file;
     }
