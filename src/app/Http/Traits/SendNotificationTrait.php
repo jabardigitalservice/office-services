@@ -118,11 +118,10 @@ trait SendNotificationTrait
         $messageAttribute = [
             'registration_ids' => $token,
             'notification' => $request['notification'],
-            'data' => [
-                'id' => $record->id,
-                'action' => $action
-            ]
+            'data' => $request['data']
         ];
+
+        $messageAttribute['data']['id'] = $record->id;
 
         if (
             $action == FcmNotificationActionTypeEnum::DRAFT_DETAIL() ||
