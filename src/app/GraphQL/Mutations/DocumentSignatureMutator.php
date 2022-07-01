@@ -42,14 +42,6 @@ class DocumentSignatureMutator
         if ($documentSignatureSent->status != SignatureStatusTypeEnum::WAITING()->value) {
             throw new CustomException('User already signed this document', 'Status of this document is already signed');
         }
-        $this->forwardReceiver($documentSignatureSent);
-        $checkParent = DocumentSignatureSent::where('ttd_id', $documentSignatureSent->ttd_id)
-            ->where('urutan', $documentSignatureSent->urutan - 1)
-            ->first();
-
-        if ($checkParent && $checkParent->status != SignatureStatusTypeEnum::SUCCESS()->value) {
-            throw new CustomException('Parent user is not already signed this document', 'Parent user of list signature assign is not already signed');
-        }
 
         $setupConfig = $this->setupConfigSignature();
         $file = $this->fileExist($documentSignatureSent->documentSignature->url);
