@@ -11,7 +11,7 @@
         "endroid/qr-code": "^4.4",
         "firebase/php-jwt": "^5.4",
         "fruitcake/laravel-cors": "^2.0",
-        "guzzlehttp/guzzle": "^7.0.1",
+        "guzzlehttp/guzzle": "7.4.5",
         "laravel/framework": "^8.54",
         "laravel/sanctum": "^2.11",
         "laravel/tinker": "^2.5",
