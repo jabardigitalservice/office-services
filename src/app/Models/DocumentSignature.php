@@ -49,6 +49,14 @@ class DocumentSignature extends Model
         return false;
     }
 
+    public function getCanDownloadAttribute()
+    {
+        if (str_contains($this->url_public, 'sudah_ttd')) {
+            return true;
+        }
+        return false;
+    }
+
     public function getAttachmentAttribute()
     {
         if ($this->lampiran != null) {

@@ -5,6 +5,7 @@ type DocumentSignature {
     createdAt: String @rename(attribute: "tanggal")
     updatedAt: String @rename(attribute: "tanggal_update")
     url: String @rename(attribute: "url_public")
+    canDownload: Boolean @rename(attribute: "canDownload")
     code: String
     attachment: String
     note: String @rename(attribute: "catatan")
