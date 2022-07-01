@@ -123,11 +123,18 @@ class InboxReceiver extends Model
 
     public function search($query, $search)
     {
-        $query->whereIn('NId', function ($inboxQuery) use ($search) {
-            $inboxQuery->select('NId')
-            ->from('inbox')
-            ->where('Hal', 'LIKE', '%' . $search . '%');
-        });
+        if ($search) {
+            $query->whereIn(
+                'NId',
+                fn ($query) => $query
+                    ->select('NId')
+                    ->from('inbox')
+                    ->whereRaw(
+                        'MATCH(Hal) AGAINST(? IN NATURAL LANGUAGE MODE)',
+                        [$search]
+                    )
+            );
+        }
 
         return $query;
     }
