@@ -130,9 +130,7 @@ trait InboxFilterTrait
     private function nondispositionQuery($query, $arrayReceiverTypes)
     {
         $query->where(fn($query) => $query
-            ->where('ReceiverAs', 'not like', 'to_draft%')
-            ->where('ReceiverAs', '!=', 'bcc')
-            ->where('ReceiverAs', '!=', 'cc1')
+            ->whereIn('ReceiverAs', $this->nonDispositionReceiverAsLabel())
             ->where(fn($query) => $query
                 ->whereRelation('sender', 'GroupId', '!=', PeopleGroupTypeEnum::UK())
                 ->orWhere('ReceiverAs', '!=', 'to_forward'))
@@ -416,5 +414,27 @@ trait InboxFilterTrait
     private function urgencyQuery($query, $keysFilter)
     {
         $query->select('UrgensiId')->from('master_urgensi')->whereIn('UrgensiName', $keysFilter);
+    }
+
+    /**
+     * ReceiverAs labels for nondisposition letter
+     * @return Array
+     */
+    private function nonDispositionReceiverAsLabel()
+    {
+        return [
+            'to',
+            'koreksi',
+            'to_edaran',
+            'to_forward',
+            'to_keluar',
+            'to_notadinas',
+            'to_pengumuman',
+            'to_rekomendasi',
+            'to_sket',
+            'to_sprint',
+            'to_super_tugas_keluar',
+            'to_surat_izin_keluar'
+        ];
     }
 }

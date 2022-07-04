@@ -109,12 +109,12 @@ class InboxReceiver extends Model
     public function filter($query, $filter)
     {
         $this->filterByResource($query, $filter);
-        $this->filterByStatus($query, $filter);
         $this->filterByType($query, $filter, ListTypeEnum::INBOX_LIST());
         $this->filterByUrgency($query, $filter, ListTypeEnum::INBOX_LIST());
         $this->filterByFolder($query, $filter);
         $this->filterByForwardStatus($query, $filter);
         $this->filterByReceiverTypes($query, $filter);
+        $this->filterByStatus($query, $filter);
         $this->filterByScope($query, $filter);
         $this->filterByFollowedUpStatus($query, $filter);
         $this->filterByActionLabel($query, $filter);
