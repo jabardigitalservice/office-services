@@ -76,7 +76,7 @@ class DocumentSignatureMutator
         $pdfFile = $this->pdfFile($data, $verifyCode);
         if ($data->documentSignature->has_footer == false) {
             Storage::disk('local')->put($tmpFileFooterName, $pdfFile);
-            $pdfFile = fopen(Storage::path($tmpFileFooterName), 'r');
+            $pdfFile = file_get_contents(Storage::path($tmpFileFooterName), 'r');
         }
 
         $response = Http::withHeaders([
