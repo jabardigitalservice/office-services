@@ -71,8 +71,13 @@ class DocumentSignatureMutator
     {
         $url = $setupConfig['url'] . '/api/sign/pdf';
         $newFileName = $data->documentSignature->document_file_name;
+        $tmpFileFooterName = 'FOOTER_' . $newFileName;
         $verifyCode = strtoupper(substr(sha1(uniqid(mt_rand(), true)), 0, 10));
-        $pdfFile = $this->pdfFile($data, $newFileName, $verifyCode);
+        $pdfFile = $this->pdfFile($data, $verifyCode);
+        if ($data->documentSignature->has_footer == false) {
+            Storage::disk('local')->put($tmpFileFooterName, $pdfFile);
+            $pdfFile = fopen(Storage::path($tmpFileFooterName), 'r');
+        }
 
         $response = Http::withHeaders([
             'Authorization' => 'Basic ' . $setupConfig['auth'],
@@ -87,6 +92,10 @@ class DocumentSignatureMutator
             'tampilan'      => 'invisible',
             'image'         => 'false',
         ]);
+
+        if ($data->documentSignature->has_footer == false) {
+            Storage::disk('local')->delete($tmpFileFooterName);
+        }
 
         if ($response->status() != Response::HTTP_OK) {
             $bodyResponse = json_decode($response->body());
@@ -105,11 +114,10 @@ class DocumentSignatureMutator
      * pdfFile
      *
      * @param  mixed $data
-     * @param  mixed $newFileName
      * @param  mixed $verifyCode
-     * @return void
+     * @return mixed
      */
-    protected function pdfFile($data, $newFileName, $verifyCode)
+    protected function pdfFile($data, $verifyCode)
     {
         if ($data->documentSignature->has_footer == false) {
             $pdfFile = $this->addFooterDocument($data, $verifyCode);
@@ -304,7 +312,7 @@ class DocumentSignatureMutator
      *
      * @param  mixed  $data
      * @param  string $verifyCode
-     * @return void
+     * @return mixed
      */
     protected function addFooterDocument($data, $verifyCode)
     {
