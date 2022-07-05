@@ -105,7 +105,7 @@ class DocumentSignatureMutator
             $data = $this->saveNewFile($response, $data, $newFileName, $verifyCode);
         }
         //Save log
-        $this->createPassphraseSessionLog($response);
+        $this->createPassphraseSessionLog($response, $data->documentSignature->id);
 
         return $data;
     }
