@@ -99,6 +99,8 @@ class DocumentSignatureMutator
 
         if ($response->status() != Response::HTTP_OK) {
             $bodyResponse = json_decode($response->body());
+            //Save log
+            $this->createPassphraseSessionLog($response, $data->documentSignature->id);
             throw new CustomException('Gagal melakukan tanda tangan elektronik', $bodyResponse->error);
         } else {
             //Save new file & update status
