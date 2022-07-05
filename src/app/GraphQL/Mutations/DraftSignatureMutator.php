@@ -78,7 +78,7 @@ class DraftSignatureMutator
         $pdfFile = $this->addFooterDocument($draft, $verifyCode);
 
         Storage::disk('local')->put($tmpFileFooterName, $pdfFile);
-        $pdfFile = fopen(Storage::path($tmpFileFooterName), 'r');
+        $pdfFile = file_get_contents(Storage::path($tmpFileFooterName), 'r');
 
         $response = Http::withHeaders([
             'Authorization' => 'Basic ' . $setupConfig['auth'],
