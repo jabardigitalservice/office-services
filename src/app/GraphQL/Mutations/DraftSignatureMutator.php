@@ -74,7 +74,11 @@ class DraftSignatureMutator
     {
         $url = $setupConfig['url'] . '/api/sign/pdf';
         $verifyCode = strtoupper(substr(sha1(uniqid(mt_rand(), true)), 0, 10));
+        $tmpFileFooterName = 'FOOTER_' . $draft->document_file_name;
         $pdfFile = $this->addFooterDocument($draft, $verifyCode);
+
+        Storage::disk('local')->put($tmpFileFooterName, $pdfFile);
+        $pdfFile = fopen(Storage::path($tmpFileFooterName), 'r');
 
         $response = Http::withHeaders([
             'Authorization' => 'Basic ' . $setupConfig['auth'],
@@ -85,6 +89,8 @@ class DraftSignatureMutator
             'tampilan'      => 'invisible',
             'image'         => 'false',
         ]);
+
+        Storage::disk('local')->delete($tmpFileFooterName);
 
         if ($response->status() != Response::HTTP_OK) {
             $bodyResponse = json_decode($response->body());
