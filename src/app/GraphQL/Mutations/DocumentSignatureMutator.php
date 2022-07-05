@@ -40,19 +40,19 @@ class DocumentSignatureMutator
         $documentSignatureSent = DocumentSignatureSent::findOrFail($documentSignatureSentId);
 
         if ($documentSignatureSent->status != SignatureStatusTypeEnum::WAITING()->value) {
-            throw new CustomException('User already signed this document', 'Status of this document is already signed');
+            throw new CustomException('Dokumen telah ditandatangani', 'Dokumen ini telah ditandatangani oleh Anda');
         }
 
         $setupConfig = $this->setupConfigSignature();
         $file = $this->fileExist($documentSignatureSent->documentSignature->url);
 
         if (!$file) {
-            throw new CustomException('Document not found', 'Document signature not found at website server');
+            throw new CustomException('Dokumen tidak tersedia', 'Dokumen yang akan ditandatangi tidak tersedia');
         }
 
         $checkUser = json_decode($this->checkUserSignature($setupConfig));
         if ($checkUser->status_code != 1111) {
-            throw new CustomException('Invalid user', 'Invalid credential user, please check your passphrase again');
+            throw new CustomException('Invalid NIK User', 'NIK User tidak terdaftar, silahkan hubungi administrator');
         }
 
         $signature = $this->doSignature($setupConfig, $documentSignatureSent, $passphrase);
@@ -99,13 +99,15 @@ class DocumentSignatureMutator
 
         if ($response->status() != Response::HTTP_OK) {
             $bodyResponse = json_decode($response->body());
-            throw new CustomException('Signature failed', $bodyResponse->error);
+            //Save log
+            $this->createPassphraseSessionLog($response, $data->documentSignature->id);
+            throw new CustomException('Gagal melakukan tanda tangan elektronik', $bodyResponse->error);
         } else {
             //Save new file & update status
             $data = $this->saveNewFile($response, $data, $newFileName, $verifyCode);
         }
         //Save log
-        $this->createPassphraseSessionLog($response);
+        $this->createPassphraseSessionLog($response, $data->documentSignature->id);
 
         return $data;
     }
@@ -155,7 +157,7 @@ class DocumentSignatureMutator
         //transfer to existing service
         $response = $this->doTransferFile($data, $newFileName);
         if ($response->status() != Response::HTTP_OK) {
-            throw new CustomException('Connect API for webhook store file failed', json_decode($response));
+            throw new CustomException('Gagal menyambung ke webhook API', 'Gagal mengirimkan file tertandatangani ke webhook, silahkan coba kembali');
         } else {
             $data = $this->updateDocumentSentStatus($data, $newFileName, $verifyCode);
         }
@@ -278,7 +280,7 @@ class DocumentSignatureMutator
             DB::commit();
         } catch (\Throwable $th) {
             DB::rollBack();
-            throw new CustomException('Connect API for webhook store file failed', $th->getMessage());
+            throw new CustomException('Gagal menyimpan perubahan data', $th->getMessage());
         }
 
         return $updateDocumentSent;
@@ -329,7 +331,7 @@ class DocumentSignatureMutator
 
             return $addFooter;
         } catch (\Throwable $th) {
-            throw new CustomException('Add footer document failed', $th->getMessage());
+            throw new CustomException('Gagal menambahkan QRCode dan text footer', 'Gagal menambahkan QRCode dan text footer kedalam PDF, silahkan coba kembali');
         }
     }
 
