@@ -45,13 +45,13 @@ class DraftSignatureMutator
                         ->where('ReceiverAs', InboxReceiverCorrectionTypeEnum::SIGNED()->value)->first();
 
         if ($draftHistory) {
-            throw new CustomException('Document already signed', 'Status of this document is already signed');
+            throw new CustomException('Dokumen telah ditandatangan', 'Dokumen ini telah ditandatangani oleh Anda');
         }
 
         $setupConfig = $this->setupConfigSignature();
         $checkUser = json_decode($this->checkUserSignature($setupConfig));
         if ($checkUser->status_code != 1111) {
-            throw new CustomException('Invalid user', 'Invalid credential user, please check your passphrase again');
+            throw new CustomException('Invalid NIK User', 'NIK User tidak terdaftar, silahkan hubungi administrator');
         }
         $draft     = Draft::where('NId_temp', $draftId)->first();
         $signature = $this->doSignature($setupConfig, $draft, $passphrase);
@@ -94,7 +94,7 @@ class DraftSignatureMutator
 
         if ($response->status() != Response::HTTP_OK) {
             $bodyResponse = json_decode($response->body());
-            throw new CustomException('Signature failed', $bodyResponse->error);
+            throw new CustomException('Gagal melakukan tanda tangan elektronik', $bodyResponse->error);
         } else {
             //Save new file & update status
             $draft = $this->saveNewFile($response, $draft, $verifyCode);
@@ -127,7 +127,7 @@ class DraftSignatureMutator
 
             return $addFooter;
         } catch (\Throwable $th) {
-            throw new CustomException('Add footer document failed', $th->getMessage());
+            throw new CustomException('Gagal menambahkan QRCode dan text footer', 'Gagal menambahkan QRCode dan text footer kedalam PDF, silahkan coba kembali');
         }
     }
 
@@ -152,7 +152,7 @@ class DraftSignatureMutator
             }
             $this->doSaveSignature($draft, $verifyCode);
         } catch (\Throwable $th) {
-            throw new CustomException('Connect API for webhook store file failed', $th->getMessage());
+            throw new CustomException('Gagal menyambung ke webhook API', 'Gagal mengirimkan file tertandatangani ke webhook, silahkan coba kembali');
         }
         //remove temp data
         Storage::disk('local')->delete($draft->document_file_name);
