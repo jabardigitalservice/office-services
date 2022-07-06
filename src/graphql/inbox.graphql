@@ -17,6 +17,7 @@ type Inbox {
     documentBaseUrl: String @rename(attribute: "document_base_url")
     documentPath: String @rename(attribute: "NFileDir")
     documentFile: InboxFile @belongsTo
+    attachment: String
 }
 
 type UnreadCount {

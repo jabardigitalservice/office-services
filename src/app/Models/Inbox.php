@@ -63,4 +63,11 @@ class Inbox extends Model
     {
         $this->attributes['NTglReg'] = $value->copy()->addHours(7);
     }
+
+    public function getAttachmentAttribute()
+    {
+        if ($this->Lampiran) {
+            return $this->getDocumentBaseUrlAttribute() . 'naskah/lampiran/' . $this->Lampiran;
+        }
+    }
 }
