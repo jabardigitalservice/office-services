@@ -130,8 +130,8 @@ class InboxReceiver extends Model
                     ->select('NId')
                     ->from('inbox')
                     ->whereRaw(
-                        'MATCH(Hal) AGAINST(? IN NATURAL LANGUAGE MODE)',
-                        [$search]
+                        'MATCH(Hal) AGAINST(? IN BOOLEAN MODE)',
+                        [$search . '*']
                     )
             );
         }
