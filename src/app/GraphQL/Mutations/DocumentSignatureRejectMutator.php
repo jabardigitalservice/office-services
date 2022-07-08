@@ -39,7 +39,7 @@ class DocumentSignatureRejectMutator
 
         $documentSignatureSent->status              = SignatureStatusTypeEnum::REJECT()->value;
         $documentSignatureSent->catatan             = $note;
-        $documentSignatureSent->tgl                 = setDateTimeNowValue();
+        $documentSignatureSent->tgl_ttd             = setDateTimeNowValue();
         $documentSignatureSent->is_sender_read      = false;
         $documentSignatureSent->forward_receiver_id = $documentSignatureSent->PeopleID;
         $documentSignatureSent->save();
