@@ -8,6 +8,7 @@ use App\Enums\SignatureStatusTypeEnum;
 use App\Enums\StatusReadTypeEnum;
 use App\Http\Traits\SendNotificationTrait;
 use App\Exceptions\CustomException;
+use App\Models\DocumentSignature;
 use App\Models\DocumentSignatureSent;
 use Illuminate\Support\Arr;
 
@@ -43,6 +44,10 @@ class DocumentSignatureRejectMutator
         $documentSignatureSent->is_sender_read      = false;
         $documentSignatureSent->forward_receiver_id = $documentSignatureSent->PeopleID;
         $documentSignatureSent->save();
+
+        $documentSignature = DocumentSignature::where('id', $documentSignatureSent->ttd_id)->first();
+        $documentSignature->status = SignatureStatusTypeEnum::REJECT()->value;
+        $documentSignature->save();
 
         $this->doSendNotification($documentSignatureSentId);
 
