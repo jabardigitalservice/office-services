@@ -230,14 +230,9 @@ class DocumentSignatureMutator
             //change filename with _signed & update stastus
             if ($data->documentSignature->has_footer == false) {
                 $updateFileData = DocumentSignature::where('id', $data->ttd_id)->update([
-                    'status' => SignatureStatusTypeEnum::SUCCESS()->value,
                     'file' => $newFileName,
                     'code' => $verifyCode,
                     'has_footer' => true,
-                ]);
-            } else {
-                $updateFileData = DocumentSignature::where('id', $data->ttd_id)->update([
-                    'status' => SignatureStatusTypeEnum::SUCCESS()->value,
                 ]);
             }
 
@@ -257,7 +252,10 @@ class DocumentSignatureMutator
                 ]);
                 //Send notification to next people
                 $this->doSendNotification($nextDocumentSent->id);
-            } else {
+            } else { // if this is last people
+                $updateFileData = DocumentSignature::where('id', $data->ttd_id)->update([
+                    'status' => SignatureStatusTypeEnum::SUCCESS()->value,
+                ]);
                 $documentSignatureForwardIds = $this->doForward($data);
                 if (!$documentSignatureForwardIds) {
                     throw new CustomException(
