@@ -45,9 +45,9 @@ class DocumentSignatureRejectMutator
         $documentSignatureSent->forward_receiver_id = $documentSignatureSent->PeopleID;
         $documentSignatureSent->save();
 
-        $documentSignature = DocumentSignature::where('id', $documentSignatureSent->ttd_id)->first();
-        $documentSignature->status = SignatureStatusTypeEnum::REJECT()->value;
-        $documentSignature->save();
+        DocumentSignature::where('id', $documentSignatureSent->ttd_id)->update([
+            'status' => SignatureStatusTypeEnum::REJECT()->value,
+        ]);
 
         $this->doSendNotification($documentSignatureSentId);
 
