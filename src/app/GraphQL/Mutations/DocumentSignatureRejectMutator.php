@@ -7,6 +7,7 @@ use App\Enums\SignatureStatusTypeEnum;
 use App\Enums\StatusReadTypeEnum;
 use App\Http\Traits\SendNotificationTrait;
 use App\Exceptions\CustomException;
+use App\Models\DocumentSignature;
 use App\Models\DocumentSignatureSent;
 use Illuminate\Support\Arr;
 
@@ -40,6 +41,10 @@ class DocumentSignatureRejectMutator
                 'Docuement with this id not found'
             );
         }
+
+        DocumentSignature::where('id', $documentSignatureSent->ttd_id)->update([
+            'status' => SignatureStatusTypeEnum::REJECT()->value,
+        ]);
 
         $this->doSendNotification($documentSignatureSentId);
 
