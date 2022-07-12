@@ -202,14 +202,9 @@ class DocumentSignatureMutator
         //change filename with _signed & update stastus
         if ($data->documentSignature->has_footer == false) {
             $updateFileData = DocumentSignature::where('id', $data->ttd_id)->update([
-                'status' => SignatureStatusTypeEnum::SUCCESS()->value,
                 'file' => $newFileName,
                 'code' => $verifyCode,
                 'has_footer' => true,
-            ]);
-        } else {
-            $updateFileData = DocumentSignature::where('id', $data->ttd_id)->update([
-                'status' => SignatureStatusTypeEnum::SUCCESS()->value,
             ]);
         }
 
@@ -226,6 +221,9 @@ class DocumentSignatureMutator
                                                 ->where('urutan', $data->urutan + 1)
                                                 ->first();
         if ($nextDocumentSent) {
+            $updateFileData = DocumentSignature::where('id', $data->ttd_id)->update([
+                'status' => SignatureStatusTypeEnum::SUCCESS()->value,
+            ]);
             DocumentSignatureSent::where('id', $nextDocumentSent->id)->update([
                 'next' => 1
             ]);
