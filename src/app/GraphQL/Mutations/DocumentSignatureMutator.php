@@ -221,15 +221,15 @@ class DocumentSignatureMutator
                                                 ->where('urutan', $data->urutan + 1)
                                                 ->first();
         if ($nextDocumentSent) {
-            $updateFileData = DocumentSignature::where('id', $data->ttd_id)->update([
-                'status' => SignatureStatusTypeEnum::SUCCESS()->value,
-            ]);
             DocumentSignatureSent::where('id', $nextDocumentSent->id)->update([
                 'next' => 1
             ]);
             //Send notification to next people
             $this->doSendNotification($nextDocumentSent->id);
-        } else {
+        } else { // if this is last people
+            $updateFileData = DocumentSignature::where('id', $data->ttd_id)->update([
+                'status' => SignatureStatusTypeEnum::SUCCESS()->value,
+            ]);
             $documentSignatureForwardIds = $this->doForward($data);
             if (!$documentSignatureForwardIds) {
                 throw new CustomException(
