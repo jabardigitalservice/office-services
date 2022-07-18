@@ -192,7 +192,7 @@ class InboxReceiver extends Model
             'to_suratizin',
             'to_surat_izin_keluar',
             'to_sket',
-            'to_rekomendasi'        => 'Surat Rekomendasi',
+            'to_rekomendasi'        => 'Surat Naskah Non Diposisi',
             'to_forward'            => 'Teruskan',
             'to_undangan'           => 'Surat Undangan',
             'to_edaran'             => 'Surat Edaran',
