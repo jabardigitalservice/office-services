@@ -181,12 +181,6 @@ class InboxReceiver extends Model
             }
         }
 
-        if ($this->sender->GroupId != PeopleGroupTypeEnum::UK()->value && $this->ReceiverAs == 'to_forward') {
-            $toForwardLabel = 'Naskah Masuk Non Disposis';
-        } else {
-            $toForwardLabel = 'Teruskan';
-        }
-
         $label = match ($this->ReceiverAs) {
             'to'                    => $toLabel,
             'to_notadinas',
@@ -198,8 +192,8 @@ class InboxReceiver extends Model
             'to_suratizin',
             'to_surat_izin_keluar',
             'to_sket',
-            'to_rekomendasi'        => 'Naskah Masuk Non Disposisi',
-            'to_forward'            => $toForwardLabel,
+            'to_rekomendasi'        => 'Surat Rekomendasi',
+            'to_forward'            => 'Teruskan',
             'to_undangan'           => 'Surat Undangan',
             'to_edaran'             => 'Surat Edaran',
             'to_instruksigub'       => 'Surat Instruksi Gubernur',
