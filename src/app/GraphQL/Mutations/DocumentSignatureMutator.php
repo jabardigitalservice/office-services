@@ -247,6 +247,9 @@ class DocumentSignatureMutator
                 //Send notification to next people
                 $this->doSendNotification($nextDocumentSent->id);
             } else { // if this is last people
+                $updateFileData = DocumentSignature::where('id', $data->ttd_id)->update([
+                    'status' => SignatureStatusTypeEnum::SUCCESS()->value,
+                ]);
                 $documentSignatureForwardIds = $this->doForward($data);
                 if (!$documentSignatureForwardIds) {
                     throw new CustomException(
