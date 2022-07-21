@@ -177,18 +177,12 @@ class DocumentSignatureMutator
         if ($data->urutan == 1) {
             $documentRequest['first_tier'] = true;
         }
-        // check if this esign is last tier
-        $nextDocumentSent = $this->findNextDocumentSent($data);
-        if (!$nextDocumentSent) {
-            $documentRequest['last_tier'] = true;
-            $documentRequest['document_name'] = $data->documentSignature->tmp_draft_file;
-        }
 
         $fileSignatured = fopen(Storage::path($newFileName), 'r');
         /**
          * This code will running :
          * Transfer file to service existing
-         * Remove original file (first tier) and original with draft label file (last tier)
+         * Remove original file (first tier)
         **/
         $response = Http::withHeaders([
             'Secret' => config('sikd.webhook_secret'),
