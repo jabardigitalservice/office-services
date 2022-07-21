@@ -250,13 +250,6 @@ class DocumentSignatureMutator
                 $updateFileData = DocumentSignature::where('id', $data->ttd_id)->update([
                     'status' => SignatureStatusTypeEnum::SUCCESS()->value,
                 ]);
-                $documentSignatureForwardIds = $this->doForward($data);
-                if (!$documentSignatureForwardIds) {
-                    throw new CustomException(
-                        'Forward document failed',
-                        'Return ids is missing. Please try again.'
-                    );
-                }
                 //Send notification to sender
                 $this->doSendForwardNotification($data->id, $data->receiver->PeopleName);
             }
