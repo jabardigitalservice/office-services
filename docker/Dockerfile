@@ -1,4 +1,4 @@
-FROM registry.digitalservice.id/proxyjds/library/alpine:3.13
+FROM registry.digitalservice.id/proxyjds/library/alpine:3.16
 
 LABEL Maintainer="Firman Ayocoding <ayocodingit@gmail.com>" \
     Description="Lightweight container with Nginx 1.16 & PHP-FPM 8.0 based on Alpine Linux (forked from trafex/alpine-nginx-php8)."
@@ -39,10 +39,9 @@ RUN apk --no-cache add \
     php8-fpm \
     nginx \
     supervisor \
-    curl
-
-# https://github.com/codecasts/php-alpine/issues/21
-RUN ln -s /usr/bin/php8 /usr/bin/php
+    curl \
+    librdkafka-dev \
+    php8-pecl-rdkafka
 
 # Configure docker-entrypoint
 # COPY docker-config/docker-entrypoint.sh /usr/local/bin/start
@@ -58,9 +57,6 @@ RUN curl -L "https://download.newrelic.com/php_agent/archive/9.21.0.311/newrelic
 
 # Configure nginx
 COPY docker/docker-config/nginx.conf /etc/nginx/nginx.conf
-
-# Remove default server definition
-RUN rm /etc/nginx/conf.d/default.conf
 
 # Configure PHP-FPM
 COPY docker/docker-config/fpm-pool.conf /etc/php8/php-fpm.d/www.conf
