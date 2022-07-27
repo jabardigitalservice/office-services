@@ -15,6 +15,7 @@
         "laravel/framework": "^8.54",
         "laravel/sanctum": "^2.11",
         "laravel/tinker": "^2.5",
+        "mateusjunges/laravel-kafka": "^1.8",
         "mll-lab/laravel-graphql-playground": "^2.5",
         "nuwave/lighthouse": "^5.23",
         "sentry/sentry-laravel": "^2.8",
