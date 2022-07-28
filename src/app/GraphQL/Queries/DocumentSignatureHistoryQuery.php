@@ -2,6 +2,7 @@
 
 namespace App\GraphQL\Queries;
 
+use App\Enums\SignatureStatusTypeEnum;
 use App\Exceptions\CustomException;
 use App\Models\DocumentSignature;
 use App\Models\DocumentSignatureForward;
@@ -84,11 +85,15 @@ class DocumentSignatureHistoryQuery
      */
     protected function getDocumentSignatureForward($args)
     {
-        $documentSignatureForward = DocumentSignatureForward::where('ttd_id', $args['documentSignatureId'])
+        $documentSignatureForward = DocumentSignatureSent::where('ttd_id', $args['documentSignatureId'])
                                     ->with(['sender', 'receiver'])
-                                    ->orderBy('urutan', 'ASC')
-                                    ->get();
+                                    ->orderBy('urutan', 'DESC')
+                                    ->first();
 
-        return $documentSignatureForward;
+        if ($documentSignatureForward && $documentSignatureForward->status == SignatureStatusTypeEnum::SUCCESS()->value) {
+            return $documentSignatureForward;
+        }
+
+        return null;
     }
 }
